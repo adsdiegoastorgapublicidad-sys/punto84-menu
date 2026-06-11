@@ -612,7 +612,7 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
 <!-- TOAST -->
 <div class="toast" id="toast"><span class="toast-icon">✓</span><span id="toastMsg">Guardado</span></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script type="module">
@@ -1290,12 +1290,87 @@ function exportExcel() {
   const { from, to } = getDateRange();
   const period = (from&&to) ? `${from} al ${to}` : (from||to||'Todo el historial');
 
-  // ── SHEET 1: RESUMEN ──
-  const delivered = filteredOrders.filter(o=>o.status!=='cancelled');
-  const revenue = delivered.reduce((s,o)=>s+(o.subtotal||0),0);
-  const deliveryRev = delivered.reduce((s,o)=>s+(o.delivery?o.delivery.price:0),0);
-  const total = revenue + deliveryRev;
-  const avg = delivered.length ? Math.round(total/delivered.length) : 0;
+  // ── PALETA DE COLORES (hex sin #) ──
+  const BG1='0A0E15', BG2='0F141D', BG3='161D28', BG4='1E2A38', BG5='2A3A4E';
+  const TEAL='00B4A6', AMBER='F5A623', WHITE='EEF4FF', DIM='8FA3BC';
+  const GREEN='2ECC71', RED='E74C3C', YELLOW='F1C40F', PURPLE='9B59B6';
+
+  // ── ESTILOS BASE ──
+  const font = (color, sz=9, bold=false) => ({ name:'Arial', sz, bold, color:{rgb:color} });
+  const fill = (rgb) => ({ patternType:'solid', fgColor:{rgb}, bgColor:{rgb} });
+  const border = (color, style='thin') => ({ top:{style,color:{rgb:color}}, bottom:{style,color:{rgb:color}}, left:{style,color:{rgb:color}}, right:{style,color:{rgb:color}} });
+  const al = (h='left', v='center', wrap=false) => ({ horizontal:h, vertical:v, wrapText:wrap });
+
+  const ST = {
+    title:      { font:font(WHITE,16,true),  fill:fill(BG2), alignment:al('left'), border:border(BG3,'thin') },
+    subtitle:   { font:font(TEAL,10,true),   fill:fill(BG2), alignment:al('left'), border:border(BG3,'thin') },
+    meta:       { font:font(DIM,8,false),    fill:fill(BG2), alignment:al('left'), border:border(BG3,'thin') },
+    blank:      { fill:fill(BG1), border:border(BG1,'thin') },
+    secHdrT:    { font:font(TEAL,9,true),   fill:fill(BG4), alignment:al('left'), border:{left:{style:'medium',color:{rgb:TEAL}},bottom:{style:'thin',color:{rgb:BG5}}} },
+    secHdrA:    { font:font(AMBER,9,true),  fill:fill(BG4), alignment:al('left'), border:{left:{style:'medium',color:{rgb:AMBER}},bottom:{style:'thin',color:{rgb:BG5}}} },
+    colHdr:     { font:font(TEAL,9,true),   fill:fill(BG3), alignment:al('center','center',true), border:{bottom:{style:'medium',color:{rgb:TEAL}}} },
+    colHdrR:    { font:font(TEAL,9,true),   fill:fill(BG3), alignment:al('right','center',true),  border:{bottom:{style:'medium',color:{rgb:TEAL}}} },
+    lbl0:       { font:font(DIM,9,false),   fill:fill(BG1), alignment:al('left') },
+    lbl1:       { font:font(DIM,9,false),   fill:fill(BG3), alignment:al('left') },
+    val0:       { font:font(WHITE,10,true), fill:fill(BG1), alignment:al('right'), numFmt:'#,##0' },
+    val1:       { font:font(WHITE,10,true), fill:fill(BG3), alignment:al('right'), numFmt:'#,##0' },
+    amb0:       { font:font(AMBER,10,true), fill:fill(BG1), alignment:al('right'), numFmt:'#,##0' },
+    amb1:       { font:font(AMBER,10,true), fill:fill(BG3), alignment:al('right'), numFmt:'#,##0' },
+    grn0:       { font:font(GREEN,10,true), fill:fill(BG1), alignment:al('right'), numFmt:'#,##0' },
+    yel0:       { font:font(YELLOW,10,true),fill:fill(BG1), alignment:al('right'), numFmt:'#,##0' },
+    red0:       { font:font(RED,10,true),   fill:fill(BG1), alignment:al('right'), numFmt:'#,##0' },
+    totalLbl:   { font:font(AMBER,11,true), fill:fill(BG4), alignment:al('left'),  border:{top:{style:'medium',color:{rgb:AMBER}},bottom:{style:'medium',color:{rgb:AMBER}}} },
+    totalVal:   { font:font(AMBER,14,true), fill:fill(BG4), alignment:al('right'), numFmt:'#,##0', border:{top:{style:'medium',color:{rgb:AMBER}},bottom:{style:'medium',color:{rgb:AMBER}}} },
+    dat0:       { font:font(WHITE,9,false),  fill:fill(BG1), alignment:al('left') },
+    dat1:       { font:font(WHITE,9,false),  fill:fill(BG3), alignment:al('left') },
+    dat0c:      { font:font(WHITE,9,false),  fill:fill(BG1), alignment:al('center') },
+    dat1c:      { font:font(WHITE,9,false),  fill:fill(BG3), alignment:al('center') },
+    dat0r:      { font:font(WHITE,9,false),  fill:fill(BG1), alignment:al('right'), numFmt:'#,##0' },
+    dat1r:      { font:font(WHITE,9,false),  fill:fill(BG3), alignment:al('right'), numFmt:'#,##0' },
+    dat0bold:   { font:font(AMBER,9,true),   fill:fill(BG1), alignment:al('right'), numFmt:'#,##0' },
+    dat1bold:   { font:font(AMBER,9,true),   fill:fill(BG3), alignment:al('right'), numFmt:'#,##0' },
+    stPend:     { font:font(YELLOW,9,true),  fill:fill(BG3), alignment:al('center') },
+    stPrep:     { font:font(AMBER,9,true),   fill:fill(BG3), alignment:al('center') },
+    stDel:      { font:font(GREEN,9,true),   fill:fill(BG3), alignment:al('center') },
+    stCan:      { font:font(RED,9,true),     fill:fill(BG3), alignment:al('center') },
+    dimVal:     { font:font(DIM,9,false),    fill:fill(BG1), alignment:al('center') },
+    dimVal1:    { font:font(DIM,9,false),    fill:fill(BG3), alignment:al('center') },
+    totRow:     { font:font(AMBER,10,true),  fill:fill(BG4), alignment:al('right'), numFmt:'#,##0', border:{top:{style:'medium',color:{rgb:AMBER}}} },
+    totRowC:    { font:font(AMBER,10,true),  fill:fill(BG4), alignment:al('center'), numFmt:'#,##0', border:{top:{style:'medium',color:{rgb:AMBER}}} },
+  };
+
+  // ── HELPER: crea celda con estilo ──
+  function c(v, s) {
+    const t = typeof v === 'number' ? 'n' : 's';
+    return { v: v ?? '', t: t==='n'&&isNaN(v)?'s':t, s };
+  }
+  function cBlank(n=1) { return Array(n).fill(c('',ST.blank)); }
+  function buildSheet(rows, cols, merges=[]) {
+    const ws = {};
+    let maxC = 0;
+    rows.forEach((row, r) => {
+      row.forEach((cell, col) => {
+        if(col > maxC) maxC = col;
+        const ref = XLSX.utils.encode_cell({r, c:col});
+        ws[ref] = (cell && typeof cell === 'object' && 's' in cell) ? cell : c(cell??'', ST.blank);
+      });
+    });
+    ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length-1,c:maxC}});
+    ws['!cols'] = cols;
+    if(merges.length) ws['!merges'] = merges;
+    return ws;
+  }
+
+  // ── CALCULOS ──
+  const deliv = filteredOrders.filter(o=>o.status!=='cancelled');
+  const revenue = deliv.reduce((s,o)=>s+(o.subtotal||0),0);
+  const delivRev = deliv.reduce((s,o)=>s+(o.delivery?.price||0),0);
+  const grandTotal = revenue + delivRev;
+  const avg = deliv.length ? Math.round(grandTotal/deliv.length) : 0;
+  const cntDel = filteredOrders.filter(o=>o.status==='delivered').length;
+  const cntCan = filteredOrders.filter(o=>o.status==='cancelled').length;
+  const cntPen = filteredOrders.filter(o=>o.status==='pending').length;
+  const cntPre = filteredOrders.filter(o=>o.status==='preparing').length;
 
   const counts = {};
   filteredOrders.forEach(o=>(o.items||[]).forEach(it=>{ counts[it.name]=(counts[it.name]||0)+(it.qty||1); }));
@@ -1304,78 +1379,117 @@ function exportExcel() {
   const zoneCount = {};
   filteredOrders.forEach(o=>{ if(o.delivery?.zone) zoneCount[o.delivery.zone]=(zoneCount[o.delivery.zone]||0)+1; });
 
-  const summaryData = [
-    [local.toUpperCase() + ' — REPORTE DE VENTAS'],
-    ['Período: ' + period],
-    ['Generado: ' + new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'})],
-    [],
-    ['═══════════════════════════════════════'],
-    ['RESUMEN GENERAL'],
-    ['═══════════════════════════════════════'],
-    ['Total de pedidos', filteredOrders.length],
-    ['Pedidos entregados', filteredOrders.filter(o=>o.status==='delivered').length],
-    ['Pedidos cancelados', filteredOrders.filter(o=>o.status==='cancelled').length],
-    ['Pedidos pendientes', filteredOrders.filter(o=>o.status==='pending').length],
-    [],
-    ['INGRESOS'],
-    ['Ingresos por productos', revenue],
-    ['Ingresos por delivery', deliveryRev],
-    ['TOTAL INGRESOS', total],
-    ['Ticket promedio', avg],
-    [],
-    ['PRODUCTOS MÁS VENDIDOS'],
-    ['Producto','Unidades vendidas'],
-    ...topProd.map(([n,q])=>[n,q]),
-    [],
-    ['ZONAS DE DELIVERY'],
-    ['Zona','Pedidos'],
-    ...Object.entries(zoneCount).map(([z,c])=>[z,c]),
+  const genDate = new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'});
+
+  // ══════════════════════════════════════
+  // SHEET 1 — RESUMEN
+  // ══════════════════════════════════════
+  const rows1 = [
+    [c(local.toUpperCase()+' — BURGER & PIZZA', ST.title),       c('',ST.title)],
+    [c('REPORTE DE VENTAS',                       ST.subtitle),   c('',ST.subtitle)],
+    [c('Período: '+period,                         ST.meta),       c('',ST.meta)],
+    [c('Generado: '+genDate,                       ST.meta),       c('',ST.meta)],
+    cBlank(2),
+    [c('📊  RESUMEN GENERAL', ST.secHdrT),  c('',ST.blank)],
+    [c('Total de pedidos',    ST.lbl0),     c(filteredOrders.length, ST.val0)],
+    [c('Pedidos entregados',  ST.lbl1),     c(cntDel, ST.grn0)],
+    [c('En preparación',      ST.lbl0),     c(cntPre, {...ST.val0, font:font(AMBER,10,true)})],
+    [c('Pedidos pendientes',  ST.lbl1),     c(cntPen, ST.yel0)],
+    [c('Pedidos cancelados',  ST.lbl0),     c(cntCan, ST.red0)],
+    cBlank(2),
+    [c('💰  INGRESOS',         ST.secHdrA),  c('',ST.blank)],
+    [c('Ingresos por productos', ST.lbl0),  c(revenue,  ST.amb0)],
+    [c('Ingresos por delivery',  ST.lbl1),  c(delivRev, ST.amb1)],
+    [c('Ticket promedio',         ST.lbl0),  c(avg,      ST.amb0)],
+    cBlank(2),
+    [c('TOTAL GENERAL',  ST.totalLbl),      c(grandTotal, ST.totalVal)],
+    cBlank(2),
   ];
-  const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
-  ws1['!cols'] = [{wch:40},{wch:20}];
-  ws1['A1'] && (ws1['A1'].s = {font:{bold:true,sz:16}});
+  // Productos más vendidos
+  if(topProd.length) {
+    rows1.push([c('🏆  PRODUCTOS MÁS VENDIDOS', ST.secHdrT), c('',ST.blank)]);
+    rows1.push([c('Producto', ST.colHdr), c('Unidades', ST.colHdrR)]);
+    topProd.forEach(([n,q],i) => rows1.push([c(n, i%2?ST.dat1:ST.dat0), c(q, i%2?{...ST.dat1r}:{...ST.dat0r})]));
+    rows1.push(cBlank(2));
+  }
+  // Zonas
+  if(Object.keys(zoneCount).length) {
+    rows1.push([c('🛵  ZONAS DE DELIVERY', ST.secHdrT), c('',ST.blank)]);
+    rows1.push([c('Zona', ST.colHdr), c('Pedidos', ST.colHdrR)]);
+    Object.entries(zoneCount).forEach(([z,q],i) => rows1.push([c(z, i%2?ST.dat1:ST.dat0), c(q, i%2?{...ST.dat1r}:{...ST.dat0r})]));
+  }
+
+  const ws1 = buildSheet(rows1, [{wch:42},{wch:22}], [{s:{r:0,c:0},e:{r:0,c:1}},{s:{r:1,c:0},e:{r:1,c:1}},{s:{r:2,c:0},e:{r:2,c:1}},{s:{r:3,c:0},e:{r:3,c:1}}]);
+  ws1['!rows'] = [{hpt:34},{hpt:22},{hpt:18},{hpt:18},...Array(rows1.length-4).fill({hpt:20})];
   XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
 
-  // ── SHEET 2: PEDIDOS DETALLE ──
-  const headers2 = ['#','Fecha','Hora','Cliente','Dirección','Zona Delivery','Delivery $','Subtotal','Total','Estado','Notas'];
-  const rows2 = filteredOrders.map((o,i)=>[
-    i+1,
-    o.date||'',
-    o.time||'',
-    o.customer?.name||'',
-    o.customer?.address||'',
-    o.delivery?.zone||'Sin delivery',
-    o.delivery?.price||0,
-    o.subtotal||0,
-    o.total||0,
-    STATUS_LABELS[o.status||'pending']||'',
-    o.notes||'',
-  ]);
-  const ws2 = XLSX.utils.aoa_to_sheet([headers2,...rows2]);
-  ws2['!cols'] = [{wch:5},{wch:12},{wch:8},{wch:22},{wch:28},{wch:20},{wch:12},{wch:12},{wch:12},{wch:16},{wch:30}];
+  // ══════════════════════════════════════
+  // SHEET 2 — PEDIDOS DETALLE
+  // ══════════════════════════════════════
+  const STATUS_ST = { pending:ST.stPend, preparing:ST.stPrep, delivered:ST.stDel, cancelled:ST.stCan };
+  const NCOLS2 = 11;
+  const titleRow2 = cBlank(NCOLS2);
+  titleRow2[0] = c(local.toUpperCase()+' — DETALLE DE PEDIDOS', ST.subtitle);
+  titleRow2[6] = c('Período: '+period, ST.meta);
+
+  const hdrs2 = ['#','Fecha','Hora','Cliente','Dirección','Zona Delivery','Delivery $','Subtotal','Total','Estado','Notas'];
+  const hSt2 =  [ST.colHdrR, ST.colHdr, ST.colHdr, ST.colHdr, ST.colHdr, ST.colHdr, ST.colHdrR, ST.colHdrR, ST.colHdrR, ST.colHdr, ST.colHdr];
+
+  const rows2 = [
+    titleRow2,
+    hdrs2.map((h,i) => c(h, hSt2[i])),
+    ...filteredOrders.map((o,i) => {
+      const e = i%2===0;
+      return [
+        c(i+1,               e?ST.dimVal:ST.dimVal1),
+        c(o.date||'',        e?ST.dat0c:ST.dat1c),
+        c(o.time||'',        e?ST.dat0c:ST.dat1c),
+        c(o.customer?.name||'',    e?ST.dat0:ST.dat1),
+        c(o.customer?.address||'', e?ST.dat0:ST.dat1),
+        c(o.delivery?.zone||'—',   e?ST.dat0c:ST.dat1c),
+        c(o.delivery?.price||0,    e?ST.dat0r:ST.dat1r),
+        c(o.subtotal||0,           e?ST.dat0r:ST.dat1r),
+        c(o.total||0,              e?ST.dat0bold:ST.dat1bold),
+        c(STATUS_LABELS[o.status||'pending']||'', STATUS_ST[o.status||'pending']||(e?ST.dat0c:ST.dat1c)),
+        c(o.notes||'',             e?ST.dat0:ST.dat1),
+      ];
+    })
+  ];
+  const m2 = [{s:{r:0,c:0},e:{r:0,c:NCOLS2-1}}];
+  const ws2 = buildSheet(rows2, [{wch:5},{wch:12},{wch:8},{wch:24},{wch:30},{wch:20},{wch:13},{wch:13},{wch:14},{wch:16},{wch:30}], m2);
+  ws2['!rows'] = [{hpt:22},{hpt:24},...Array(filteredOrders.length).fill({hpt:18})];
   XLSX.utils.book_append_sheet(wb, ws2, 'Pedidos Detalle');
 
-  // ── SHEET 3: ITEMS VENDIDOS ──
-  const headers3 = ['Fecha','Pedido Cliente','Producto','Cant.','Precio Unit.','Subtotal Item','Nota'];
-  const rows3 = [];
-  filteredOrders.forEach((o,idx)=>{
+  // ══════════════════════════════════════
+  // SHEET 3 — ITEMS VENDIDOS
+  // ══════════════════════════════════════
+  const NCOLS3 = 7;
+  const titleRow3 = cBlank(NCOLS3);
+  titleRow3[0] = c(local.toUpperCase()+' — ITEMS VENDIDOS', ST.subtitle);
+  const hdrs3 = ['Fecha','Cliente','Producto','Cant.','Precio Unit.','Subtotal Item','Nota'];
+  const rows3 = [titleRow3, hdrs3.map((h,i)=>c(h, i<3||i===6 ? ST.colHdr : ST.colHdrR))];
+  let ri3=0;
+  filteredOrders.forEach(o=>{
     (o.items||[]).forEach(it=>{
+      const e=ri3%2===0;
       rows3.push([
-        o.date||'',
-        o.customer?.name||'',
-        it.name||'',
-        it.qty||1,
-        it.price||0,
-        (it.price||0)*(it.qty||1),
-        it.note||'',
+        c(o.date||'',                  e?ST.dat0c:ST.dat1c),
+        c(o.customer?.name||'',        e?ST.dat0:ST.dat1),
+        c(it.name||'',                 e?ST.dat0:ST.dat1),
+        c(it.qty||1,                   e?ST.dat0c:ST.dat1c),
+        c(it.price||0,                 e?ST.dat0r:ST.dat1r),
+        c((it.price||0)*(it.qty||1),   e?ST.dat0bold:ST.dat1bold),
+        c(it.note||'',                 e?ST.dat0:ST.dat1),
       ]);
+      ri3++;
     });
   });
-  const ws3 = XLSX.utils.aoa_to_sheet([headers3,...rows3]);
-  ws3['!cols'] = [{wch:12},{wch:22},{wch:28},{wch:8},{wch:14},{wch:14},{wch:25}];
+  const ws3 = buildSheet(rows3, [{wch:12},{wch:24},{wch:32},{wch:8},{wch:14},{wch:16},{wch:28}], [{s:{r:0,c:0},e:{r:0,c:NCOLS3-1}}]);
   XLSX.utils.book_append_sheet(wb, ws3, 'Items Vendidos');
 
-  // ── SHEET 4: VENTAS POR DÍA ──
+  // ══════════════════════════════════════
+  // SHEET 4 — VENTAS POR DÍA
+  // ══════════════════════════════════════
   const byDay = {};
   filteredOrders.filter(o=>o.status!=='cancelled').forEach(o=>{
     const d = o.date||'Sin fecha';
@@ -1384,17 +1498,37 @@ function exportExcel() {
     byDay[d].ingresos += o.subtotal||0;
     byDay[d].delivery += o.delivery?.price||0;
   });
-  const headers4 = ['Fecha','Pedidos','Ingresos Productos','Ingresos Delivery','Total del Día'];
-  const rows4 = Object.entries(byDay).sort((a,b)=>a[0].localeCompare(b[0])).map(([d,v])=>[
-    d, v.pedidos, v.ingresos, v.delivery, v.ingresos+v.delivery
-  ]);
-  const ws4 = XLSX.utils.aoa_to_sheet([headers4,...rows4]);
-  ws4['!cols'] = [{wch:14},{wch:10},{wch:22},{wch:20},{wch:16}];
+  const dayEntries = Object.entries(byDay).sort((a,b)=>a[0].localeCompare(b[0]));
+  const totPed = dayEntries.reduce((s,[,v])=>s+v.pedidos,0);
+  const totIng = dayEntries.reduce((s,[,v])=>s+v.ingresos,0);
+  const totDel = dayEntries.reduce((s,[,v])=>s+v.delivery,0);
+
+  const NCOLS4 = 5;
+  const titleRow4 = cBlank(NCOLS4);
+  titleRow4[0] = c(local.toUpperCase()+' — VENTAS POR DÍA', ST.subtitle);
+  const hdrs4 = ['Fecha','Pedidos','Ingresos Productos','Ingresos Delivery','Total del Día'];
+  const rows4 = [
+    titleRow4,
+    hdrs4.map((h,i)=>c(h, i<2?ST.colHdr:ST.colHdrR)),
+    ...dayEntries.map(([d,v],i)=>{
+      const e=i%2===0;
+      return [
+        c(d,               e?ST.dat0c:ST.dat1c),
+        c(v.pedidos,       e?ST.dat0c:ST.dat1c),
+        c(v.ingresos,      e?ST.dat0r:ST.dat1r),
+        c(v.delivery,      e?ST.dat0r:ST.dat1r),
+        c(v.ingresos+v.delivery, e?ST.dat0bold:ST.dat1bold),
+      ];
+    }),
+    [c('TOTALES', ST.totalLbl), c(totPed, ST.totRowC), c(totIng, ST.totRow), c(totDel, ST.totRow), c(totIng+totDel, ST.totalVal)],
+  ];
+  const ws4 = buildSheet(rows4, [{wch:14},{wch:10},{wch:22},{wch:20},{wch:18}], [{s:{r:0,c:0},e:{r:0,c:NCOLS4-1}}]);
+  ws4['!rows'] = [{hpt:22},{hpt:24},...Array(dayEntries.length).fill({hpt:18}),{hpt:22}];
   XLSX.utils.book_append_sheet(wb, ws4, 'Ventas por Día');
 
   const fileName = `Punto84_Ventas_${period.replace(/ /g,'_')}.xlsx`;
   XLSX.writeFile(wb, fileName);
-  toast('✓ Excel exportado correctamente');
+  toast('✓ Excel premium exportado correctamente');
 }
 
 // ── PDF EXPORT ───────────────────────────────────────────────────
@@ -1718,7 +1852,14 @@ function exportPDF() {
   }
 
   const fileName = `Punto84_Reporte_${period.replace(/ /g,'_')}.pdf`;
-  doc.save(fileName);
+  const blob = doc.output('blob');
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(blobUrl); }, 300);
   toast('✓ PDF exportado correctamente');
 }
 
