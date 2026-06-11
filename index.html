@@ -174,6 +174,31 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 footer { padding:30px 20px; text-align:center; color:var(--text-mute); font-size:11px; border-top:1px solid var(--bg-4); margin-top:30px; }
 footer strong { color:var(--accent-dark); }
 
+/* PRODUCT DETAIL MODAL */
+.prod-modal { position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:300; opacity:0; pointer-events:none; transition:opacity 0.3s; backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:16px; }
+.prod-modal.active { opacity:1; pointer-events:all; }
+.prod-modal-box { background:var(--bg-2); border:1px solid var(--bg-5); border-radius:16px; max-width:440px; width:100%; max-height:92vh; overflow-y:auto; transform:scale(0.85); transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); position:relative; }
+.prod-modal.active .prod-modal-box { transform:scale(1); }
+.prod-modal-close { position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.2); color:#fff; width:36px; height:36px; border-radius:50%; font-size:18px; cursor:pointer; z-index:5; backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; }
+.prod-modal-close:hover { background:rgba(231,76,60,0.8); border-color:var(--red); }
+.prod-modal-img { width:100%; aspect-ratio:1/1; background:var(--bg-3); background-size:cover; background-position:center; border-radius:16px 16px 0 0; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:64px; position:relative; }
+.prod-modal-img::after { content:''; position:absolute; bottom:0; left:0; right:0; height:60px; background:linear-gradient(180deg, transparent, var(--bg-2)); }
+.prod-modal-body { padding:20px 22px 22px; }
+.prod-modal-name { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:0.04em; color:var(--text); line-height:1.1; margin-bottom:6px; }
+.prod-modal-price-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:16px; }
+.prod-modal-price { font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:0.04em; color:var(--accent); }
+.prod-modal-cat { font-size:11px; letter-spacing:0.15em; color:var(--text-dim); text-transform:uppercase; background:var(--bg-3); padding:4px 10px; border-radius:12px; border:1px solid var(--bg-4); }
+.prod-modal-desc { font-family:'Crimson Pro',serif; font-style:italic; font-size:15px; color:var(--text-dim); line-height:1.6; margin-bottom:18px; padding:14px; background:var(--bg-3); border-radius:10px; border-left:3px solid var(--primary); }
+.prod-modal-actions { display:flex; gap:10px; align-items:center; }
+.prod-modal-qty { display:flex; align-items:center; gap:10px; background:var(--bg-3); border:1px solid var(--bg-4); border-radius:10px; padding:6px 8px; }
+.prod-modal-qty-btn { background:transparent; border:none; color:var(--text); width:32px; height:32px; border-radius:6px; font-size:18px; font-weight:bold; cursor:pointer; transition:all 0.15s; }
+.prod-modal-qty-btn:hover { background:var(--bg-4); color:var(--primary); }
+.prod-modal-qty-num { font-family:'Bebas Neue',sans-serif; font-size:20px; min-width:30px; text-align:center; color:var(--text); }
+.btn-add-cart { flex:1; background:var(--primary); color:#012e29; border:none; border-radius:10px; padding:14px; font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:0.1em; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; }
+.btn-add-cart:hover { background:var(--primary-light); }
+.btn-add-cart:active { transform:scale(0.97); }
+.prod-modal-unavailable { background:rgba(231,76,60,0.1); border:1px solid var(--red); border-radius:10px; padding:12px; text-align:center; color:var(--red); font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:0.08em; }
+
 ::-webkit-scrollbar { width:5px; }
 ::-webkit-scrollbar-track { background:var(--bg); }
 ::-webkit-scrollbar-thumb { background:var(--bg-5); border-radius:3px; }
@@ -248,6 +273,25 @@ footer strong { color:var(--accent-dark); }
   <span class="cart-fab-total" id="cartFabTotal">$0</span>
   <span>VER PEDIDO →</span>
 </button>
+
+<!-- PRODUCT DETAIL MODAL -->
+<div class="prod-modal" id="prodModal">
+  <div class="prod-modal-box">
+    <button class="prod-modal-close" id="prodModalClose">✕</button>
+    <div class="prod-modal-img" id="prodModalImg">📷</div>
+    <div class="prod-modal-body">
+      <div class="prod-modal-price-row">
+        <div>
+          <div class="prod-modal-name" id="prodModalName">Producto</div>
+        </div>
+        <span class="prod-modal-cat" id="prodModalCat">Categoría</span>
+      </div>
+      <div class="prod-modal-price" id="prodModalPrice">$0</div>
+      <div class="prod-modal-desc" id="prodModalDesc"></div>
+      <div id="prodModalActions"></div>
+    </div>
+  </div>
+</div>
 
 <!-- CART MODAL -->
 <div class="cart-modal" id="cartModal">
@@ -498,6 +542,7 @@ function renderMenu() {
     prods.forEach(p => {
       const item = document.createElement('div');
       item.className = 'product-item'+(p.available===false?' unavailable':'');
+      item.dataset.prod = p.id;
       const img = processDriveUrl(p.img);
       const inCart = cart.find(c => c.id === p.id);
       item.innerHTML =
@@ -510,11 +555,102 @@ function renderMenu() {
     });
   });
 
+  content.querySelectorAll('.product-item').forEach(item => {
+    item.addEventListener('click', e => {
+      if(e.target.closest('[data-add]')) return; // ignore if + button clicked
+      const prodId = item.dataset.prod;
+      if(prodId) openProductDetail(prodId);
+    });
+  });
   content.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     addToCart(b.dataset.add);
   }));
 }
+
+// PRODUCT DETAIL MODAL
+function openProductDetail(prodId) {
+  const p = menuData.products.find(x => x.id === prodId);
+  if(!p) return;
+  const cat = menuData.categories.find(c => c.id === p.catId);
+
+  const img = processDriveUrl(p.img);
+  const imgEl = document.getElementById('prodModalImg');
+  if(img) {
+    imgEl.style.backgroundImage = 'url('+img+')';
+    imgEl.innerHTML = '';
+  } else {
+    imgEl.style.backgroundImage = '';
+    imgEl.innerHTML = '📷';
+  }
+
+  document.getElementById('prodModalName').textContent = p.name || 'Sin nombre';
+  document.getElementById('prodModalPrice').textContent = formatPrice(p.price);
+  document.getElementById('prodModalCat').textContent = cat ? ((cat.emoji||'') + ' ' + (cat.name||'')) : '';
+  const descEl = document.getElementById('prodModalDesc');
+  if(p.description) {
+    descEl.textContent = p.description;
+    descEl.style.display = 'block';
+  } else {
+    descEl.style.display = 'none';
+  }
+
+  const actionsEl = document.getElementById('prodModalActions');
+  if(p.available === false) {
+    actionsEl.innerHTML = '<div class="prod-modal-unavailable">⚠ PRODUCTO AGOTADO</div>';
+  } else {
+    const inCart = cart.find(c => c.id === prodId);
+    const qty = inCart ? inCart.qty : 1;
+    actionsEl.innerHTML =
+      '<div class="prod-modal-actions">'+
+        '<div class="prod-modal-qty">'+
+          '<button class="prod-modal-qty-btn" id="pmQtyMinus">−</button>'+
+          '<span class="prod-modal-qty-num" id="pmQtyNum">'+qty+'</span>'+
+          '<button class="prod-modal-qty-btn" id="pmQtyPlus">+</button>'+
+        '</div>'+
+        '<button class="btn-add-cart" id="pmAddCart">'+
+          '<span>🛒</span>'+
+          '<span id="pmAddText">'+(inCart?'ACTUALIZAR PEDIDO':'AGREGAR AL PEDIDO')+'</span>'+
+        '</button>'+
+      '</div>';
+
+    let currentQty = qty;
+    const updateQtyUI = () => {
+      document.getElementById('pmQtyNum').textContent = currentQty;
+    };
+    document.getElementById('pmQtyMinus').addEventListener('click', () => {
+      if(currentQty > 1) { currentQty--; updateQtyUI(); }
+    });
+    document.getElementById('pmQtyPlus').addEventListener('click', () => {
+      currentQty++; updateQtyUI();
+      if(navigator.vibrate) navigator.vibrate(20);
+    });
+    document.getElementById('pmAddCart').addEventListener('click', () => {
+      const existing = cart.find(c => c.id === prodId);
+      if(existing) {
+        existing.qty = currentQty;
+      } else {
+        cart.push({id:prodId, name:p.name, price:p.price, img:p.img, qty:currentQty, note:''});
+      }
+      saveCart();
+      updateCartUI();
+      renderMenu();
+      closeProductDetail();
+      if(navigator.vibrate) navigator.vibrate(40);
+    });
+  }
+
+  document.getElementById('prodModal').classList.add('active');
+}
+
+function closeProductDetail() {
+  document.getElementById('prodModal').classList.remove('active');
+}
+
+document.getElementById('prodModalClose').addEventListener('click', closeProductDetail);
+document.getElementById('prodModal').addEventListener('click', e => {
+  if(e.target.id === 'prodModal') closeProductDetail();
+});
 
 // CART
 function addToCart(prodId) {
