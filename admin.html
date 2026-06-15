@@ -1533,334 +1533,376 @@ function exportExcel() {
 
 // ── PDF EXPORT ───────────────────────────────────────────────────
 document.getElementById('btnExportPDF').addEventListener('click', () => {
-  if(!filteredOrders.length) { toast('No hay pedidos para exportar','error'); return; }
-  exportPDF();
+  if(!filteredOrders.length) { toast('Sin pedidos para exportar','error'); return; }
+  try { exportPDF(); } catch(e) { toast('Error PDF: '+e.message,'error'); console.error('[PDF]',e); }
 });
 
 function exportPDF() {
+  if(!window.jspdf) throw new Error('jsPDF no cargado. Recarga la página.');
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  const W = 210, M = 14;
-  const CW = W - M*2;
+  if(typeof doc.autoTable !== 'function') throw new Error('Plugin autoTable no disponible.');
+
+  const W=210, H=297, M=12, CW=W-M*2;
   const local = data.local?.name || 'Punto84';
   const { from, to } = getDateRange();
   const period = (from&&to)?`${from} al ${to}`:(from||to||'Todo el historial');
+  const genDate = new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'});
 
-  const TEAL    = [0, 180, 166];
-  const AMBER   = [245, 166, 35];
-  const BLACK_P = [10, 14, 21];
-  const DARK_2  = [15, 20, 29];
-  const DARK_3  = [22, 29, 40];
-  const DARK_4  = [30, 42, 56];
-  const DARK_5  = [42, 58, 78];
-  const WHITE_P = [238, 244, 255];
-  const DIM     = [143, 163, 188];
-  const GREEN   = [46, 204, 113];
-  const RED_P   = [231, 76, 60];
-  const YELLOW  = [241, 196, 15];
+  // ── PALETA ──
+  const BK=[10,14,21], D2=[15,20,29], D3=[22,29,40], D4=[30,42,56], D5=[42,58,78];
+  const TE=[0,180,166], AM=[245,166,35], WH=[238,244,255], DI=[143,163,188];
+  const GR=[46,204,113], RE=[231,76,60], YE=[241,196,15], PU=[155,89,182];
 
-  const delivered = filteredOrders.filter(o=>o.status!=='cancelled');
-  const revenue = delivered.reduce((s,o)=>s+(o.subtotal||0),0);
-  const deliveryRev = delivered.reduce((s,o)=>s+(o.delivery?o.delivery.price:0),0);
-  const grandTotal = revenue + deliveryRev;
-  const avg = delivered.length ? Math.round(grandTotal/delivered.length) : 0;
-  const counts = {};
-  filteredOrders.forEach(o=>(o.items||[]).forEach(it=>{ counts[it.name]=(counts[it.name]||0)+(it.qty||1); }));
-  const topProd = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const fCLP = n => '$' + Math.round(n||0).toLocaleString('es-CL');
+  let pageNum = 0;
 
-  let y = 0;
-  let page = 1;
-
-  function newPage() {
-    if(page > 1) doc.addPage();
-    page++;
-    y = 0;
-    drawPageFrame();
-  }
-
-  function checkSpace(needed) {
-    if(y + needed > 268) { newPage(); }
-  }
-
-  function drawPageFrame() {
-    // Full dark background
-    doc.setFillColor(...BLACK_P);
-    doc.rect(0, 0, W, 297, 'F');
-    // Top gradient bar (5 segments)
-    const barW = W/5;
-    const barColors = [DARK_5, DARK_4, TEAL, AMBER, [184,117,13]];
-    barColors.forEach((c,i) => {
-      doc.setFillColor(...c);
-      doc.rect(i*barW, 0, barW, 3, 'F');
+  // ── FRAME: se llama en cada página nueva ──
+  function drawFrame() {
+    pageNum++;
+    // Fondo negro total
+    doc.setFillColor(...BK);
+    doc.rect(0, 0, W, H, 'F');
+    // Barra superior (5 segmentos de color)
+    const seg = W/5;
+    [[D5[0],D5[1],D5[2]],[D4[0],D4[1],D4[2]],TE,AM,[185,117,13]].forEach(([r,g,b],i) => {
+      doc.setFillColor(r,g,b);
+      doc.rect(i*seg, 0, seg, 2.5, 'F');
     });
-    // Bottom bar
-    doc.setFillColor(...DARK_4);
-    doc.rect(0, 285, W, 12, 'F');
-    doc.setFontSize(7);
-    doc.setTextColor(...DIM);
-    doc.text(local.toUpperCase() + ' — REPORTE DE VENTAS', M, 290.5);
-    doc.text('Página ' + (page-1), W-M, 290.5, {align:'right'});
-    y = 8;
+    // Footer bar
+    doc.setFillColor(...D3);
+    doc.rect(0, H-10, W, 10, 'F');
+    doc.setFillColor(...TE);
+    doc.rect(0, H-10, W, 0.5, 'F');
+    doc.setFontSize(6); doc.setFont('helvetica','normal');
+    doc.setTextColor(...DI);
+    doc.text(local.toUpperCase()+' · INFORME DE VENTAS', M, H-4.5);
+    doc.text('Página '+pageNum, W-M, H-4.5, {align:'right'});
+    doc.setTextColor(...TE);
+    doc.text('ADS Diego Astorga · Publicidad & Tecnología', W/2, H-4.5, {align:'center'});
   }
 
-  function sectionTitle(text, icon='') {
-    checkSpace(16);
-    doc.setFillColor(...DARK_3);
-    doc.roundedRect(M, y, CW, 10, 2, 2, 'F');
-    doc.setDrawColor(...TEAL[0], TEAL[1], TEAL[2]);
-    doc.setLineWidth(0.5);
-    doc.line(M, y, M, y+10);
-    doc.setFontSize(9);
-    doc.setTextColor(...TEAL);
-    doc.setFont(undefined,'bold');
-    doc.text((icon+' '+text).trim().toUpperCase(), M+5, y+6.5);
-    doc.setFont(undefined,'normal');
-    y += 13;
+  // ── HELPERS VISUALES ──
+  function card(x,y,w,h,fill=D3,radius=2) {
+    doc.setFillColor(...fill);
+    doc.roundedRect(x,y,w,h,radius,radius,'F');
+  }
+  function accentLeft(x,y,h,col=TE) {
+    doc.setFillColor(...col);
+    doc.rect(x,y,2,h,'F');
+  }
+  function sectionHdr(text, y, col=TE, icon='') {
+    card(M, y, CW, 9, D4);
+    accentLeft(M, y, 9, col);
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...col);
+    doc.text((icon+' '+text).trim().toUpperCase(), M+6, y+5.8);
+    return y+13;
+  }
+  function checkY(needed, curY) {
+    if(curY + needed > H-14) {
+      doc.addPage(); drawFrame(); return 8;
+    }
+    return curY;
   }
 
-  function statBox(x, bw, bh, label, value, color=TEAL) {
-    doc.setFillColor(...DARK_3);
-    doc.roundedRect(x, y, bw, bh, 2, 2, 'F');
-    doc.setFillColor(...color);
-    doc.rect(x, y, bw, 1.5, 'F');
-    doc.setFontSize(16);
-    doc.setTextColor(...color);
-    doc.setFont(undefined,'bold');
-    doc.text(value, x + bw/2, y + bh*0.52, {align:'center'});
-    doc.setFontSize(7);
-    doc.setTextColor(...DIM);
-    doc.setFont(undefined,'normal');
-    doc.text(label.toUpperCase(), x + bw/2, y + bh*0.80, {align:'center'});
-  }
+  // ── DATOS ──
+  const deliv = filteredOrders.filter(o=>o.status!=='cancelled');
+  const revenue    = deliv.reduce((s,o)=>s+(o.subtotal||0),0);
+  const delivRev   = deliv.reduce((s,o)=>s+(o.delivery?.price||0),0);
+  const grandTotal = revenue + delivRev;
+  const avg = deliv.length ? Math.round(grandTotal/deliv.length) : 0;
+  const cntDel = filteredOrders.filter(o=>o.status==='delivered').length;
+  const cntCan = filteredOrders.filter(o=>o.status==='cancelled').length;
+  const cntPen = filteredOrders.filter(o=>o.status==='pending').length;
+  const cntPre = filteredOrders.filter(o=>o.status==='preparing').length;
 
-  // ── PAGE 1 ── COVER
-  drawPageFrame();
+  const counts = {};
+  filteredOrders.forEach(o=>(o.items||[]).forEach(it=>{counts[it.name]=(counts[it.name]||0)+(it.qty||1);}));
+  const topProd = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,12);
 
-  // Hero gradient block
-  doc.setFillColor(...DARK_3);
-  doc.roundedRect(M, y, CW, 56, 3, 3, 'F');
-  doc.setFillColor(...TEAL[0], TEAL[1], TEAL[2]);
-  doc.roundedRect(M, y, 3, 56, 1.5, 1.5, 'F');
+  const zoneCount = {};
+  filteredOrders.forEach(o=>{if(o.delivery?.zone) zoneCount[o.delivery.zone]=(zoneCount[o.delivery.zone]||0)+1;});
 
-  doc.setFontSize(7);
-  doc.setTextColor(...TEAL);
-  doc.setFont(undefined,'bold');
-  doc.text('REPORTE DE VENTAS · DOCUMENTO OFICIAL', M+8, y+9);
+  const byDay = {};
+  filteredOrders.filter(o=>o.status!=='cancelled').forEach(o=>{
+    const d=o.date||'Sin fecha';
+    if(!byDay[d]) byDay[d]={p:0,i:0,d:0};
+    byDay[d].p++; byDay[d].i+=o.subtotal||0; byDay[d].d+=o.delivery?.price||0;
+  });
+  const dayEntries = Object.entries(byDay).sort((a,b)=>a[0].localeCompare(b[0]));
 
-  doc.setFontSize(26);
-  doc.setTextColor(...WHITE_P);
-  doc.setFont(undefined,'bold');
-  doc.text(local.toUpperCase(), M+8, y+22);
+  // ════════════════════════════════════════
+  // PÁGINA 1 — PORTADA EJECUTIVA
+  // ════════════════════════════════════════
+  drawFrame();
+  let y = 8;
 
-  doc.setFontSize(12);
-  doc.setTextColor(...[245,166,35]);
-  doc.text('INFORME COMPLETO DE PEDIDOS', M+8, y+31);
-
-  doc.setFontSize(8);
-  doc.setTextColor(...DIM);
-  doc.setFont(undefined,'normal');
-  doc.text('Período: ' + period, M+8, y+40);
-  doc.text('Generado: ' + new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'}), M+8, y+47);
-
-  // Period badge top right
-  doc.setFillColor(...DARK_5);
-  doc.roundedRect(M+CW-40, y+6, 38, 12, 2, 2, 'F');
-  doc.setFontSize(7);
-  doc.setTextColor(...AMBER);
-  doc.text('PERÍODO', M+CW-21, y+11, {align:'center'});
-  doc.setFontSize(6.5);
-  doc.setTextColor(...DIM);
-  doc.text(period.length > 20 ? period.substring(0,20)+'...' : period, M+CW-21, y+16, {align:'center'});
-
-  y += 62;
-
-  // STAT CARDS
-  const bw = (CW-9)/4;
-  const bh = 26;
-  statBox(M,       bw, bh, 'Total Pedidos',     String(filteredOrders.length), TEAL);
-  statBox(M+bw+3,  bw, bh, 'Ingresos Productos', formatCLP(revenue), AMBER);
-  statBox(M+bw*2+6,bw, bh, 'Ingresos Delivery',  formatCLP(deliveryRev), [155,89,182]);
-  statBox(M+bw*3+9,bw, bh, 'Ticket Promedio',    formatCLP(avg), GREEN);
-  y += bh + 6;
-
-  // Grand Total highlight
-  doc.setFillColor(...DARK_4);
-  doc.roundedRect(M, y, CW, 18, 2, 2, 'F');
-  doc.setFillColor(...AMBER);
+  // ── HERO BLOCK ──
+  card(M, y, CW, 65, D3);
+  accentLeft(M, y, 65, TE);
+  doc.setFillColor(...TE);
   doc.rect(M, y, CW, 1.5, 'F');
-  doc.setFontSize(9);
-  doc.setTextColor(...DIM);
-  doc.setFont(undefined,'normal');
-  doc.text('TOTAL GENERAL (productos + delivery)', M+6, y+7);
-  doc.setFontSize(18);
-  doc.setTextColor(...AMBER);
-  doc.setFont(undefined,'bold');
-  doc.text(formatCLP(grandTotal), W-M-4, y+12, {align:'right'});
-  y += 24;
 
-  // STATUS SUMMARY
-  sectionTitle('Resumen por Estado', '📊');
-  const statusSummary = [
-    ['⏳ Pendientes',    filteredOrders.filter(o=>o.status==='pending').length,   YELLOW],
-    ['🔥 En Preparación',filteredOrders.filter(o=>o.status==='preparing').length, AMBER],
-    ['✓ Entregados',     filteredOrders.filter(o=>o.status==='delivered').length, GREEN],
-    ['✕ Cancelados',     filteredOrders.filter(o=>o.status==='cancelled').length, RED_P],
+  // Eyebrow
+  doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...TE);
+  doc.text('INFORME OFICIAL DE VENTAS', M+8, y+10);
+
+  // Nombre del local (ENORME)
+  doc.setFontSize(32); doc.setFont('helvetica','bold'); doc.setTextColor(...WH);
+  doc.text(local.toUpperCase(), M+8, y+30);
+
+  // Sub
+  doc.setFontSize(12); doc.setFont('helvetica','normal'); doc.setTextColor(...AM);
+  doc.text('REPORTE EJECUTIVO DE PEDIDOS', M+8, y+41);
+
+  // Badge período (top right)
+  card(M+CW-48, y+5, 46, 16, D5, 3);
+  doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(...AM);
+  doc.text('PERÍODO', M+CW-25, y+11.5, {align:'center'});
+  doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
+  const pShort = period.length>24 ? period.substring(0,24)+'…' : period;
+  doc.text(pShort, M+CW-25, y+17, {align:'center'});
+
+  // Meta
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
+  doc.text('Generado: '+genDate, M+8, y+52);
+  doc.text('Total de pedidos en el período: '+filteredOrders.length, M+8, y+60);
+  y += 71;
+
+  // ── 4 KPIs ──
+  const kpis = [
+    {label:'PEDIDOS',     value:String(filteredOrders.length), sub:'totales', col:TE},
+    {label:fCLP(revenue), value:'PRODUCTOS',    sub:'ingresos',  col:AM},
+    {label:fCLP(delivRev),value:'DELIVERY',     sub:'ingresos',  col:PU},
+    {label:fCLP(avg),     value:'TICKET',       sub:'promedio',  col:GR},
   ];
-  const sbw = (CW-9)/4;
-  statusSummary.forEach(([label,count,color],i) => {
-    doc.setFillColor(...DARK_3);
-    doc.roundedRect(M + i*(sbw+3), y, sbw, 22, 2, 2, 'F');
-    doc.setFillColor(...color);
-    doc.rect(M + i*(sbw+3), y, sbw, 1.5, 'F');
-    doc.setFontSize(18);
-    doc.setTextColor(...color);
-    doc.setFont(undefined,'bold');
-    doc.text(String(count), M + i*(sbw+3) + sbw/2, y+13, {align:'center'});
-    doc.setFontSize(6.5);
-    doc.setTextColor(...DIM);
-    doc.setFont(undefined,'normal');
-    doc.text(label, M + i*(sbw+3) + sbw/2, y+19, {align:'center'});
+  // Fix: flip value/label for clarity
+  const kData = [
+    {num:String(filteredOrders.length), label:'PEDIDOS TOTALES',       col:TE},
+    {num:fCLP(revenue),                 label:'INGRESOS PRODUCTOS',     col:AM},
+    {num:fCLP(delivRev),                label:'INGRESOS DELIVERY',      col:PU},
+    {num:fCLP(avg),                     label:'TICKET PROMEDIO',        col:GR},
+  ];
+  const kw = (CW-9)/4;
+  kData.forEach(({num,label,col},i) => {
+    card(M+i*(kw+3), y, kw, 30, D3);
+    doc.setFillColor(...col);
+    doc.rect(M+i*(kw+3), y, kw, 1.5, 'F');
+    doc.setFontSize(num.length>8?11:14); doc.setFont('helvetica','bold'); doc.setTextColor(...col);
+    doc.text(num, M+i*(kw+3)+kw/2, y+17, {align:'center'});
+    doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
+    doc.text(label, M+i*(kw+3)+kw/2, y+25, {align:'center'});
+  });
+  y += 36;
+
+  // ── TOTAL GENERAL (barra destacada) ──
+  card(M, y, CW, 20, D4);
+  doc.setFillColor(...AM); doc.rect(M, y, CW, 1.5, 'F');
+  doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
+  doc.text('TOTAL GENERAL DEL PERÍODO  ·  Productos + Delivery', M+6, y+8);
+  doc.setFontSize(24); doc.setFont('helvetica','bold'); doc.setTextColor(...AM);
+  doc.text(fCLP(grandTotal), W-M-4, y+16.5, {align:'right'});
+  y += 26;
+
+  // ── ESTADO DE PEDIDOS ──
+  const stData = [
+    {label:'Entregados', n:cntDel, col:GR},
+    {label:'Preparando', n:cntPre, col:AM},
+    {label:'Pendientes', n:cntPen, col:YE},
+    {label:'Cancelados', n:cntCan, col:RE},
+  ];
+  const sw = (CW-9)/4;
+  y = checkY(30, y);
+  stData.forEach(({label,n,col},i) => {
+    card(M+i*(sw+3), y, sw, 22, D3);
+    doc.setFillColor(...col); doc.rect(M+i*(sw+3), y, sw, 1.5, 'F');
+    doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.setTextColor(...col);
+    doc.text(String(n), M+i*(sw+3)+sw/2, y+14, {align:'center'});
+    doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
+    doc.text(label.toUpperCase(), M+i*(sw+3)+sw/2, y+20, {align:'center'});
   });
   y += 28;
 
-  // TOP PRODUCTS
+  // ── RANKING DE PRODUCTOS (primeros 7 en portada) ──
   if(topProd.length) {
-    sectionTitle('Productos Más Vendidos', '🏆');
+    y = checkY(12, y);
+    y = sectionHdr('Productos más vendidos', y, TE, '🏆');
     const maxQ = topProd[0][1];
-    topProd.forEach(([name,qty],i) => {
-      checkSpace(10);
-      const rankColor = i===0?AMBER : i===1?DIM : i===2?[184,117,13] : DARK_5;
-      doc.setFillColor(...(i%2===0?DARK_3:DARK_2));
-      doc.rect(M, y, CW, 9, 'F');
-      // rank
-      doc.setFontSize(10);
-      doc.setTextColor(...rankColor);
-      doc.setFont(undefined,'bold');
-      doc.text(String(i+1), M+5, y+6.3, {align:'center'});
-      // name
-      doc.setFontSize(8.5);
-      doc.setTextColor(...WHITE_P);
-      doc.setFont(undefined,'normal');
-      const shortName = name.length>38 ? name.substring(0,38)+'...' : name;
-      doc.text(shortName, M+13, y+6.3);
-      // bar
-      const barMax = CW-70;
-      doc.setFillColor(...DARK_5);
-      doc.roundedRect(M+CW-55, y+3, barMax*0.6, 3.5, 1, 1, 'F');
-      doc.setFillColor(...TEAL);
-      doc.roundedRect(M+CW-55, y+3, Math.max(2,barMax*0.6*(qty/maxQ)), 3.5, 1, 1, 'F');
-      // qty
-      doc.setFontSize(9);
-      doc.setTextColor(...TEAL);
-      doc.setFont(undefined,'bold');
-      doc.text(qty+' uds', W-M-3, y+6.3, {align:'right'});
+    const rankCols = [AM, DI, [184,117,13]];
+    topProd.slice(0,7).forEach(([name,qty],i) => {
+      y = checkY(9.5, y);
+      card(M, y, CW, 9, i%2?D2:D3);
+      // Rank #
+      const rc = rankCols[i] || D5;
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...rc);
+      doc.text(String(i+1), M+6, y+6.2, {align:'center'});
+      // Nombre
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...WH);
+      doc.text(name.length>40?name.substring(0,40)+'…':name, M+12, y+6.2);
+      // Barra progreso
+      const bx=M+CW-55, bw=42;
+      card(bx, y+2.5, bw, 3.5, D5);
+      doc.setFillColor(...TE);
+      doc.rect(bx, y+2.5, Math.max(2,bw*(qty/maxQ)), 3.5, 'F');
+      // Cant
+      doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(...TE);
+      doc.text(qty+' ud'+(qty!==1?'s':''), W-M-2, y+6.2, {align:'right'});
+      y += 9.5;
+    });
+    y += 4;
+  }
+
+  // ── ZONAS DE DELIVERY ──
+  const zEntries = Object.entries(zoneCount);
+  if(zEntries.length) {
+    y = checkY(28, y);
+    y = sectionHdr('Zonas de delivery', y, AM, '🛵');
+    const cols4 = Math.min(zEntries.length, 4);
+    const zw2 = (CW - 3*(cols4-1)) / cols4;
+    zEntries.slice(0,4).forEach(([zone,cnt],i) => {
+      card(M+i*(zw2+3), y, zw2, 18, D3);
+      doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(...AM);
+      doc.text(String(cnt), M+i*(zw2+3)+zw2/2, y+11.5, {align:'center'});
+      doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
+      const zl = zone.length>16?zone.substring(0,16)+'…':zone;
+      doc.text(zl.toUpperCase(), M+i*(zw2+3)+zw2/2, y+16.5, {align:'center'});
+    });
+    y += 22;
+  }
+
+  // ════════════════════════════════════════
+  // PÁGINA 2 — ANÁLISIS POR DÍA + RESTO DE PRODUCTOS
+  // ════════════════════════════════════════
+  doc.addPage(); drawFrame(); y = 8;
+
+  if(dayEntries.length) {
+    y = sectionHdr('Desglose de ventas por día', y, TE, '📅');
+    const totP = dayEntries.reduce((s,[,v])=>s+v.p,0);
+    const totI = dayEntries.reduce((s,[,v])=>s+v.i,0);
+    const totD = dayEntries.reduce((s,[,v])=>s+v.d,0);
+
+    doc.autoTable({
+      startY: y,
+      margin: {left:M, right:M},
+      head: [['Fecha','Pedidos','Ingresos prod.','Delivery','Total del día']],
+      body: dayEntries.map(([d,v])=>[d, v.p, fCLP(v.i), fCLP(v.d), fCLP(v.i+v.d)]),
+      foot: [['TOTALES', totP, fCLP(totI), fCLP(totD), fCLP(totI+totD)]],
+      styles: { font:'helvetica', fontSize:8.5, cellPadding:4, textColor:WH, fillColor:D3, lineColor:D5, lineWidth:0.3 },
+      headStyles: { fillColor:D4, textColor:TE, fontStyle:'bold', fontSize:8 },
+      footStyles: { fillColor:D4, textColor:AM, fontStyle:'bold', fontSize:8.5 },
+      alternateRowStyles: { fillColor:D2 },
+      columnStyles: {
+        0:{cellWidth:32},
+        1:{cellWidth:20,halign:'center'},
+        2:{cellWidth:42,halign:'right'},
+        3:{cellWidth:36,halign:'right'},
+        4:{cellWidth:42,halign:'right',textColor:AM,fontStyle:'bold'},
+      },
+      theme:'grid',
+      didDrawPage: () => { if(doc.internal.getCurrentPageInfo().pageNumber > pageNum) { drawFrame(); } },
+    });
+    y = doc.lastAutoTable.finalY + 10;
+  }
+
+  // Resto de productos (8-12) si existen
+  if(topProd.length > 7) {
+    y = checkY(14, y);
+    y = sectionHdr('Ranking completo de productos', y, TE, '📊');
+    const maxQ = topProd[0][1];
+    topProd.slice(7).forEach(([name,qty],idx) => {
+      y = checkY(9, y);
+      const i = idx+7;
+      card(M, y, CW, 8.5, i%2?D2:D3);
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
+      doc.text(String(i+1), M+6, y+5.8, {align:'center'});
+      doc.setTextColor(...WH);
+      doc.text(name.length>44?name.substring(0,44)+'…':name, M+12, y+5.8);
+      const bx=M+CW-55, bw=42;
+      card(bx, y+2.5, bw, 3, D5);
+      doc.setFillColor(...TE);
+      doc.rect(bx, y+2.5, Math.max(2,bw*(qty/maxQ)), 3, 'F');
+      doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(...TE);
+      doc.text(qty+' uds', W-M-2, y+5.8, {align:'right'});
       y += 9;
     });
     y += 4;
   }
 
-  // DAILY BREAKDOWN
-  const byDay = {};
-  filteredOrders.filter(o=>o.status!=='cancelled').forEach(o=>{
-    const d = o.date||'Sin fecha';
-    if(!byDay[d]) byDay[d]={pedidos:0,ingresos:0,delivery:0};
-    byDay[d].pedidos++;
-    byDay[d].ingresos += o.subtotal||0;
-    byDay[d].delivery += o.delivery?.price||0;
-  });
-  const dayRows = Object.entries(byDay).sort((a,b)=>a[0].localeCompare(b[0]));
+  // ════════════════════════════════════════
+  // PÁGINA 3+ — DETALLE COMPLETO DE PEDIDOS
+  // ════════════════════════════════════════
+  doc.addPage(); drawFrame(); y = 8;
+  y = sectionHdr('Detalle completo de pedidos — '+period, y, AM, '📋');
 
-  if(dayRows.length) {
-    checkSpace(30);
-    sectionTitle('Ventas por Día', '📅');
-    doc.autoTable({
-      startY: y,
-      margin: {left:M, right:M},
-      head: [['Fecha','Pedidos','Ingresos','Delivery','Total Día']],
-      body: dayRows.map(([d,v])=>[d, v.pedidos, formatCLP(v.ingresos), formatCLP(v.delivery), formatCLP(v.ingresos+v.delivery)]),
-      styles: { font:'helvetica', fontSize:8.5, cellPadding:4, textColor:WHITE_P, fillColor:DARK_3, lineColor:DARK_5, lineWidth:0.3 },
-      headStyles: { fillColor:DARK_4, textColor:TEAL, fontStyle:'bold', fontSize:8 },
-      alternateRowStyles: { fillColor:DARK_2 },
-      columnStyles: { 0:{cellWidth:30}, 1:{cellWidth:20,halign:'center'}, 2:{cellWidth:40,halign:'right'}, 3:{cellWidth:36,halign:'right'}, 4:{cellWidth:42,halign:'right',textColor:AMBER,fontStyle:'bold'} },
-      theme:'grid',
-    });
-    y = doc.lastAutoTable.finalY + 8;
-  }
-
-  // ── PAGE 2+ ── PEDIDOS DETAIL
-  newPage();
-  sectionTitle('Detalle Completo de Pedidos', '📋');
-
-  const orderRows = filteredOrders.map((o,i)=>[
-    String(i+1).padStart(3,'0'),
-    o.date||'',
-    o.time||'',
-    o.customer?.name||'',
-    (o.customer?.address||'').substring(0,22),
-    o.delivery?.zone||'—',
-    formatCLP(o.delivery?.price||0),
-    formatCLP(o.subtotal||0),
-    formatCLP(o.total||0),
-    STATUS_LABELS[o.status||'pending']||'',
-  ]);
+  const SLABELS = {pending:'Pendiente', preparing:'Preparando', delivered:'Entregado', cancelled:'Cancelado'};
+  const SCOLS   = {pending:YE, preparing:AM, delivered:GR, cancelled:RE};
 
   doc.autoTable({
     startY: y,
     margin: {left:M, right:M},
-    head: [['#','Fecha','Hora','Cliente','Dirección','Zona','Delivery','Subtotal','Total','Estado']],
-    body: orderRows,
-    styles: { font:'helvetica', fontSize:7, cellPadding:3, textColor:WHITE_P, fillColor:DARK_3, lineColor:DARK_5, lineWidth:0.3 },
-    headStyles: { fillColor:DARK_4, textColor:TEAL, fontStyle:'bold', fontSize:7 },
-    alternateRowStyles: { fillColor:DARK_2 },
+    head: [['#','Fecha','Hora','Cliente','Dirección','Zona','Dlv','Sub','Total','Estado']],
+    body: filteredOrders.map((o,i) => [
+      String(i+1).padStart(3,'0'),
+      o.date||'',
+      o.time||'',
+      o.customer?.name||'',
+      (o.customer?.address||'').substring(0,22),
+      o.delivery?.zone||'—',
+      fCLP(o.delivery?.price||0),
+      fCLP(o.subtotal||0),
+      fCLP(o.total||0),
+      SLABELS[o.status||'pending']||'',
+    ]),
+    styles: { font:'helvetica', fontSize:7, cellPadding:3, textColor:WH, fillColor:D3, lineColor:D5, lineWidth:0.25 },
+    headStyles: { fillColor:D4, textColor:TE, fontStyle:'bold', fontSize:7 },
+    alternateRowStyles: { fillColor:D2 },
     columnStyles: {
-      0:{cellWidth:10,halign:'center'},
-      1:{cellWidth:22},
-      2:{cellWidth:14,halign:'center'},
-      3:{cellWidth:28},
-      4:{cellWidth:30},
-      5:{cellWidth:22},
-      6:{cellWidth:18,halign:'right'},
-      7:{cellWidth:20,halign:'right'},
-      8:{cellWidth:20,halign:'right',textColor:AMBER,fontStyle:'bold'},
-      9:{cellWidth:18,halign:'center'},
+      0:{cellWidth:10,halign:'center',textColor:DI},
+      1:{cellWidth:20},2:{cellWidth:13,halign:'center'},
+      3:{cellWidth:26},4:{cellWidth:28},5:{cellWidth:20},
+      6:{cellWidth:16,halign:'right'},7:{cellWidth:18,halign:'right'},
+      8:{cellWidth:20,halign:'right',textColor:AM,fontStyle:'bold'},
+      9:{cellWidth:20,halign:'center',fontStyle:'bold'},
     },
-    didParseCell: function(d) {
-      const status = filteredOrders[d.row.index]?.status;
-      if(d.column.index===9 && d.section==='body') {
-        if(status==='delivered')  d.cell.styles.textColor = GREEN;
-        else if(status==='cancelled') d.cell.styles.textColor = RED_P;
-        else if(status==='preparing') d.cell.styles.textColor = AMBER;
-        else d.cell.styles.textColor = YELLOW;
+    didParseCell(d) {
+      if(d.section==='body' && d.column.index===9) {
+        const o = filteredOrders[d.row.index];
+        if(o) d.cell.styles.textColor = SCOLS[o.status||'pending'] || DI;
       }
-      if(d.column.index===8 && d.section==='body') d.cell.styles.fontStyle='bold';
+    },
+    didDrawPage(d) {
+      const curP = doc.internal.getCurrentPageInfo().pageNumber;
+      if(curP > pageNum) drawFrame();
     },
     theme:'grid',
     rowPageBreak:'auto',
     pageBreak:'auto',
   });
 
-  // ── FOOTER DISCLAIMER ──
-  const lastY = doc.lastAutoTable.finalY + 10;
-  if(lastY < 270) {
-    doc.setFillColor(...DARK_3);
-    doc.roundedRect(M, lastY, CW, 14, 2, 2, 'F');
-    doc.setFontSize(7);
-    doc.setTextColor(...DIM);
-    doc.text('Documento generado automáticamente por el sistema de gestión de ' + local + ' · ' + new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'}), M+CW/2, lastY+5.5, {align:'center'});
-    doc.setTextColor(...TEAL);
-    doc.text('ADS Diego Astorga — Publicidad · Diseño · Tecnología', M+CW/2, lastY+10.5, {align:'center'});
+  // ── DISCLAIMER FINAL ──
+  const lastY = doc.lastAutoTable.finalY + 8;
+  if(lastY + 14 < H-12) {
+    card(M, lastY, CW, 14, D3);
+    accentLeft(M, lastY, 14, TE);
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
+    doc.text('Documento generado automáticamente por el sistema de gestión de '+local+' · '+genDate, M+CW/2, lastY+6, {align:'center'});
+    doc.setTextColor(...TE); doc.setFont('helvetica','bold');
+    doc.text('ADS Diego Astorga — Publicidad · Diseño · Tecnología', M+CW/2, lastY+11, {align:'center'});
   }
 
-  const fileName = `Punto84_Reporte_${period.replace(/ /g,'_')}.pdf`;
+  // ── DESCARGA ──
+  const safePeriod = period.replace(/[^a-zA-Z0-9\-]/g,'_').replace(/_+/g,'_');
+  const fileName = `Punto84_Reporte_${safePeriod}.pdf`;
   const blob = doc.output('blob');
   const blobUrl = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = blobUrl;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(blobUrl); }, 300);
-  toast('✓ PDF exportado correctamente');
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  a.download = fileName;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(blobUrl); }, 500);
+  toast('✓ PDF generado — '+filteredOrders.length+' pedidos · '+pageNum+' páginas');
 }
 
 // Hook orders load into nav
