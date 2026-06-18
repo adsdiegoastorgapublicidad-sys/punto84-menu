@@ -284,66 +284,18 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
 .order-status-btn.s-preparing.active { background:rgba(245,166,35,0.15); }
 .order-status-btn.s-delivered.active { background:rgba(46,204,113,0.15); }
 .order-status-btn.s-cancelled.active { background:rgba(231,76,60,0.15); }
+.order-status-btn.s-delivered { background:transparent; border:1px solid var(--green); color:var(--green); }
+.order-status-btn.s-delivered.active { background:rgba(46,204,113,0.15); }
+.order-status-btn.s-archived { background:transparent; border:1px solid var(--text-mute); color:var(--text-mute); }
+.order-status-btn.s-archived:hover { border-color:var(--purple); color:var(--purple); }
+.order-status-btn.s-archived.active { background:rgba(155,89,182,0.15); border-color:var(--purple); color:var(--purple); }
 .order-status-btn:hover { transform:scale(1.02); }
-
-/* ── PENDING BADGE ── */
-.pending-badge { background:var(--red); color:#fff; border-radius:999px; font-size:10px; font-weight:700; padding:2px 7px; min-width:20px; text-align:center; margin-left:auto; }
-
-/* ── PENDING ORDERS SECTION ── */
-.pending-section { background:rgba(241,196,15,0.04); border:1.5px solid rgba(241,196,15,0.3); border-radius:12px; overflow:hidden; margin-bottom:20px; }
-.pending-section-hdr { padding:12px 16px; background:rgba(241,196,15,0.08); border-bottom:1px solid rgba(241,196,15,0.2); display:flex; align-items:center; gap:10px; }
-.pending-section-title { font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--yellow); flex:1; }
-.pending-dot { width:8px; height:8px; border-radius:50%; background:var(--yellow); animation:blink 1.2s ease infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-.pending-section-body { padding:12px; display:flex; flex-direction:column; gap:8px; }
-.pending-card { background:var(--bg-2); border:1px solid var(--bg-4); border-radius:8px; padding:12px 14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; cursor:pointer; transition:border-color 0.2s; }
-.pending-card:hover { border-color:rgba(241,196,15,0.4); }
-.pending-card-info { flex:1; min-width:0; }
-.pending-card-name { font-weight:600; font-size:14px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.pending-card-meta { font-size:12px; color:var(--text-mute); margin-top:3px; }
-.pending-card-total { font-family:'Bebas Neue',cursive; font-size:18px; color:var(--accent); letter-spacing:0.05em; white-space:nowrap; }
-.btn-confirm-order { background:rgba(241,196,15,0.12); border:1px solid rgba(241,196,15,0.4); border-radius:6px; padding:8px 16px; font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--yellow); cursor:pointer; white-space:nowrap; transition:all 0.2s; }
-.btn-confirm-order:hover { background:rgba(241,196,15,0.2); }
-.pending-empty { padding:20px; text-align:center; font-style:italic; color:var(--text-mute); font-size:13px; }
-
-/* ── CONFIRM MODAL ── */
-#modalConfirm { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); z-index:1000; align-items:center; justify-content:center; padding:16px; }
-#modalConfirm.open { display:flex; }
-.confirm-modal-box { background:var(--bg-2); border:1px solid var(--bg-4); border-radius:16px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
-.confirm-modal-hdr { padding:18px 20px 14px; border-bottom:1px solid var(--bg-4); display:flex; align-items:center; justify-content:space-between; }
-.confirm-modal-title { font-size:14px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text); }
-.confirm-modal-close { background:transparent; border:none; color:var(--text-mute); font-size:18px; cursor:pointer; padding:4px 8px; transition:color 0.2s; }
-.confirm-modal-close:hover { color:var(--text); }
-.confirm-modal-body { padding:16px 20px; }
-.confirm-order-num { font-size:11px; letter-spacing:0.15em; color:var(--text-mute); text-transform:uppercase; margin-bottom:4px; }
-.confirm-customer { font-size:18px; font-weight:700; color:var(--text); margin-bottom:2px; }
-.confirm-address { font-size:13px; color:var(--text-mute); margin-bottom:14px; }
-.confirm-items { background:var(--bg-3); border-radius:8px; padding:10px 14px; margin-bottom:12px; }
-.confirm-item-row { display:flex; gap:10px; padding:5px 0; border-bottom:1px solid var(--bg-4); font-size:13px; }
-.confirm-item-row:last-child { border-bottom:none; }
-.confirm-item-qty { color:var(--accent); font-weight:700; min-width:28px; }
-.confirm-item-name { flex:1; color:var(--text); }
-.confirm-item-price { color:var(--text-mute); }
-.confirm-totals { display:flex; flex-direction:column; gap:4px; margin-bottom:16px; }
-.confirm-total-row { display:flex; justify-content:space-between; font-size:13px; color:var(--text-mute); }
-.confirm-total-row.grand { font-size:16px; font-weight:700; color:var(--text); border-top:1px solid var(--bg-4); padding-top:8px; margin-top:4px; }
-.confirm-btns { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.btn-do-confirm { background:rgba(39,174,96,0.12); border:1.5px solid var(--green); border-radius:10px; padding:16px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; transition:all 0.2s; }
-.btn-do-confirm:hover { background:rgba(39,174,96,0.25); transform:translateY(-1px); }
-.btn-do-confirm .icon { font-size:28px; }
-.btn-do-confirm .label { font-size:11px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:var(--green); }
-.btn-do-reject { background:rgba(192,57,43,0.08); border:1.5px solid var(--red); border-radius:10px; padding:16px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; transition:all 0.2s; }
-.btn-do-reject:hover { background:rgba(192,57,43,0.2); transform:translateY(-1px); }
-.btn-do-reject .icon { font-size:28px; }
-.btn-do-reject .label { font-size:11px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:var(--red); }
-.confirm-result { display:none; flex-direction:column; align-items:center; justify-content:center; padding:30px 20px; text-align:center; gap:12px; }
-.confirm-result.show { display:flex; }
-.confirm-result-icon { font-size:56px; }
-.confirm-result-text { font-size:22px; font-weight:800; letter-spacing:0.08em; }
-.confirm-result-text.green { color:var(--green); }
-.confirm-result-text.red { color:var(--red); }
-.confirm-result-sub { font-size:13px; color:var(--text-mute); }
 .status-filter.active { font-weight:700 !important; }
+.order-card.archived { border-left:3px solid var(--purple); opacity:0.5; }
+.order-status-badge.archived { background:rgba(155,89,182,0.12); color:var(--purple); border:1px solid rgba(155,89,182,0.3); }
+.archived-toggle-btn { padding:8px 16px; border-radius:8px; font-size:12px; letter-spacing:0.08em; font-weight:600; text-transform:uppercase; cursor:pointer; transition:all 0.2s; background:transparent; border:1px solid var(--purple); color:var(--purple); }
+.archived-toggle-btn.active { background:rgba(155,89,182,0.15); }
+.archived-toggle-btn:hover { background:rgba(155,89,182,0.2); }
 .top-product-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--bg-4); }
 .top-product-row:last-child { border:none; }
 .top-rank { font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--bg-5); width:36px; text-align:center; }
@@ -403,7 +355,7 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <div class="nav-section-title">Operación</div>
       <div class="nav-item" data-section="hours"><span class="nav-icon">⏰</span><span>Horarios</span></div>
       <div class="nav-item" data-section="delivery"><span class="nav-icon">🛵</span><span>Delivery</span></div>
-      <div class="nav-item" data-section="orders"><span class="nav-icon">📋</span><span>Pedidos</span><span class="pending-badge" id="pendingBadge" style="display:none">0</span></div>
+      <div class="nav-item" data-section="orders"><span class="nav-icon">📋</span><span>Pedidos</span></div>
       <div class="nav-section-title">Sistema</div>
       <div class="nav-item" data-section="config"><span class="nav-icon">⚙️</span><span>Configuración</span></div>
       <div class="sidebar-footer">
@@ -585,6 +537,7 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <div class="section-view" data-view="orders" style="display:none">
         <div class="page-header">
           <div><div class="page-title">PEDI<span>DOS</span></div><div class="page-subtitle">Historial completo de ventas</div></div>
+          <button class="archived-toggle-btn" id="btnToggleArchived">📦 VER ARCHIVADOS</button>
         </div>
 
         <!-- ORDER STATS -->
@@ -593,18 +546,6 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
           <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-num" id="oStatRevenue">$0</div><div class="stat-label">Ingresos</div></div>
           <div class="stat-card"><div class="stat-icon">🛵</div><div class="stat-num" id="oStatDelivery">$0</div><div class="stat-label">Delivery</div></div>
           <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-num" id="oStatAvg">$0</div><div class="stat-label">Ticket Promedio</div></div>
-        </div>
-
-        <!-- PENDING ORDERS (nuevos sin confirmar) -->
-        <div class="pending-section" id="pendingSection" style="display:none">
-          <div class="pending-section-hdr">
-            <div class="pending-dot"></div>
-            <div class="pending-section-title">🔔 Nuevos Pedidos Sin Confirmar</div>
-            <span id="pendingCount" style="font-size:12px;color:var(--yellow);font-weight:700"></span>
-          </div>
-          <div class="pending-section-body" id="pendingList">
-            <div class="pending-empty">No hay pedidos pendientes</div>
-          </div>
         </div>
 
         <!-- DATE FILTER -->
@@ -633,12 +574,14 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
           <button class="btn btn-ghost btn-sm" id="btnExportPDF" style="border-color:var(--red);color:var(--red)">📄 EXPORTAR PDF</button>
         </div>
 
-        <!-- FILTER STATUS TABS — solo historial confirmado -->
+        <!-- FILTER STATUS TABS -->
         <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap" id="statusFilterTabs">
           <button class="btn btn-ghost btn-sm status-filter active" data-status="all">Todos</button>
+          <button class="btn btn-ghost btn-sm status-filter" data-status="pending" style="border-color:var(--yellow);color:var(--yellow)">⏳ Pendientes</button>
           <button class="btn btn-ghost btn-sm status-filter" data-status="preparing" style="border-color:var(--accent);color:var(--accent)">🔥 En Preparación</button>
           <button class="btn btn-ghost btn-sm status-filter" data-status="delivered" style="border-color:var(--green);color:var(--green)">✓ Entregados</button>
           <button class="btn btn-ghost btn-sm status-filter" data-status="cancelled" style="border-color:var(--red);color:var(--red)">✕ Cancelados</button>
+          <button class="btn btn-ghost btn-sm status-filter" data-status="archived" style="border-color:var(--purple);color:var(--purple);display:none" id="filterTabArchived">📦 Archivados</button>
         </div>
 
         <!-- ORDERS LIST -->
@@ -652,38 +595,6 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       </div>
 
     </main>
-  </div>
-</div>
-
-<!-- MODAL CONFIRMAR PEDIDO -->
-<div id="modalConfirm">
-  <div class="confirm-modal-box">
-    <div class="confirm-modal-hdr">
-      <div class="confirm-modal-title">📋 Confirmar Pedido</div>
-      <button class="confirm-modal-close" id="btnCloseConfirm">✕</button>
-    </div>
-    <div class="confirm-modal-body" id="confirmModalBody">
-      <div class="confirm-order-num" id="confirmOrderNum">#001 · Nuevo pedido</div>
-      <div class="confirm-customer" id="confirmCustomer">Cliente</div>
-      <div class="confirm-address" id="confirmAddress">Dirección</div>
-      <div class="confirm-items" id="confirmItems"></div>
-      <div class="confirm-totals" id="confirmTotals"></div>
-      <div class="confirm-btns">
-        <button class="btn-do-confirm" id="btnDoConfirm">
-          <span class="icon">✅</span>
-          <span class="label">Pedido<br>Confirmado</span>
-        </button>
-        <button class="btn-do-reject" id="btnDoReject">
-          <span class="icon">❌</span>
-          <span class="label">Pedido No<br>Confirmado</span>
-        </button>
-      </div>
-    </div>
-    <div class="confirm-result" id="confirmResult">
-      <div class="confirm-result-icon" id="resultIcon">✅</div>
-      <div class="confirm-result-text" id="resultText"></div>
-      <div class="confirm-result-sub" id="resultSub"></div>
-    </div>
   </div>
 </div>
 
@@ -1195,9 +1106,10 @@ document.getElementById('dashStatusToggle').addEventListener('click', async () =
 let allOrders = {};
 let filteredOrders = [];
 let activeStatusFilter = 'all';
+let showArchived = false;
 
-const STATUS_LABELS = { pending:'Pendiente', preparing:'En Preparación', delivered:'Entregado', cancelled:'Cancelado' };
-const STATUS_EMOJI  = { pending:'⏳', preparing:'🔥', delivered:'✓', cancelled:'✕' };
+const STATUS_LABELS = { pending:'Pendiente', preparing:'En Preparación', delivered:'Entregado', cancelled:'Cancelado', archived:'Archivado' };
+const STATUS_EMOJI  = { pending:'⏳', preparing:'🔥', delivered:'✓', cancelled:'✕', archived:'📦' };
 
 function getSantiagoToday() {
   return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santiago'})).toISOString().split('T')[0];
@@ -1222,125 +1134,15 @@ function applyOrderFilters() {
   const { from, to } = getDateRange();
   let entries = Object.entries(allOrders).map(([id,o]) => ({...o, id}));
   entries.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
-
-  // Separar pendientes del historial confirmado
-  const pending = entries.filter(o => (o.status||'pending') === 'pending');
-  let history = entries.filter(o => (o.status||'pending') !== 'pending');
-
-  // Filtro de fecha solo al historial
-  if(from) history = history.filter(o => o.date >= from);
-  if(to)   history = history.filter(o => o.date <= to);
-  if(activeStatusFilter !== 'all') history = history.filter(o => (o.status||'pending') === activeStatusFilter);
-
-  filteredOrders = history;
-  renderPendingOrders(pending);
+  if(from) entries = entries.filter(o => o.date >= from);
+  if(to)   entries = entries.filter(o => o.date <= to);
+  // Ocultar archivados salvo que showArchived esté activo
+  if(!showArchived) entries = entries.filter(o => (o.status||'pending') !== 'archived');
+  if(activeStatusFilter !== 'all') entries = entries.filter(o => (o.status||'pending') === activeStatusFilter);
+  filteredOrders = entries;
   renderOrders();
   renderOrderStats();
   renderTopProducts();
-}
-
-let confirmOrderData = null;
-
-function renderPendingOrders(pending) {
-  const section = document.getElementById('pendingSection');
-  const list = document.getElementById('pendingList');
-  const badge = document.getElementById('pendingBadge');
-  const countEl = document.getElementById('pendingCount');
-
-  // Actualizar badge en nav
-  if(pending.length > 0) {
-    badge.textContent = pending.length;
-    badge.style.display = 'inline-block';
-    section.style.display = 'block';
-    countEl.textContent = pending.length + ' pedido' + (pending.length !== 1 ? 's' : '') + ' esperando';
-  } else {
-    badge.style.display = 'none';
-    section.style.display = 'none';
-    return;
-  }
-
-  list.innerHTML = '';
-  pending.forEach(order => {
-    const itemsSummary = (order.items||[]).map(it => `${it.qty}x ${it.name}`).join(', ');
-    const card = document.createElement('div');
-    card.className = 'pending-card';
-    card.innerHTML = `
-      <div class="pending-card-info">
-        <div class="pending-card-name">${order.customer?.name||'Sin nombre'}</div>
-        <div class="pending-card-meta">📍 ${order.customer?.address||'Sin dirección'} · ⏰ ${order.time||''}</div>
-        <div class="pending-card-meta" style="margin-top:3px;color:var(--text-dim)">${itemsSummary.length>60?itemsSummary.substring(0,60)+'…':itemsSummary}</div>
-      </div>
-      <div class="pending-card-total">${formatCLP(order.total)}</div>
-      <button class="btn-confirm-order" data-oid="${order.id}">VER Y CONFIRMAR →</button>
-    `;
-    list.appendChild(card);
-  });
-
-  list.querySelectorAll('.btn-confirm-order').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const order = pending.find(o => o.id === btn.dataset.oid);
-      if(order) openConfirmModal(order);
-    });
-  });
-}
-
-function openConfirmModal(order) {
-  confirmOrderData = order;
-  // Resetear estado
-  document.getElementById('confirmModalBody').style.display = 'block';
-  document.getElementById('confirmResult').classList.remove('show');
-
-  // Número
-  document.getElementById('confirmOrderNum').textContent = `📋 ${order.date||''} ${order.time||''} · Nuevo pedido`;
-  document.getElementById('confirmCustomer').textContent = order.customer?.name || 'Sin nombre';
-  document.getElementById('confirmAddress').textContent =
-    [order.customer?.address, order.delivery?.zone ? '🛵 '+order.delivery.zone : ''].filter(Boolean).join(' · ');
-
-  // Items
-  const items = (order.items||[]);
-  document.getElementById('confirmItems').innerHTML = items.map(it => `
-    <div class="confirm-item-row">
-      <span class="confirm-item-qty">${it.qty}x</span>
-      <span class="confirm-item-name">${it.name}${it.note?'<br><small style="color:var(--text-mute)">📝 '+it.note+'</small>':''}</span>
-      <span class="confirm-item-price">${formatCLP((it.price||0)*(it.qty||1))}</span>
-    </div>`).join('');
-
-  // Totals
-  let totHtml = `<div class="confirm-total-row"><span>Subtotal</span><span>${formatCLP(order.subtotal)}</span></div>`;
-  if(order.delivery) totHtml += `<div class="confirm-total-row"><span>Delivery (${order.delivery.zone})</span><span>${formatCLP(order.delivery.price)}</span></div>`;
-  if(order.notes) totHtml += `<div class="confirm-total-row"><span>📝 Nota</span><span style="color:var(--accent);text-align:right;max-width:200px">${order.notes}</span></div>`;
-  totHtml += `<div class="confirm-total-row grand"><span>TOTAL</span><span>${formatCLP(order.total)}</span></div>`;
-  document.getElementById('confirmTotals').innerHTML = totHtml;
-
-  document.getElementById('modalConfirm').classList.add('open');
-}
-
-async function doConfirm(confirmed) {
-  if(!confirmOrderData) return;
-  const newStatus = confirmed ? 'preparing' : 'cancelled';
-  try {
-    await update(ref(db,'menu/orders/'+confirmOrderData.id), {
-      status: newStatus,
-      confirmedAt: Date.now(),
-      confirmed: confirmed,
-    });
-    // Mostrar resultado visual
-    document.getElementById('confirmModalBody').style.display = 'none';
-    const result = document.getElementById('confirmResult');
-    result.classList.add('show');
-    document.getElementById('resultIcon').textContent = confirmed ? '✅' : '❌';
-    document.getElementById('resultText').textContent = confirmed ? 'PEDIDO CONFIRMADO' : 'PEDIDO NO CONFIRMADO';
-    document.getElementById('resultText').className = 'confirm-result-text ' + (confirmed ? 'green' : 'red');
-    document.getElementById('resultSub').textContent = confirmed
-      ? 'El pedido pasó a "En Preparación" y aparecerá en el historial'
-      : 'El pedido fue rechazado y no aparecerá en el historial';
-    setTimeout(() => {
-      document.getElementById('modalConfirm').classList.remove('open');
-      confirmOrderData = null;
-    }, 2000);
-  } catch(e) {
-    toast('Error: '+e.message, 'error');
-  }
 }
 
 function renderOrderStats() {
@@ -1349,7 +1151,8 @@ function renderOrderStats() {
   let scoped = base;
   if(from) scoped = scoped.filter(o=>o.date>=from);
   if(to)   scoped = scoped.filter(o=>o.date<=to);
-  const delivered = scoped.filter(o=>o.status==='delivered'||o.status==='pending'||o.status==='preparing');
+  // Para stats: incluimos delivered y archived como ventas realizadas (no cancelados)
+  const delivered = scoped.filter(o=>o.status==='delivered'||o.status==='pending'||o.status==='preparing'||o.status==='archived');
   const revenue = delivered.reduce((s,o)=>s+(o.subtotal||0),0);
   const deliveryTotal = delivered.reduce((s,o)=>s+(o.delivery?o.delivery.price:0),0);
   const avg = delivered.length ? Math.round(revenue/delivered.length) : 0;
@@ -1428,10 +1231,15 @@ function renderOrders() {
         ${order.notes ? `<div class="tip-box" style="margin-bottom:14px"><span class="tip-icon">📝</span><div>${order.notes}</div></div>` : ''}
         <div class="order-status-actions">
           <span style="font-size:11px;color:var(--text-mute);letter-spacing:0.1em;text-transform:uppercase;align-self:center">Estado:</span>
+          ${status!=='archived'?`
           <button class="order-status-btn s-pending ${status==='pending'?'active':''}" data-sid="${order.id}" data-s="pending">⏳ Pendiente</button>
           <button class="order-status-btn s-preparing ${status==='preparing'?'active':''}" data-sid="${order.id}" data-s="preparing">🔥 Preparando</button>
           <button class="order-status-btn s-delivered ${status==='delivered'?'active':''}" data-sid="${order.id}" data-s="delivered">✓ Entregado</button>
+          ${status==='delivered'?`<button class="order-status-btn s-archived" data-sid="${order.id}" data-s="archived" title="Archivar — desaparece de la vista activa">📦 Archivar</button>`:''}
           <button class="order-status-btn s-cancelled ${status==='cancelled'?'active':''}" data-sid="${order.id}" data-s="cancelled">✕ Cancelar</button>
+          `:`<span style="color:var(--purple);font-size:11px;letter-spacing:0.05em;align-self:center">📦 Archivado — vive en Firebase</span>
+          <button class="order-status-btn s-delivered" data-sid="${order.id}" data-s="delivered" title="Desarchivar">↩ Desarchivar</button>
+          `}
         </div>
       </div>`;
     list.appendChild(card);
@@ -1454,6 +1262,29 @@ function renderOrders() {
     });
   });
 }
+
+// Toggle archivados
+document.getElementById('btnToggleArchived').addEventListener('click', () => {
+  showArchived = !showArchived;
+  const btn = document.getElementById('btnToggleArchived');
+  const tabArchived = document.getElementById('filterTabArchived');
+  if(showArchived) {
+    btn.classList.add('active');
+    btn.textContent = '📦 OCULTAR ARCHIVADOS';
+    tabArchived.style.display = '';
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = '📦 VER ARCHIVADOS';
+    tabArchived.style.display = 'none';
+    // Si el filtro activo era archived, volver a todos
+    if(activeStatusFilter === 'archived') {
+      activeStatusFilter = 'all';
+      document.querySelectorAll('.status-filter').forEach(t=>t.classList.remove('active'));
+      document.querySelector('.status-filter[data-status="all"]').classList.add('active');
+    }
+  }
+  applyOrderFilters();
+});
 
 // Date range quick filters
 document.querySelectorAll('.btn-quick-date').forEach(btn => {
@@ -1480,20 +1311,6 @@ document.querySelectorAll('.btn-quick-date').forEach(btn => {
 });
 
 document.getElementById('btnFilterOrders').addEventListener('click', applyOrderFilters);
-
-// Confirmation modal events
-document.getElementById('btnCloseConfirm').addEventListener('click', () => {
-  document.getElementById('modalConfirm').classList.remove('open');
-  confirmOrderData = null;
-});
-document.getElementById('modalConfirm').addEventListener('click', e => {
-  if(e.target === document.getElementById('modalConfirm')) {
-    document.getElementById('modalConfirm').classList.remove('open');
-    confirmOrderData = null;
-  }
-});
-document.getElementById('btnDoConfirm').addEventListener('click', () => doConfirm(true));
-document.getElementById('btnDoReject').addEventListener('click',  () => doConfirm(false));
 
 // Status filter tabs
 document.querySelectorAll('.status-filter').forEach(tab => {
@@ -1598,6 +1415,7 @@ function exportExcel() {
   const cntCan = filteredOrders.filter(o=>o.status==='cancelled').length;
   const cntPen = filteredOrders.filter(o=>o.status==='pending').length;
   const cntPre = filteredOrders.filter(o=>o.status==='preparing').length;
+  const cntArc = filteredOrders.filter(o=>o.status==='archived').length;
 
   const counts = {};
   filteredOrders.forEach(o=>(o.items||[]).forEach(it=>{ counts[it.name]=(counts[it.name]||0)+(it.qty||1); }));
@@ -1622,7 +1440,8 @@ function exportExcel() {
     [c('Pedidos entregados',  ST.lbl1),     c(cntDel, ST.grn0)],
     [c('En preparación',      ST.lbl0),     c(cntPre, {...ST.val0, font:font(AMBER,10,true)})],
     [c('Pedidos pendientes',  ST.lbl1),     c(cntPen, ST.yel0)],
-    [c('Pedidos cancelados',  ST.lbl0),     c(cntCan, ST.red0)],
+    [c('Pedidos archivados',  ST.lbl0),     c(cntArc, {...ST.val0, font:font(PURPLE,10,true)})],
+    [c('Pedidos cancelados',  ST.lbl1),     c(cntCan, ST.red0)],
     cBlank(2),
     [c('💰  INGRESOS',         ST.secHdrA),  c('',ST.blank)],
     [c('Ingresos por productos', ST.lbl0),  c(revenue,  ST.amb0)],
@@ -1842,6 +1661,7 @@ function exportPDF() {
   const cntCan = filteredOrders.filter(o=>o.status==='cancelled').length;
   const cntPen = filteredOrders.filter(o=>o.status==='pending').length;
   const cntPre = filteredOrders.filter(o=>o.status==='preparing').length;
+  const cntArc = filteredOrders.filter(o=>o.status==='archived').length;
 
   const counts = {};
   filteredOrders.forEach(o=>(o.items||[]).forEach(it=>{counts[it.name]=(counts[it.name]||0)+(it.qty||1);}));
@@ -1936,16 +1756,17 @@ function exportPDF() {
     {label:'Entregados', n:cntDel, col:GR},
     {label:'Preparando', n:cntPre, col:AM},
     {label:'Pendientes', n:cntPen, col:YE},
+    {label:'Archivados', n:cntArc, col:PU},
     {label:'Cancelados', n:cntCan, col:RE},
   ];
-  const sw = (CW-9)/4;
+  const sw = (CW - 3*4) / 5;
   y = checkY(30, y);
   stData.forEach(({label,n,col},i) => {
     card(M+i*(sw+3), y, sw, 22, D3);
     doc.setFillColor(...col); doc.rect(M+i*(sw+3), y, sw, 1.5, 'F');
-    doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.setTextColor(...col);
+    doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(...col);
     doc.text(String(n), M+i*(sw+3)+sw/2, y+14, {align:'center'});
-    doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
+    doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(...DI);
     doc.text(label.toUpperCase(), M+i*(sw+3)+sw/2, y+20, {align:'center'});
   });
   y += 28;
@@ -2061,8 +1882,8 @@ function exportPDF() {
   doc.addPage(); drawFrame(); y = 8;
   y = sectionHdr('Detalle completo de pedidos — '+period, y, AM, '📋');
 
-  const SLABELS = {pending:'Pendiente', preparing:'Preparando', delivered:'Entregado', cancelled:'Cancelado'};
-  const SCOLS   = {pending:YE, preparing:AM, delivered:GR, cancelled:RE};
+  const SLABELS = {pending:'Pendiente', preparing:'Preparando', delivered:'Entregado', cancelled:'Cancelado', archived:'Archivado'};
+  const SCOLS   = {pending:YE, preparing:AM, delivered:GR, cancelled:RE, archived:PU};
 
   doc.autoTable({
     startY: y,
@@ -2132,11 +1953,16 @@ function exportPDF() {
   toast('✓ PDF generado — '+filteredOrders.length+' pedidos · '+pageNum+' páginas');
 }
 
-// Hook orders load into nav — default: TODO (sin filtro de fecha)
+// Hook orders load into nav
 const origNav = document.querySelectorAll('.nav-item');
 origNav.forEach(item => {
   item.addEventListener('click', () => {
     if(item.dataset.section === 'orders') {
+      const today = getSantiagoToday();
+      if(!document.getElementById('dateTo').value) {
+        document.getElementById('dateFrom').value = today;
+        document.getElementById('dateTo').value = today;
+      }
       listenOrders();
     }
   });
