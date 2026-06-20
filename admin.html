@@ -150,7 +150,13 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
 .products-cat-title { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:0.08em; color:var(--accent); margin-bottom:12px; display:flex; align-items:center; gap:10px; padding-bottom:8px; border-bottom:1px solid var(--bg-4); }
 .products-cat-title .count { background:var(--bg-4); padding:2px 8px; border-radius:10px; font-size:11px; color:var(--text-dim); font-family:'DM Sans',sans-serif; letter-spacing:0; }
 .products-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:14px; }
-.product-card { background:var(--bg-3); border:1px solid var(--bg-4); border-radius:10px; overflow:hidden; transition:all 0.2s; }
+.product-card { background:var(--bg-3); border:1px solid var(--bg-4); border-radius:10px; overflow:hidden; transition:all 0.2s; cursor:grab; }
+.product-card:active { cursor:grabbing; }
+.product-card.dragging { opacity:0.4; border:2px dashed var(--primary); transform:scale(0.97); }
+.product-card.drag-over { border:2px solid var(--primary); box-shadow:0 0 0 3px rgba(0,180,166,0.2); transform:scale(1.01); }
+.drag-handle { color:var(--text-mute); font-size:13px; cursor:grab; padding:0 4px; letter-spacing:-2px; user-select:none; }
+.drag-handle:active { cursor:grabbing; }
+.move-btn:disabled { opacity:0.2 !important; cursor:not-allowed; }
 .product-card:hover { border-color:var(--primary-dark); transform:translateY(-2px); }
 .product-card.unavailable { opacity:0.55; }
 .product-img { width:100%; height:140px; background:var(--bg-4); background-size:cover; background-position:center; position:relative; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:32px; }
@@ -894,9 +900,12 @@ function renderProducts() {
     section.innerHTML = '<div class="products-cat-title">'+(cat.emoji||'🍕')+' '+(cat.name||'Sin nombre')+' <span class="count">'+prods.length+'</span></div>';
     const grid = document.createElement('div');
     grid.className = 'products-grid';
-    prods.forEach(p => {
+    prods.forEach((p, i) => {
       const card = document.createElement('div');
       card.className = 'product-card'+(p.available===false?' unavailable':'');
+      card.draggable = true;
+      card.dataset.productId = p.id;
+      card.dataset.catId = p.catId;
       const imgUrl = processDriveUrl(p.img);
       card.innerHTML =
         '<div class="product-img'+(imgUrl?'':' no-img')+'" '+(imgUrl?'style="background-image:url('+imgUrl+')"':'')+'>'+(p.available===false?'<div class="product-badge-unavailable">Agotado</div>':'')+'</div>'+
@@ -906,6 +915,9 @@ function renderProducts() {
           '<div class="product-actions">'+
             '<div class="product-availability"><div class="toggle '+(p.available!==false?'on':'')+'" data-avail="'+p.id+'"></div>'+(p.available!==false?'Disponible':'Agotado')+'</div>'+
             '<div class="product-card-buttons">'+
+              '<span class="drag-handle" title="Arrastrar para reordenar">⠿</span>'+
+              '<button class="icon-btn move-btn" data-move-up="'+p.id+'" title="Subir"'+(i===0?' disabled':'')+'">▲</button>'+
+              '<button class="icon-btn move-btn" data-move-down="'+p.id+'" title="Bajar"'+(i===prods.length-1?' disabled':'')+'">▼</button>'+
               '<button class="icon-btn" data-edit="'+p.id+'">✏️</button>'+
               '<button class="icon-btn danger" data-del="'+p.id+'">🗑</button>'+
             '</div>'+
@@ -919,6 +931,64 @@ function renderProducts() {
   c.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openProductModal(b.dataset.edit)));
   c.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => deleteProduct(b.dataset.del)));
   c.querySelectorAll('[data-avail]').forEach(t => t.addEventListener('click', () => toggleAvailability(t.dataset.avail)));
+  c.querySelectorAll('[data-move-up]').forEach(b => b.addEventListener('click', () => moveProduct(b.dataset.moveUp, -1)));
+  c.querySelectorAll('[data-move-down]').forEach(b => b.addEventListener('click', () => moveProduct(b.dataset.moveDown, 1)));
+
+  // ── DRAG & DROP para reordenar ──
+  let dragSrcId = null;
+  c.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragSrcId = card.dataset.productId;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      c.querySelectorAll('.product-card').forEach(c2 => c2.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if(card.dataset.productId !== dragSrcId && card.dataset.catId === c.querySelector('[data-product-id="'+dragSrcId+'"]')?.dataset.catId) {
+        c.querySelectorAll('.product-card').forEach(c2 => c2.classList.remove('drag-over'));
+        card.classList.add('drag-over');
+      }
+    });
+    card.addEventListener('drop', async e => {
+      e.preventDefault();
+      const targetId = card.dataset.productId;
+      if(!dragSrcId || dragSrcId === targetId) return;
+      // Solo reordenar si son de la misma categoría
+      const srcProd = data.products.find(p => p.id === dragSrcId);
+      const tgtProd = data.products.find(p => p.id === targetId);
+      if(!srcProd || !tgtProd || srcProd.catId !== tgtProd.catId) return;
+      const srcIdx = data.products.findIndex(p => p.id === dragSrcId);
+      const tgtIdx = data.products.findIndex(p => p.id === targetId);
+      // Mover src a la posición de target
+      const [moved] = data.products.splice(srcIdx, 1);
+      const newTgtIdx = data.products.findIndex(p => p.id === targetId);
+      data.products.splice(newTgtIdx + (srcIdx < tgtIdx ? 1 : 0), 0, moved);
+      await saveData('products', data.products);
+      renderProducts();
+      toast('✓ Orden guardado');
+    });
+  });
+}
+
+async function moveProduct(id, dir) {
+  const p = data.products.find(x => x.id === id);
+  if(!p) return;
+  // Filtrar solo productos de la misma categoría, manteniendo índice global
+  const catProds = data.products.map((x, gi) => ({...x, _gi: gi})).filter(x => x.catId === p.catId);
+  const posInCat = catProds.findIndex(x => x.id === id);
+  const targetInCat = posInCat + dir;
+  if(targetInCat < 0 || targetInCat >= catProds.length) return;
+  const gi1 = catProds[posInCat]._gi;
+  const gi2 = catProds[targetInCat]._gi;
+  [data.products[gi1], data.products[gi2]] = [data.products[gi2], data.products[gi1]];
+  await saveData('products', data.products);
+  renderProducts();
+  toast(dir === -1 ? '▲ Producto subido' : '▼ Producto bajado');
 }
 
 async function toggleAvailability(id) {
