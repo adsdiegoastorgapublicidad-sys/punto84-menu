@@ -358,12 +358,14 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <div class="nav-section-title">Menú</div>
       <div class="nav-item" data-section="categories"><span class="nav-icon">📂</span><span>Categorías</span></div>
       <div class="nav-item" data-section="products"><span class="nav-icon">🍕</span><span>Productos</span></div>
+      <div class="nav-item" data-section="ingredients"><span class="nav-icon">🧂</span><span>Ingredientes</span></div>
       <div class="nav-section-title">Operación</div>
       <div class="nav-item" data-section="hours"><span class="nav-icon">⏰</span><span>Horarios</span></div>
       <div class="nav-item" data-section="delivery"><span class="nav-icon">🛵</span><span>Delivery</span></div>
       <div class="nav-item" data-section="orders"><span class="nav-icon">📋</span><span>Pedidos</span></div>
       <div class="nav-section-title">Sistema</div>
       <div class="nav-item" data-section="config"><span class="nav-icon">⚙️</span><span>Configuración</span></div>
+      <div class="nav-item" data-section="payment"><span class="nav-icon">💳</span><span>Datos de Pago</span></div>
       <div class="sidebar-footer">
         <button class="btn btn-ghost btn-sm" id="btnViewMenu">👁 Ver Menú Público</button>
         <button class="btn btn-danger btn-sm" id="btnLogout">🚪 Cerrar Sesión</button>
@@ -539,6 +541,52 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
         </div>
       </div>
 
+      <!-- INGREDIENTS -->
+      <div class="section-view" data-view="ingredients" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">INGRE<span>DIENTES</span></div><div class="page-subtitle">Builder de pizzas y agregados</div></div>
+          <button class="btn btn-primary btn-sm" id="btnAddIngredient">+ NUEVO INGREDIENTE</button>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧂 Ingredientes</div>
+            <div style="font-size:12px;color:var(--text-mute)">Arrastra para reordenar</div>
+          </div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px">💡 <span><strong>Arma tu Pizza:</strong> aparece en pestaña separada donde el cliente elige ingredientes uno a uno. <strong>Agregado:</strong> aparece en acordeón colapsable debajo de las pizzas del menú.</span></div>
+            <div id="ingredientsContainer"><div class="empty-state"><div class="empty-icon">🧂</div>No hay ingredientes. Agrega el primero.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENT DATA -->
+      <div class="section-view" data-view="payment" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">DATOS DE <span>PAGO</span></div><div class="page-subtitle">Transferencia bancaria</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🏦 Datos Bancarios para Transferencia</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px">💡 <span>Estos datos se mostrarán al cliente cuando elija pagar por transferencia. Si dejas todo vacío, solo se ofrecerá pago en efectivo.</span></div>
+            <div class="field"><span class="field-label">Banco</span><input class="input" id="inpPayBank" type="text" placeholder="Ej: Banco Estado, Scotiabank..."><span class="field-hint">Nombre del banco</span></div>
+            <div class="field"><span class="field-label">Nombre del Titular</span><input class="input" id="inpPayHolder" type="text" placeholder="Nombre completo del titular de la cuenta"></div>
+            <div class="field"><span class="field-label">RUT</span><input class="input" id="inpPayRut" type="text" placeholder="Ej: 12.345.678-9"></div>
+            <div class="field"><span class="field-label">Número de Cuenta</span><input class="input" id="inpPayAccount" type="text" placeholder="Número de cuenta bancaria"></div>
+            <div class="field"><span class="field-label">Tipo de Cuenta</span>
+              <select class="input" id="inpPayAccountType">
+                <option value="">-- Seleccionar --</option>
+                <option value="Cuenta Corriente">Cuenta Corriente</option>
+                <option value="Cuenta Vista">Cuenta Vista</option>
+                <option value="Cuenta de Ahorro">Cuenta de Ahorro</option>
+                <option value="Cuenta RUT">Cuenta RUT</option>
+              </select>
+            </div>
+            <div class="field"><span class="field-label">Email (para comprobante)</span><input class="input" id="inpPayEmail" type="email" placeholder="correo@ejemplo.com"><span class="field-hint">Opcional: para que el cliente envíe el comprobante</span></div>
+            <button class="btn btn-primary" id="btnSavePayment" style="margin-top:18px;width:100%">💾 GUARDAR DATOS DE PAGO</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ORDERS -->
       <div class="section-view" data-view="orders" style="display:none">
         <div class="page-header">
@@ -642,8 +690,9 @@ const app = initializeApp(FB);
 const db = getDatabase(app);
 const ROOT = 'menu';
 
-let data = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407', isOpen:false} };
+let data = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407', isOpen:false}, ingredients:[], payment:{} };
 let editingProduct = null;
+let editingIngredient = null;
 
 const DAYS = [['mon','Lunes'],['tue','Martes'],['wed','Miércoles'],['thu','Jueves'],['fri','Viernes'],['sat','Sábado'],['sun','Domingo']];
 const COLOR_PRESETS = [['#00b4a6','#f5a623'],['#c9a84c','#8a6a1f'],['#e74c3c','#f39c12'],['#9b59b6','#e67e22'],['#3498db','#f1c40f'],['#27ae60','#e74c3c'],['#1abc9c','#34495e'],['#e91e63','#ffc107']];
@@ -660,6 +709,8 @@ async function initData() {
     data.zones = d.zones ? Object.values(d.zones) : [];
     data.hours = d.hours || {};
     data.config = d.config || {whatsapp:'+56938902407', isOpen:false};
+    data.ingredients = d.ingredients ? Object.values(d.ingredients) : [];
+    data.payment = d.payment || {};
   }
   const passSnap = await get(ref(db, ROOT+'/password'));
   if(!passSnap.exists()) await set(ref(db, ROOT+'/password'), 'punto84admin');
@@ -704,6 +755,8 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if(window.innerWidth < 900) document.getElementById('sidebar').classList.remove('open');
     if(sec==='dashboard') updateDashboard();
     if(sec==='products') renderProducts();
+    if(sec==='ingredients') renderIngredients();
+    if(sec==='payment') loadPaymentForm();
   });
 });
 document.querySelectorAll('.nav-jump').forEach(b => b.addEventListener('click', () => {
@@ -1149,6 +1202,157 @@ document.getElementById('btnSavePass').addEventListener('click', async () => {
     document.getElementById('inpNewPass').value = '';
     toast('✓ Contraseña actualizada');
   }
+});
+
+// INGREDIENTS SECTION
+function renderIngredients() {
+  const container = document.getElementById('ingredientsContainer');
+  if(!container) return;
+  if(!data.ingredients.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🧂</div>No hay ingredientes. Agrega el primero.</div>';
+    return;
+  }
+  container.innerHTML = '';
+  data.ingredients.forEach((ing) => {
+    const ingImg = ing.img ? processDriveUrl(ing.img) : '';
+    const imgStyle = ingImg ? `background-image:url(${ingImg});background-size:cover;background-position:center` : '';
+    const typeLabel = ing.type === 'builder' ? '✨ Arma tu Pizza' : '➕ Agregado';
+    const typeColor = ing.type === 'builder' ? 'var(--primary)' : 'var(--accent)';
+    const catName = (data.categories.find(c=>c.id===ing.catId)||{}).name||'';
+    const row = document.createElement('div');
+    row.style.cssText = 'background:var(--bg-3);border:1px solid var(--bg-4);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:border-color 0.2s';
+    row.innerHTML =
+      `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg-4);${imgStyle};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">${ingImg?'':'🧂'}</div>`+
+      `<div style="flex:1;min-width:0">`+
+        `<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">${ing.name||'Sin nombre'}</div>`+
+        `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">`+
+          `<span style="font-size:11px;font-weight:600;color:${typeColor};background:rgba(0,0,0,0.2);border:1px solid ${typeColor}44;border-radius:12px;padding:2px 8px">${typeLabel}</span>`+
+          (catName?`<span style="font-size:10px;color:var(--text-mute);background:var(--bg-4);border-radius:10px;padding:2px 7px">${catName}</span>`:'')+
+          `<span style="font-size:12px;color:var(--accent);font-family:'Bebas Neue',sans-serif">${ing.price?'$'+ing.price.toLocaleString('es-CL'):'Gratis'}</span>`+
+          `<span style="font-size:11px;color:${ing.available!==false?'var(--green)':'var(--red)'}">${ing.available!==false?'● Disponible':'● Agotado'}</span>`+
+        `</div>`+
+      `</div>`+
+      `<div style="display:flex;gap:6px;flex-shrink:0">`+
+        `<button class="icon-btn" data-ing-edit="${ing.id}" title="Editar">✏️</button>`+
+        `<button class="icon-btn danger" data-ing-del="${ing.id}" title="Eliminar">🗑</button>`+
+      `</div>`;
+    container.appendChild(row);
+  });
+  container.querySelectorAll('[data-ing-edit]').forEach(b => b.addEventListener('click', () => openIngredientModal(b.dataset.ingEdit)));
+  container.querySelectorAll('[data-ing-del]').forEach(b => b.addEventListener('click', () => deleteIngredient(b.dataset.ingDel)));
+}
+
+function openIngredientModal(id = null) {
+  editingIngredient = id;
+  const isEdit = !!id;
+  const ing = isEdit ? data.ingredients.find(i => i.id === id) : null;
+  const catOpts = data.categories.map(c => `<option value="${c.id}" ${ing&&ing.catId===c.id?'selected':''}>${c.emoji||''} ${c.name||''}</option>`).join('');
+  const modal = document.createElement('div');
+  modal.id = 'ingModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)';
+  modal.innerHTML = `<div style="background:var(--bg-2);border:1px solid var(--bg-5);border-radius:14px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.1em;color:var(--primary)">${isEdit?'✏️ EDITAR':'➕ NUEVO'} INGREDIENTE</div>
+      <button id="ingModalClose" style="background:var(--bg-3);border:1px solid var(--bg-4);color:var(--text-dim);width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
+    </div>
+    <div class="field"><span class="field-label">Nombre del ingrediente</span><input class="input" id="ingName" type="text" placeholder="Ej: Champiñón, Pepperoni..." value="${ing?ing.name||'':''}"></div>
+    <div class="field"><span class="field-label">Precio adicional (0 = gratis)</span><input class="input" id="ingPrice" type="number" min="0" step="100" placeholder="0" value="${ing&&ing.price?ing.price:0}"></div>
+    <div class="field"><span class="field-label">URL de imagen (Google Drive)</span><input class="input" id="ingImg" type="text" placeholder="https://drive.google.com/..." value="${ing?ing.img||'':''}"></div>
+    <div class="field"><span class="field-label">Categoría asociada</span>
+      <select class="input" id="ingCat"><option value="">-- Sin categoría específica --</option>${catOpts}</select>
+      <span class="field-hint">Selecciona la categoría donde aparecerá este ingrediente</span>
+    </div>
+    <div class="field"><span class="field-label">Tipo</span>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <label style="flex:1;display:flex;align-items:center;gap:8px;background:var(--bg-3);border:1.5px solid ${(!ing||ing.type!=='agregado')?'var(--primary)':'var(--bg-4)'};border-radius:8px;padding:10px;cursor:pointer">
+          <input type="radio" name="ingType" value="builder" ${!ing||ing.type!=='agregado'?'checked':''} style="accent-color:var(--primary)"> ✨ Arma tu Pizza
+        </label>
+        <label style="flex:1;display:flex;align-items:center;gap:8px;background:var(--bg-3);border:1.5px solid ${ing&&ing.type==='agregado'?'var(--accent)':'var(--bg-4)'};border-radius:8px;padding:10px;cursor:pointer">
+          <input type="radio" name="ingType" value="agregado" ${ing&&ing.type==='agregado'?'checked':''} style="accent-color:var(--accent)"> ➕ Agregado
+        </label>
+      </div>
+    </div>
+    <div class="field"><span class="field-label">Disponibilidad</span>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <div class="toggle ${!ing||ing.available!==false?'on':''}" id="ingAvailToggle"></div>
+        <span id="ingAvailLabel" style="font-size:13px;color:var(--text-dim)">${!ing||ing.available!==false?'Disponible':'Agotado'}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      ${isEdit?`<button class="btn btn-danger btn-sm" id="ingDeleteBtn" style="width:auto;padding:0 16px">🗑 Eliminar</button>`:''}
+      <button class="btn btn-primary" id="ingSaveBtn" style="flex:1">💾 GUARDAR INGREDIENTE</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+
+  let ingAvail = !ing || ing.available !== false;
+  const toggleEl = modal.querySelector('#ingAvailToggle');
+  const labelEl = modal.querySelector('#ingAvailLabel');
+  toggleEl.addEventListener('click', () => {
+    ingAvail = !ingAvail;
+    toggleEl.className = 'toggle'+(ingAvail?' on':'');
+    labelEl.textContent = ingAvail ? 'Disponible' : 'Agotado';
+  });
+  modal.querySelector('#ingModalClose').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', e => { if(e.target === modal) modal.remove(); });
+  if(isEdit) modal.querySelector('#ingDeleteBtn').addEventListener('click', () => { deleteIngredient(id); modal.remove(); });
+  modal.querySelector('#ingSaveBtn').addEventListener('click', async () => {
+    const name = modal.querySelector('#ingName').value.trim();
+    if(!name) { alert('El nombre es requerido'); return; }
+    const type = modal.querySelector('input[name="ingType"]:checked').value;
+    const catId = modal.querySelector('#ingCat').value || null;
+    const price = parseInt(modal.querySelector('#ingPrice').value)||0;
+    const img = modal.querySelector('#ingImg').value.trim()||null;
+    const ingData = { id: isEdit ? id : 'ing-'+Date.now(), name, type, catId, price, img, available: ingAvail };
+    if(isEdit) {
+      const idx = data.ingredients.findIndex(i => i.id === id);
+      if(idx >= 0) data.ingredients[idx] = ingData;
+    } else {
+      data.ingredients.push(ingData);
+    }
+    if(await saveData('ingredients', data.ingredients)) {
+      toast('✓ Ingrediente guardado');
+      renderIngredients();
+      modal.remove();
+    }
+  });
+}
+
+async function deleteIngredient(id) {
+  if(!confirm('¿Eliminar este ingrediente?')) return;
+  data.ingredients = data.ingredients.filter(i => i.id !== id);
+  if(await saveData('ingredients', data.ingredients)) {
+    toast('✓ Ingrediente eliminado');
+    renderIngredients();
+  }
+}
+
+const _btnAddIng = document.getElementById('btnAddIngredient');
+if(_btnAddIng) _btnAddIng.addEventListener('click', () => openIngredientModal());
+
+// PAYMENT DATA
+function loadPaymentForm() {
+  const pay = data.payment || {};
+  const g = id => document.getElementById(id);
+  if(g('inpPayBank')) g('inpPayBank').value = pay.bank||'';
+  if(g('inpPayHolder')) g('inpPayHolder').value = pay.holder||'';
+  if(g('inpPayRut')) g('inpPayRut').value = pay.rut||'';
+  if(g('inpPayAccount')) g('inpPayAccount').value = pay.account||'';
+  if(g('inpPayAccountType')) g('inpPayAccountType').value = pay.accountType||'';
+  if(g('inpPayEmail')) g('inpPayEmail').value = pay.email||'';
+}
+
+const _btnSavePay = document.getElementById('btnSavePayment');
+if(_btnSavePay) _btnSavePay.addEventListener('click', async () => {
+  data.payment = {
+    bank: document.getElementById('inpPayBank').value.trim(),
+    holder: document.getElementById('inpPayHolder').value.trim(),
+    rut: document.getElementById('inpPayRut').value.trim(),
+    account: document.getElementById('inpPayAccount').value.trim(),
+    accountType: document.getElementById('inpPayAccountType').value,
+    email: document.getElementById('inpPayEmail').value.trim(),
+  };
+  if(await saveData('payment', data.payment)) toast('✓ Datos de pago guardados');
 });
 
 // DASHBOARD
