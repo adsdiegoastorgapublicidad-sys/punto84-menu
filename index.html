@@ -1317,12 +1317,12 @@ function openConfirmModal({ name, addr, notes }) {
   if(hasBankData) {
     html += '<div class="transfer-info" id="transferInfo" style="'+(selectedPayment!=='transfer'?'display:none':'')+'">';
     html += '<div class="transfer-info-title">📲 Datos para Transferencia</div>';
-    if(pay.bank) html += '<div class="transfer-row"><span class="transfer-key">Banco</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.bank+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.bank+'\')">Copiar</button></div></div>';
-    if(pay.holder) html += '<div class="transfer-row"><span class="transfer-key">Nombre</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.holder+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.holder+'\')">Copiar</button></div></div>';
-    if(pay.rut) html += '<div class="transfer-row"><span class="transfer-key">RUT</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.rut+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.rut+'\')">Copiar</button></div></div>';
-    if(pay.account) html += '<div class="transfer-row"><span class="transfer-key">N° Cuenta</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.account+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.account+'\')">Copiar</button></div></div>';
+    if(pay.bank) html += '<div class="transfer-row"><span class="transfer-key">Banco</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.bank+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.bank+'\',this)">Copiar</button></div></div>';
+    if(pay.holder) html += '<div class="transfer-row"><span class="transfer-key">Nombre</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.holder+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.holder+'\',this)">Copiar</button></div></div>';
+    if(pay.rut) html += '<div class="transfer-row"><span class="transfer-key">RUT</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.rut+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.rut+'\',this)">Copiar</button></div></div>';
+    if(pay.account) html += '<div class="transfer-row"><span class="transfer-key">N° Cuenta</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.account+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.account+'\',this)">Copiar</button></div></div>';
     if(pay.accountType) html += '<div class="transfer-row"><span class="transfer-key">Tipo Cuenta</span><span class="transfer-val">'+pay.accountType+'</span></div>';
-    if(pay.email) html += '<div class="transfer-row"><span class="transfer-key">Email</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.email+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.email+'\')">Copiar</button></div></div>';
+    if(pay.email) html += '<div class="transfer-row"><span class="transfer-key">Email</span><div style="display:flex;align-items:center;gap:6px"><span class="transfer-val">'+pay.email+'</span><button class="transfer-copy-btn" onclick="copyText(\''+pay.email+'\',this)">Copiar</button></div></div>';
     html += '</div>';
   }
 
@@ -1359,16 +1359,39 @@ function openConfirmModal({ name, addr, notes }) {
   document.getElementById('confirmModal').classList.add('active');
 }
 
-function copyText(text) {
-  navigator.clipboard.writeText(text).catch(() => {
+function copyText(text, btn) {
+  // Fallback universal — funciona en iOS/Android sin depender de clipboard API
+  const copyFallback = () => {
     const ta = document.createElement('textarea');
     ta.value = text;
-    ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select();
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;box-shadow:none;background:transparent;opacity:0;';
+    document.body.appendChild(ta);
+    // iOS necesita esto para seleccionar
+    if(navigator.userAgent.match(/ipad|iphone/i)) {
+      const range = document.createRange();
+      range.selectNodeContents(ta);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      ta.setSelectionRange(0, 999999);
+    } else {
+      ta.select();
+    }
     document.execCommand('copy');
     document.body.removeChild(ta);
-  });
+    if(btn) { const orig = btn.textContent; btn.textContent = '✓'; setTimeout(() => btn.textContent = orig, 1500); }
+  };
+
+  if(navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      if(btn) { const orig = btn.textContent; btn.textContent = '✓'; setTimeout(() => btn.textContent = orig, 1500); }
+    }).catch(copyFallback);
+  } else {
+    copyFallback();
+  }
 }
+
 
 async function sendOrder({ name, addr, notes }) {
 
@@ -1705,8 +1728,7 @@ function renderUpcomingSection() {
   });
 }
 
-// ── HOOK HISTORIAL EN sendOrder ──
-const _origSendOrder = sendOrder;
+// FIN DE LÓGICA ADICIONAL
 
 </script>
 </body>
