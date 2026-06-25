@@ -1208,38 +1208,167 @@ document.getElementById('btnSavePass').addEventListener('click', async () => {
 function renderIngredients() {
   const container = document.getElementById('ingredientsContainer');
   if(!container) return;
+
+  // Agrupar ingredientes por categoría
+  // Primero hacemos un bucket por catId (null = "Sin categoría")
+  const buckets = {};
+  data.ingredients.forEach(ing => {
+    const key = ing.catId || '__none__';
+    if(!buckets[key]) buckets[key] = { builder:[], agregado:[] };
+    const t = ing.type === 'builder' ? 'builder' : 'agregado';
+    buckets[key][t].push(ing);
+  });
+
+  // Categorías con ingredientes, más bloque "sin categoría" al final
+  const catOrder = data.categories.filter(c => buckets[c.id]);
+  const hasNone = !!buckets['__none__'];
+
   if(!data.ingredients.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🧂</div>No hay ingredientes. Agrega el primero.</div>';
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🧂</div>No hay ingredientes aún. Agrega el primero.</div>';
     return;
   }
+
   container.innerHTML = '';
-  data.ingredients.forEach((ing) => {
+
+  // Render de una fila de ingrediente
+  function ingRow(ing) {
     const ingImg = ing.img ? processDriveUrl(ing.img) : '';
     const imgStyle = ingImg ? `background-image:url(${ingImg});background-size:cover;background-position:center` : '';
-    const typeLabel = ing.type === 'builder' ? '✨ Arma tu Pizza' : '➕ Agregado';
-    const typeColor = ing.type === 'builder' ? 'var(--primary)' : 'var(--accent)';
-    const catName = (data.categories.find(c=>c.id===ing.catId)||{}).name||'';
+    const priceStr = ing.price ? '$'+ing.price.toLocaleString('es-CL') : 'Gratis';
+    const avail = ing.available !== false;
     const row = document.createElement('div');
-    row.style.cssText = 'background:var(--bg-3);border:1px solid var(--bg-4);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:border-color 0.2s';
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;transition:background 0.15s;cursor:default';
+    row.onmouseenter = () => row.style.background = 'var(--bg-3)';
+    row.onmouseleave = () => row.style.background = '';
     row.innerHTML =
-      `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg-4);${imgStyle};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">${ingImg?'':'🧂'}</div>`+
+      `<div style="width:36px;height:36px;border-radius:7px;background:var(--bg-4);${imgStyle};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;">${ingImg?'':'🧂'}</div>`+
       `<div style="flex:1;min-width:0">`+
-        `<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">${ing.name||'Sin nombre'}</div>`+
-        `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">`+
-          `<span style="font-size:11px;font-weight:600;color:${typeColor};background:rgba(0,0,0,0.2);border:1px solid ${typeColor}44;border-radius:12px;padding:2px 8px">${typeLabel}</span>`+
-          (catName?`<span style="font-size:10px;color:var(--text-mute);background:var(--bg-4);border-radius:10px;padding:2px 7px">${catName}</span>`:'')+
-          `<span style="font-size:12px;color:var(--accent);font-family:'Bebas Neue',sans-serif">${ing.price?'$'+ing.price.toLocaleString('es-CL'):'Gratis'}</span>`+
-          `<span style="font-size:11px;color:${ing.available!==false?'var(--green)':'var(--red)'}">${ing.available!==false?'● Disponible':'● Agotado'}</span>`+
+        `<div style="font-size:13px;font-weight:600;color:var(--text)">${ing.name||'Sin nombre'}</div>`+
+        `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px">`+
+          `<span style="font-size:11px;color:var(--accent);font-family:'Bebas Neue',sans-serif">${priceStr}</span>`+
+          `<span style="font-size:10px;color:${avail?'var(--green)':'var(--red)'}">${avail?'● Disponible':'● Agotado'}</span>`+
         `</div>`+
       `</div>`+
-      `<div style="display:flex;gap:6px;flex-shrink:0">`+
+      `<div style="display:flex;gap:4px;flex-shrink:0">`+
         `<button class="icon-btn" data-ing-edit="${ing.id}" title="Editar">✏️</button>`+
         `<button class="icon-btn danger" data-ing-del="${ing.id}" title="Eliminar">🗑</button>`+
       `</div>`;
-    container.appendChild(row);
+    row.querySelector('[data-ing-edit]').addEventListener('click', () => openIngredientModal(ing.id));
+    row.querySelector('[data-ing-del]').addEventListener('click', () => deleteIngredient(ing.id));
+    return row;
+  }
+
+  // Render de sub-sección (Builder o Agregados) dentro de una categoría
+  function renderSubSection(container, ings, type) {
+    if(!ings.length) return;
+    const isBuilder = type === 'builder';
+    const label = isBuilder ? '✨ Arma tu Pizza' : '➕ Agregados';
+    const color = isBuilder ? 'var(--primary)' : 'var(--accent)';
+
+    const sub = document.createElement('div');
+    sub.style.cssText = 'padding:10px 12px';
+
+    // Sub-título con línea
+    const subTitle = document.createElement('div');
+    subTitle.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px';
+    subTitle.innerHTML =
+      `<span style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${color}">${label}</span>`+
+      `<span style="font-size:10px;background:rgba(0,0,0,0.2);border:1px solid ${color}33;border-radius:10px;padding:1px 7px;color:${color}">${ings.length}</span>`+
+      `<div style="flex:1;height:1px;background:var(--bg-4)"></div>`;
+    sub.appendChild(subTitle);
+
+    ings.forEach(ing => sub.appendChild(ingRow(ing)));
+    container.appendChild(sub);
+  }
+
+  // Render de bloque de categoría (acordeón)
+  function renderCatBlock(catId, catName, catEmoji, bucket) {
+    const builderCount = bucket.builder.length;
+    const agregadoCount = bucket.agregado.length;
+    const total = builderCount + agregadoCount;
+
+    const block = document.createElement('div');
+    block.style.cssText = 'background:var(--bg-2);border:1px solid var(--bg-4);border-radius:12px;overflow:hidden;margin-bottom:10px';
+
+    // Header del acordeón
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;transition:background 0.15s;user-select:none';
+    hdr.onmouseenter = () => hdr.style.background = 'var(--bg-3)';
+    hdr.onmouseleave = () => hdr.style.background = '';
+    hdr.innerHTML =
+      `<div style="display:flex;align-items:center;gap:12px">`+
+        `<span style="font-size:22px">${catEmoji||'📂'}</span>`+
+        `<div>`+
+          `<div style="font-size:14px;font-weight:600;color:var(--text)">${catName}</div>`+
+          `<div style="font-size:11px;color:var(--text-mute);margin-top:1px">`+
+            (builderCount?`<span style="color:var(--primary)">✨ ${builderCount} builder</span>`:'')+ 
+            (builderCount&&agregadoCount?' · ':'')+
+            (agregadoCount?`<span style="color:var(--accent)">➕ ${agregadoCount} agregados</span>`:'')+
+            (!builderCount&&!agregadoCount?'Sin ingredientes':'')+
+          `</div>`+
+        `</div>`+
+      `</div>`+
+      `<div style="display:flex;align-items:center;gap:10px">`+
+        `<span style="font-size:12px;background:var(--bg-3);border:1px solid var(--bg-4);border-radius:10px;padding:2px 10px;color:var(--text-dim)">${total} total</span>`+
+        `<span class="acc-chev" style="font-size:18px;color:var(--text-mute);transition:transform 0.25s">▼</span>`+
+      `</div>`;
+
+    // Body del acordeón
+    const body = document.createElement('div');
+    body.style.cssText = 'border-top:1px solid var(--bg-4);display:none';
+
+    // Sub-secciones
+    renderSubSection(body, bucket.builder, 'builder');
+    if(bucket.builder.length && bucket.agregado.length) {
+      const div = document.createElement('div');
+      div.style.cssText = 'height:1px;background:var(--bg-4);margin:0 12px';
+      body.appendChild(div);
+    }
+    renderSubSection(body, bucket.agregado, 'agregado');
+
+    // Toggle
+    let open = false;
+    hdr.addEventListener('click', () => {
+      open = !open;
+      body.style.display = open ? 'block' : 'none';
+      hdr.querySelector('.acc-chev').style.transform = open ? 'rotate(180deg)' : '';
+      hdr.querySelector('.acc-chev').style.color = open ? 'var(--primary)' : 'var(--text-mute)';
+    });
+
+    block.appendChild(hdr);
+    block.appendChild(body);
+    return block;
+  }
+
+  // Render categorías con ingredientes
+  catOrder.forEach(cat => {
+    container.appendChild(renderCatBlock(cat.id, cat.name, cat.emoji, buckets[cat.id]));
   });
-  container.querySelectorAll('[data-ing-edit]').forEach(b => b.addEventListener('click', () => openIngredientModal(b.dataset.ingEdit)));
-  container.querySelectorAll('[data-ing-del]').forEach(b => b.addEventListener('click', () => deleteIngredient(b.dataset.ingDel)));
+
+  // Categorías SIN ingredientes (colapsadas, vacías) — para fácil acceso
+  data.categories.forEach(cat => {
+    if(buckets[cat.id]) return; // ya renderizado
+    const block = document.createElement('div');
+    block.style.cssText = 'background:var(--bg-2);border:1px solid var(--bg-4);border-radius:12px;overflow:hidden;margin-bottom:10px';
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:11px 16px;opacity:0.5';
+    hdr.innerHTML =
+      `<div style="display:flex;align-items:center;gap:12px">`+
+        `<span style="font-size:20px">${cat.emoji||'📂'}</span>`+
+        `<div>`+
+          `<div style="font-size:13px;font-weight:600;color:var(--text)">${cat.name}</div>`+
+          `<div style="font-size:11px;color:var(--text-mute)">Sin ingredientes</div>`+
+        `</div>`+
+      `</div>`+
+      `<span style="font-size:11px;color:var(--text-mute)">— vacío —</span>`;
+    block.appendChild(hdr);
+    container.appendChild(block);
+  });
+
+  // Bloque "Sin categoría" si existe
+  if(hasNone) {
+    container.appendChild(renderCatBlock(null, 'Sin categoría', '❓', buckets['__none__']));
+  }
 }
 
 function openIngredientModal(id = null) {
