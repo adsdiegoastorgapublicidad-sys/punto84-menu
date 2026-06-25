@@ -359,12 +359,15 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <div class="nav-item" data-section="categories"><span class="nav-icon">📂</span><span>Categorías</span></div>
       <div class="nav-item" data-section="products"><span class="nav-icon">🍕</span><span>Productos</span></div>
       <div class="nav-item" data-section="ingredients"><span class="nav-icon">🧂</span><span>Ingredientes</span></div>
+      <div class="nav-item" data-section="badges"><span class="nav-icon">🏷️</span><span>Badges</span></div>
+      <div class="nav-item" data-section="upcoming"><span class="nav-icon">🔜</span><span>Próximamente</span></div>
       <div class="nav-section-title">Operación</div>
       <div class="nav-item" data-section="hours"><span class="nav-icon">⏰</span><span>Horarios</span></div>
       <div class="nav-item" data-section="delivery"><span class="nav-icon">🛵</span><span>Delivery</span></div>
       <div class="nav-item" data-section="orders"><span class="nav-icon">📋</span><span>Pedidos</span></div>
       <div class="nav-section-title">Sistema</div>
       <div class="nav-item" data-section="config"><span class="nav-icon">⚙️</span><span>Configuración</span></div>
+      <div class="nav-item" data-section="announcement"><span class="nav-icon">📣</span><span>Anuncios</span></div>
       <div class="nav-item" data-section="payment"><span class="nav-icon">💳</span><span>Datos de Pago</span></div>
       <div class="sidebar-footer">
         <button class="btn btn-ghost btn-sm" id="btnViewMenu">👁 Ver Menú Público</button>
@@ -442,10 +445,12 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <!-- DESIGN -->
       <div class="section-view" data-view="design" style="display:none">
         <div class="page-header">
-          <div><div class="page-title">DI<span>SEÑO</span></div><div class="page-subtitle">Personaliza los colores del menú</div></div>
-          <button class="btn btn-primary btn-sm" id="btnSaveDesign">💾 GUARDAR</button>
+          <div><div class="page-title">DI<span>SEÑO</span></div><div class="page-subtitle">Personaliza la apariencia del menú</div></div>
+          <button class="btn btn-primary btn-sm" id="btnSaveDesign">💾 GUARDAR TODO</button>
         </div>
-        <div class="card">
+
+        <!-- COLORES -->
+        <div class="card" style="margin-bottom:16px">
           <div class="card-header"><div class="card-title">🎨 Paleta de Colores</div></div>
           <div class="card-body">
             <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">🎨</span><div>Elige los <strong>2 colores principales</strong> de tu marca. El color primario se usa en botones y elementos destacados, el secundario en acentos y precios.</div></div>
@@ -465,6 +470,55 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
             </div>
           </div>
         </div>
+
+        <!-- TIPOGRAFÍA -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">✍️ Tipografía</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">✍️</span><div>Elige la fuente de los <strong>títulos y nombres de productos</strong> en el menú del cliente.</div></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px" id="fontGrid"></div>
+          </div>
+        </div>
+
+        <!-- MODO -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">🌙 Modo del Menú Cliente</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">🌙</span><div>Define el modo visual por defecto para los clientes. Ellos también pueden cambiarlo desde el menú.</div></div>
+            <div style="display:flex;gap:10px">
+              <div class="design-mode-opt" id="modeOptDark" data-mode="dark" onclick="selectMode('dark')" style="flex:1;padding:14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg-3);cursor:pointer;text-align:center">
+                <div style="font-size:22px;margin-bottom:4px">🌙</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Oscuro</div>
+                <div style="font-size:11px;color:var(--text-mute)">Por defecto</div>
+              </div>
+              <div class="design-mode-opt" id="modeOptLight" data-mode="light" onclick="selectMode('light')" style="flex:1;padding:14px;border-radius:10px;border:1px solid var(--bg-4);background:var(--bg-3);cursor:pointer;text-align:center">
+                <div style="font-size:22px;margin-bottom:4px">☀️</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Claro</div>
+                <div style="font-size:11px;color:var(--text-mute)">Fondo blanco</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÓN DE CARDS -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">🃏 Estilo de Cards de Productos</div></div>
+          <div class="card-body">
+            <div style="display:flex;gap:10px">
+              <div class="design-card-opt" data-card="horizontal" onclick="selectCardStyle('horizontal')" style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--primary);background:var(--bg-3);cursor:pointer;text-align:center">
+                <div style="font-size:20px;margin-bottom:4px">◀ ▶</div>
+                <div style="font-size:12px;font-weight:600;color:var(--text)">Horizontal</div>
+                <div style="font-size:10px;color:var(--text-mute)">Imagen a la izquierda</div>
+              </div>
+              <div class="design-card-opt" data-card="vertical" onclick="selectCardStyle('vertical')" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--bg-4);background:var(--bg-3);cursor:pointer;text-align:center">
+                <div style="font-size:20px;margin-bottom:4px">▲<br>▼</div>
+                <div style="font-size:12px;font-weight:600;color:var(--text)">Vertical</div>
+                <div style="font-size:10px;color:var(--text-mute)">Imagen arriba</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- CATEGORIES -->
@@ -587,6 +641,78 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
         </div>
       </div>
 
+      <!-- BADGES -->
+      <div class="section-view" data-view="badges" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">BAD<span>GES</span></div><div class="page-subtitle">Etiquetas visuales para tus productos</div></div>
+          <button class="btn btn-primary btn-sm" id="btnAddBadge">+ NUEVO BADGE</button>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">🏷️ Badges Disponibles</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">🏷️</span><div>Crea etiquetas como <strong>🔥 Más pedido</strong>, <strong>⭐ Nuevo</strong>, <strong>🌶️ Picante</strong>. Luego asígnalas a productos desde el panel de Productos.</div></div>
+            <div id="badgesList"><div class="empty-state"><div class="empty-icon">🏷️</div>No hay badges. Crea el primero.</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📦 Badges por Producto</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:12px"><span class="tip-icon">📦</span><div>Asigna badges a tus productos. Los clientes los verán directamente en la card del producto.</div></div>
+            <div id="badgesProductList"><div class="empty-state"><div class="empty-icon">🍕</div>Primero crea badges, luego asígnalos aquí.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPCOMING / PRÓXIMAMENTE -->
+      <div class="section-view" data-view="upcoming" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">PRÓXI<span>MAMENTE</span></div><div class="page-subtitle">Productos en pre-lanzamiento</div></div>
+          <button class="btn btn-primary btn-sm" id="btnAddUpcoming">+ NUEVO</button>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔜 Productos en Vitrina</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">🔜</span><div>Muestra a los clientes lo que viene próximamente. Aparece como sección especial al final del menú con efecto visual de expectativa.</div></div>
+            <div id="upcomingList"><div class="empty-state"><div class="empty-icon">🔜</div>No hay productos próximamente. Agrega el primero.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANNOUNCEMENT -->
+      <div class="section-view" data-view="announcement" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">ANUN<span>CIOS</span></div><div class="page-subtitle">Banner de aviso para el menú</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📣 Anuncio Emergente</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">📣</span><div>Activa un banner visible para todos los clientes al entrar al menú. Ideal para avisos de horario, demoras, promociones del día, etc.</div></div>
+            <div class="field"><span class="field-label">Estado del Anuncio</span>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+                <div class="toggle" id="announcementToggle"></div>
+                <span id="announcementToggleLabel" style="font-size:13px;color:var(--text-dim)">Desactivado</span>
+              </div>
+            </div>
+            <div class="field"><span class="field-label">Ícono</span>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="announcementIconGrid"></div>
+            </div>
+            <div class="field"><span class="field-label">Mensaje</span>
+              <textarea class="input" id="announcementText" rows="3" placeholder="Ej: Hoy cerramos a las 21:00 · Sin delivery por lluvia · 2x1 en pizzas hasta las 20hrs" style="resize:vertical"></textarea>
+            </div>
+            <div class="field"><span class="field-label">Color del Banner</span>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="announcementColorGrid"></div>
+            </div>
+            <div class="card" style="margin-top:16px;margin-bottom:16px">
+              <div class="card-header"><div class="card-title" style="font-size:12px">👁️ PREVIEW</div></div>
+              <div class="card-body" style="padding:12px">
+                <div id="announcementPreview" style="border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600"></div>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btnSaveAnnouncement" style="width:100%">💾 GUARDAR ANUNCIO</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ORDERS -->
       <div class="section-view" data-view="orders" style="display:none">
         <div class="page-header">
@@ -690,9 +816,10 @@ const app = initializeApp(FB);
 const db = getDatabase(app);
 const ROOT = 'menu';
 
-let data = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407', isOpen:false}, ingredients:[], payment:{} };
+let data = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407', isOpen:false}, ingredients:[], payment:{}, badges:[], upcoming:[], announcement:{active:false,icon:'📣',text:'',color:'#f5a623'} };
 let editingProduct = null;
 let editingIngredient = null;
+let editingUpcoming = null;
 
 const DAYS = [['mon','Lunes'],['tue','Martes'],['wed','Miércoles'],['thu','Jueves'],['fri','Viernes'],['sat','Sábado'],['sun','Domingo']];
 const COLOR_PRESETS = [['#00b4a6','#f5a623'],['#c9a84c','#8a6a1f'],['#e74c3c','#f39c12'],['#9b59b6','#e67e22'],['#3498db','#f1c40f'],['#27ae60','#e74c3c'],['#1abc9c','#34495e'],['#e91e63','#ffc107']];
@@ -711,6 +838,10 @@ async function initData() {
     data.config = d.config || {whatsapp:'+56938902407', isOpen:false};
     data.ingredients = d.ingredients ? Object.values(d.ingredients) : [];
     data.payment = d.payment || {};
+    data.badges = d.badges ? Object.values(d.badges) : [];
+    data.upcoming = d.upcoming ? Object.values(d.upcoming) : [];
+    data.announcement = d.announcement || {active:false,icon:'📣',text:'',color:'#f5a623'};
+    data.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'};
   }
   const passSnap = await get(ref(db, ROOT+'/password'));
   if(!passSnap.exists()) await set(ref(db, ROOT+'/password'), 'punto84admin');
@@ -757,6 +888,10 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if(sec==='products') renderProducts();
     if(sec==='ingredients') renderIngredients();
     if(sec==='payment') loadPaymentForm();
+    if(sec==='badges') renderBadges();
+    if(sec==='upcoming') renderUpcoming();
+    if(sec==='announcement') loadAnnouncementForm();
+    if(sec==='design') loadDesignForm();
   });
 });
 document.querySelectorAll('.nav-jump').forEach(b => b.addEventListener('click', () => {
@@ -1458,6 +1593,423 @@ async function deleteIngredient(id) {
 
 const _btnAddIng = document.getElementById('btnAddIngredient');
 if(_btnAddIng) _btnAddIng.addEventListener('click', () => openIngredientModal());
+
+// BADGES
+const BADGE_PRESETS = [
+  {emoji:'🔥',label:'Más pedido',color:'#e74c3c'},
+  {emoji:'⭐',label:'Nuevo',color:'#f1c40f'},
+  {emoji:'🌶️',label:'Picante',color:'#e67e22'},
+  {emoji:'💚',label:'Vegetariano',color:'#2ecc71'},
+  {emoji:'🏆',label:'Favorito',color:'#9b59b6'},
+  {emoji:'💥',label:'Oferta',color:'#e74c3c'},
+  {emoji:'🎉',label:'Promo',color:'#3498db'},
+  {emoji:'❄️',label:'Frío',color:'#00b4a6'},
+];
+
+function renderBadges() {
+  const list = document.getElementById('badgesList');
+  const prodList = document.getElementById('badgesProductList');
+  if(!list) return;
+
+  // Badges disponibles
+  if(!data.badges.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">🏷️</div>No hay badges. Crea el primero.</div>';
+  } else {
+    list.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px';
+    data.badges.forEach(b => {
+      const chip = document.createElement('div');
+      chip.style.cssText = `display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:20px;background:${b.color}22;border:1.5px solid ${b.color}66;cursor:default`;
+      chip.innerHTML =
+        `<span style="font-size:16px">${b.emoji}</span>`+
+        `<span style="font-size:12px;font-weight:700;color:${b.color}">${b.label}</span>`+
+        `<button style="background:transparent;border:none;color:${b.color};cursor:pointer;font-size:14px;padding:0;margin-left:4px" data-badge-del="${b.id}" title="Eliminar">✕</button>`;
+      grid.appendChild(chip);
+    });
+    list.appendChild(grid);
+  }
+
+  // Badges por producto
+  if(!prodList) return;
+  if(!data.products.length || !data.badges.length) {
+    prodList.innerHTML = '<div class="empty-state"><div class="empty-icon">🍕</div>Primero crea badges y productos.</div>';
+    return;
+  }
+  prodList.innerHTML = '';
+  data.products.forEach(prod => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg-3);border:1px solid var(--bg-4);border-radius:10px;margin-bottom:8px';
+    const prodImg = prod.img ? processDriveUrl(prod.img) : '';
+    const imgStyle = prodImg ? `background-image:url(${prodImg});background-size:cover;background-position:center` : '';
+    const prodBadges = prod.badges || [];
+    row.innerHTML =
+      `<div style="width:40px;height:40px;border-radius:7px;background:var(--bg-4);${imgStyle};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px">${prodImg?'':'🍕'}</div>`+
+      `<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">${prod.name||'Sin nombre'}</div>`+
+      `<div style="display:flex;flex-wrap:wrap;gap:6px" id="badge-chips-${prod.id}">`+
+      data.badges.map(b => {
+        const active = prodBadges.includes(b.id);
+        return `<button class="badge-toggle-btn${active?' active':''}" data-prod="${prod.id}" data-badge="${b.id}" data-color="${b.color}" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:14px;border:1.5px solid ${active?b.color:' var(--bg-5)'};background:${active?b.color+'22':'transparent'};color:${active?b.color:'var(--text-mute)'};cursor:pointer;font-size:11px;font-weight:600;transition:all 0.15s">${b.emoji} ${b.label}</button>`;
+      }).join('')+
+      `</div></div>`;
+    prodList.appendChild(row);
+  });
+
+  // Listeners
+  list.querySelectorAll('[data-badge-del]').forEach(b => b.addEventListener('click', async () => {
+    if(!confirm('¿Eliminar este badge?')) return;
+    data.badges = data.badges.filter(bd => bd.id !== b.dataset.badgeDel);
+    // También limpiar de productos
+    data.products.forEach(p => { if(p.badges) p.badges = p.badges.filter(id => id !== b.dataset.badgeDel); });
+    await saveData('badges', data.badges);
+    await saveData('products', data.products);
+    toast('✓ Badge eliminado'); renderBadges();
+  }));
+
+  prodList.querySelectorAll('.badge-toggle-btn').forEach(btn => btn.addEventListener('click', async () => {
+    const prodId = btn.dataset.prod;
+    const badgeId = btn.dataset.badge;
+    const prod = data.products.find(p => p.id === prodId);
+    if(!prod) return;
+    if(!prod.badges) prod.badges = [];
+    const idx = prod.badges.indexOf(badgeId);
+    if(idx >= 0) prod.badges.splice(idx, 1);
+    else prod.badges.push(badgeId);
+    await saveData('products', data.products);
+    renderBadges();
+  }));
+}
+
+function openBadgeModal() {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)';
+  modal.innerHTML = `<div style="background:var(--bg-2);border:1px solid var(--bg-5);border-radius:14px;max-width:420px;width:100%;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.1em;color:var(--primary)">🏷️ NUEVO BADGE</div>
+      <button id="badgeModalClose" style="background:var(--bg-3);border:1px solid var(--bg-4);color:var(--text-dim);width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="field-label" style="margin-bottom:8px">Presets rápidos</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="badgePresetGrid">
+        ${BADGE_PRESETS.map(p=>`<button class="badge-preset" data-emoji="${p.emoji}" data-label="${p.label}" data-color="${p.color}" style="padding:6px 12px;border-radius:20px;background:${p.color}22;border:1.5px solid ${p.color}66;color:${p.color};font-size:12px;font-weight:700;cursor:pointer">${p.emoji} ${p.label}</button>`).join('')}
+      </div>
+    </div>
+    <div class="field"><span class="field-label">Emoji</span><input class="input" id="badgeEmoji" type="text" placeholder="🔥" maxlength="4" value="⭐" style="font-size:20px;text-align:center;width:70px"></div>
+    <div class="field"><span class="field-label">Texto del badge</span><input class="input" id="badgeLabel" type="text" placeholder="Nuevo, Más pedido, Oferta..."></div>
+    <div class="field"><span class="field-label">Color</span><div style="display:flex;align-items:center;gap:10px"><input type="color" id="badgeColor" value="#f1c40f" style="width:44px;height:36px;border-radius:8px;border:none;cursor:pointer;background:none"><span id="badgeColorVal" style="font-size:12px;color:var(--text-dim)">#f1c40f</span></div></div>
+    <button class="btn btn-primary" id="badgeSaveBtn" style="width:100%;margin-top:12px">💾 GUARDAR BADGE</button>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.querySelector('#badgeModalClose').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  modal.querySelector('#badgeColor').addEventListener('input', e => { modal.querySelector('#badgeColorVal').textContent = e.target.value; });
+  modal.querySelectorAll('.badge-preset').forEach(btn => btn.addEventListener('click', () => {
+    modal.querySelector('#badgeEmoji').value = btn.dataset.emoji;
+    modal.querySelector('#badgeLabel').value = btn.dataset.label;
+    modal.querySelector('#badgeColor').value = btn.dataset.color;
+    modal.querySelector('#badgeColorVal').textContent = btn.dataset.color;
+  }));
+  modal.querySelector('#badgeSaveBtn').addEventListener('click', async () => {
+    const emoji = modal.querySelector('#badgeEmoji').value.trim();
+    const label = modal.querySelector('#badgeLabel').value.trim();
+    const color = modal.querySelector('#badgeColor').value;
+    if(!label) { alert('El texto es requerido'); return; }
+    data.badges.push({id:'badge-'+Date.now(), emoji, label, color});
+    if(await saveData('badges', data.badges)) { toast('✓ Badge guardado'); renderBadges(); modal.remove(); }
+  });
+}
+
+const _btnAddBadge = document.getElementById('btnAddBadge');
+if(_btnAddBadge) _btnAddBadge.addEventListener('click', openBadgeModal);
+
+// UPCOMING / PRÓXIMAMENTE
+function renderUpcoming() {
+  const list = document.getElementById('upcomingList');
+  if(!list) return;
+  if(!data.upcoming.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔜</div>No hay productos próximamente. Agrega el primero.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  data.upcoming.forEach(item => {
+    const img = item.img ? processDriveUrl(item.img) : '';
+    const imgStyle = img ? `background-image:url(${img});background-size:cover;background-position:center` : '';
+    const row = document.createElement('div');
+    row.style.cssText = 'background:var(--bg-3);border:1px solid var(--bg-4);border-radius:10px;padding:14px;display:flex;align-items:center;gap:14px;margin-bottom:10px';
+    row.innerHTML =
+      `<div style="width:56px;height:56px;border-radius:10px;background:var(--bg-4);${imgStyle};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;filter:${img?'blur(2px)':'none'}">${img?'':'🔜'}</div>`+
+      `<div style="flex:1;min-width:0">`+
+        `<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px">${item.name||'Sin nombre'}</div>`+
+        `<div style="font-size:12px;color:var(--text-mute);margin-bottom:4px">${item.description||''}</div>`+
+        `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">`+
+          (item.date?`<span style="font-size:11px;color:var(--primary);background:rgba(0,180,166,0.1);border:1px solid rgba(0,180,166,0.3);border-radius:10px;padding:2px 8px">📅 ${item.date}</span>`:'')+
+          (item.countdown?`<span style="font-size:11px;color:var(--accent);background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);border-radius:10px;padding:2px 8px">⏱ Con countdown</span>`:'')+
+          `<span style="font-size:11px;color:${item.active!==false?'var(--green)':'var(--text-mute)'}">● ${item.active!==false?'Visible':'Oculto'}</span>`+
+        `</div>`+
+      `</div>`+
+      `<div style="display:flex;gap:6px;flex-shrink:0">`+
+        `<button class="icon-btn" data-up-edit="${item.id}" title="Editar">✏️</button>`+
+        `<button class="icon-btn danger" data-up-del="${item.id}" title="Eliminar">🗑</button>`+
+      `</div>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('[data-up-edit]').forEach(b => b.addEventListener('click', () => openUpcomingModal(b.dataset.upEdit)));
+  list.querySelectorAll('[data-up-del]').forEach(b => b.addEventListener('click', async () => {
+    if(!confirm('¿Eliminar este producto próximamente?')) return;
+    data.upcoming = data.upcoming.filter(u => u.id !== b.dataset.upDel);
+    if(await saveData('upcoming', data.upcoming)) { toast('✓ Eliminado'); renderUpcoming(); }
+  }));
+}
+
+function openUpcomingModal(id = null) {
+  const isEdit = !!id;
+  const item = isEdit ? data.upcoming.find(u => u.id === id) : null;
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)';
+  let upActive = item ? item.active !== false : true;
+  let upCountdown = item ? !!item.countdown : false;
+  modal.innerHTML = `<div style="background:var(--bg-2);border:1px solid var(--bg-5);border-radius:14px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.1em;color:var(--primary)">${isEdit?'✏️ EDITAR':'🔜 NUEVO'} PRÓXIMAMENTE</div>
+      <button id="upModalClose" style="background:var(--bg-3);border:1px solid var(--bg-4);color:var(--text-dim);width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
+    </div>
+    <div class="field"><span class="field-label">Nombre del producto</span><input class="input" id="upName" type="text" placeholder="Ej: Pollo Asado..." value="${item?item.name||'':''}"></div>
+    <div class="field"><span class="field-label">Descripción</span><textarea class="input" id="upDesc" rows="2" placeholder="Descripción corta para generar expectativa..." style="resize:vertical">${item?item.description||'':''}</textarea></div>
+    <div class="field"><span class="field-label">URL de imagen</span><input class="input" id="upImg" type="text" placeholder="https://drive.google.com/..." value="${item?item.img||'':''}"></div>
+    <div class="field"><span class="field-label">Fecha estimada <span style="color:var(--text-mute);font-weight:400">(opcional)</span></span><input class="input" id="upDate" type="text" placeholder="Ej: Diciembre 2025, Próxima semana..." value="${item?item.date||'':''}"></div>
+    <div class="field"><span class="field-label">Countdown</span>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <div class="toggle ${upCountdown?'on':''}" id="upCountdownToggle"></div>
+        <span id="upCountdownLabel" style="font-size:13px;color:var(--text-dim)">${upCountdown?'Con countdown':'Sin countdown'}</span>
+      </div>
+      <input class="input" id="upCountdownDate" type="datetime-local" placeholder="Fecha del countdown" style="margin-top:8px;${upCountdown?'':'display:none'}" value="${item&&item.countdownDate?item.countdownDate:''}">
+    </div>
+    <div class="field"><span class="field-label">Visibilidad</span>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <div class="toggle ${upActive?'on':''}" id="upActiveToggle"></div>
+        <span id="upActiveLabel" style="font-size:13px;color:var(--text-dim)">${upActive?'Visible en el menú':'Oculto'}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      ${isEdit?`<button class="btn btn-danger btn-sm" id="upDeleteBtn" style="width:auto;padding:0 16px">🗑 Eliminar</button>`:''}
+      <button class="btn btn-primary" id="upSaveBtn" style="flex:1">💾 GUARDAR</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.querySelector('#upModalClose').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+
+  const countdownToggle = modal.querySelector('#upCountdownToggle');
+  const countdownLabel = modal.querySelector('#upCountdownLabel');
+  const countdownDateInput = modal.querySelector('#upCountdownDate');
+  countdownToggle.addEventListener('click', () => {
+    upCountdown = !upCountdown;
+    countdownToggle.className = 'toggle'+(upCountdown?' on':'');
+    countdownLabel.textContent = upCountdown ? 'Con countdown' : 'Sin countdown';
+    countdownDateInput.style.display = upCountdown ? '' : 'none';
+  });
+
+  const activeToggle = modal.querySelector('#upActiveToggle');
+  const activeLabel = modal.querySelector('#upActiveLabel');
+  activeToggle.addEventListener('click', () => {
+    upActive = !upActive;
+    activeToggle.className = 'toggle'+(upActive?' on':'');
+    activeLabel.textContent = upActive ? 'Visible en el menú' : 'Oculto';
+  });
+
+  if(isEdit) modal.querySelector('#upDeleteBtn').addEventListener('click', async () => {
+    data.upcoming = data.upcoming.filter(u => u.id !== id);
+    if(await saveData('upcoming', data.upcoming)) { toast('✓ Eliminado'); renderUpcoming(); modal.remove(); }
+  });
+
+  modal.querySelector('#upSaveBtn').addEventListener('click', async () => {
+    const name = modal.querySelector('#upName').value.trim();
+    if(!name) { alert('El nombre es requerido'); return; }
+    const upData = {
+      id: isEdit ? id : 'up-'+Date.now(),
+      name,
+      description: modal.querySelector('#upDesc').value.trim(),
+      img: modal.querySelector('#upImg').value.trim()||null,
+      date: modal.querySelector('#upDate').value.trim()||null,
+      countdown: upCountdown,
+      countdownDate: upCountdown ? modal.querySelector('#upCountdownDate').value : null,
+      active: upActive,
+    };
+    if(isEdit) { const idx = data.upcoming.findIndex(u=>u.id===id); if(idx>=0) data.upcoming[idx]=upData; }
+    else data.upcoming.push(upData);
+    if(await saveData('upcoming', data.upcoming)) { toast('✓ Guardado'); renderUpcoming(); modal.remove(); }
+  });
+}
+
+const _btnAddUp = document.getElementById('btnAddUpcoming');
+if(_btnAddUp) _btnAddUp.addEventListener('click', () => openUpcomingModal());
+
+// ANNOUNCEMENT
+const ANNOUNCEMENT_ICONS = ['📣','⚠️','🎉','🕐','❄️','🔥','🛵','💥','ℹ️','✅'];
+const ANNOUNCEMENT_COLORS = [
+  {color:'#f5a623',label:'Dorado'},{color:'#e74c3c',label:'Rojo'},
+  {color:'#00b4a6',label:'Teal'},{color:'#3498db',label:'Azul'},
+  {color:'#2ecc71',label:'Verde'},{color:'#9b59b6',label:'Morado'},
+  {color:'#1a1a2e',label:'Negro'},{color:'#ffffff',label:'Blanco'},
+];
+
+let annIcon = '📣', annColor = '#f5a623', annActive = false;
+
+function loadAnnouncementForm() {
+  const ann = data.announcement || {};
+  annIcon = ann.icon || '📣';
+  annColor = ann.color || '#f5a623';
+  annActive = !!ann.active;
+
+  const toggle = document.getElementById('announcementToggle');
+  const toggleLabel = document.getElementById('announcementToggleLabel');
+  if(toggle) {
+    toggle.className = 'toggle'+(annActive?' on':'');
+    toggleLabel.textContent = annActive ? 'Activo — visible para clientes' : 'Desactivado';
+    toggle.onclick = () => {
+      annActive = !annActive;
+      toggle.className = 'toggle'+(annActive?' on':'');
+      toggleLabel.textContent = annActive ? 'Activo — visible para clientes' : 'Desactivado';
+      updateAnnouncementPreview();
+    };
+  }
+
+  const textEl = document.getElementById('announcementText');
+  if(textEl) { textEl.value = ann.text || ''; textEl.oninput = updateAnnouncementPreview; }
+
+  // Icon grid
+  const iconGrid = document.getElementById('announcementIconGrid');
+  if(iconGrid) {
+    iconGrid.innerHTML = '';
+    ANNOUNCEMENT_ICONS.forEach(ic => {
+      const btn = document.createElement('button');
+      btn.style.cssText = `width:38px;height:38px;border-radius:8px;border:2px solid ${ic===annIcon?'var(--primary)':'var(--bg-4)'};background:${ic===annIcon?'rgba(0,180,166,0.1)':'var(--bg-3)'};font-size:18px;cursor:pointer;transition:all 0.15s`;
+      btn.textContent = ic;
+      btn.addEventListener('click', () => {
+        annIcon = ic;
+        iconGrid.querySelectorAll('button').forEach(b2 => { b2.style.borderColor='var(--bg-4)'; b2.style.background='var(--bg-3)'; });
+        btn.style.borderColor = 'var(--primary)'; btn.style.background = 'rgba(0,180,166,0.1)';
+        updateAnnouncementPreview();
+      });
+      iconGrid.appendChild(btn);
+    });
+  }
+
+  // Color grid
+  const colorGrid = document.getElementById('announcementColorGrid');
+  if(colorGrid) {
+    colorGrid.innerHTML = '';
+    ANNOUNCEMENT_COLORS.forEach(({color, label}) => {
+      const btn = document.createElement('button');
+      btn.title = label;
+      btn.style.cssText = `width:32px;height:32px;border-radius:50%;border:3px solid ${color===annColor?'var(--text)':'transparent'};background:${color};cursor:pointer;transition:all 0.15s`;
+      btn.addEventListener('click', () => {
+        annColor = color;
+        colorGrid.querySelectorAll('button').forEach(b2 => b2.style.borderColor='transparent');
+        btn.style.borderColor = 'var(--text)';
+        updateAnnouncementPreview();
+      });
+      colorGrid.appendChild(btn);
+    });
+  }
+
+  updateAnnouncementPreview();
+}
+
+function updateAnnouncementPreview() {
+  const preview = document.getElementById('announcementPreview');
+  if(!preview) return;
+  const text = (document.getElementById('announcementText')||{}).value || 'Tu mensaje aquí...';
+  const isDark = annColor === '#1a1a2e' || annColor === '#000000';
+  const textColor = isDark || annColor === '#ffffff' ? (annColor === '#ffffff' ? '#111' : '#fff') : '#fff';
+  preview.style.cssText = `border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;background:${annColor};color:${textColor}`;
+  preview.innerHTML = `<span style="font-size:18px">${annIcon}</span><span style="flex:1">${text}</span>${annActive?'<span style="font-size:10px;opacity:0.8">● ACTIVO</span>':'<span style="font-size:10px;opacity:0.5">DESACTIVADO</span>'}`;
+}
+
+const _btnSaveAnn = document.getElementById('btnSaveAnnouncement');
+if(_btnSaveAnn) _btnSaveAnn.addEventListener('click', async () => {
+  const text = (document.getElementById('announcementText')||{}).value?.trim() || '';
+  data.announcement = { active: annActive, icon: annIcon, text, color: annColor };
+  if(await saveData('announcement', data.announcement)) toast('✓ Anuncio guardado');
+});
+
+// DISEÑO EXPANDIDO
+const FONTS = [
+  {name:'Bebas Neue', label:'Bebas Neue', sample:'PUNTO84'},
+  {name:'Oswald', label:'Oswald', sample:'Punto84'},
+  {name:'Playfair Display', label:'Playfair', sample:'Punto84'},
+  {name:'Montserrat', label:'Montserrat', sample:'Punto84'},
+  {name:'Poppins', label:'Poppins', sample:'Punto84'},
+];
+let selectedFont = 'Bebas Neue', selectedMode = 'dark', selectedCardStyle = 'horizontal';
+
+function loadDesignForm() {
+  selectedFont = data.design?.font || 'Bebas Neue';
+  selectedMode = data.design?.mode || 'dark';
+  selectedCardStyle = data.design?.cardStyle || 'horizontal';
+
+  // Font grid
+  const fontGrid = document.getElementById('fontGrid');
+  if(fontGrid) {
+    fontGrid.innerHTML = '';
+    FONTS.forEach(f => {
+      const card = document.createElement('div');
+      const isActive = selectedFont === f.name;
+      card.style.cssText = `padding:12px;border-radius:10px;border:2px solid ${isActive?'var(--primary)':'var(--bg-4)'};background:${isActive?'rgba(0,180,166,0.08)':'var(--bg-3)'};cursor:pointer;text-align:center;transition:all 0.15s`;
+      card.innerHTML = `<div style="font-family:'${f.name}',sans-serif;font-size:20px;color:var(--text);margin-bottom:4px">${f.sample}</div><div style="font-size:10px;color:var(--text-mute)">${f.label}</div>`;
+      card.addEventListener('click', () => {
+        selectedFont = f.name;
+        fontGrid.querySelectorAll('div').forEach(c => { c.style.borderColor='var(--bg-4)'; c.style.background='var(--bg-3)'; });
+        card.style.borderColor = 'var(--primary)'; card.style.background = 'rgba(0,180,166,0.08)';
+      });
+      fontGrid.appendChild(card);
+    });
+    // Cargar fuente de Google Fonts
+    FONTS.forEach(f => {
+      if(!document.querySelector(`link[href*="${f.name.replace(/ /g,'+')}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${f.name.replace(/ /g,'+')}:wght@400;700&display=swap`;
+        document.head.appendChild(link);
+      }
+    });
+  }
+
+  // Mode select
+  selectMode(selectedMode);
+  // Card style
+  selectCardStyle(selectedCardStyle);
+}
+
+function selectMode(mode) {
+  selectedMode = mode;
+  ['dark','light'].forEach(m => {
+    const el = document.getElementById('modeOpt'+m.charAt(0).toUpperCase()+m.slice(1));
+    if(el) { el.style.border = m===mode ? '2px solid var(--primary)' : '1px solid var(--bg-4)'; }
+  });
+}
+
+function selectCardStyle(style) {
+  selectedCardStyle = style;
+  document.querySelectorAll('.design-card-opt').forEach(el => {
+    el.style.border = el.dataset.card===style ? '2px solid var(--primary)' : '1px solid var(--bg-4)';
+  });
+}
+
+// Override btnSaveDesign para incluir font, mode y cardStyle
+const _oldSaveDesign = document.getElementById('btnSaveDesign');
+if(_oldSaveDesign) {
+  _oldSaveDesign.onclick = async () => {
+    const designData = {
+      primary: document.getElementById('colorPrimary').value,
+      accent: document.getElementById('colorAccent').value,
+      font: selectedFont,
+      mode: selectedMode,
+      cardStyle: selectedCardStyle,
+    };
+    if(await saveData('design', designData)) { data.design = designData; toast('✓ Diseño guardado'); }
+  };
+}
 
 // PAYMENT DATA
 function loadPaymentForm() {
