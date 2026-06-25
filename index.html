@@ -251,7 +251,7 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 .ann-close { background:transparent; border:none; font-size:18px; cursor:pointer; margin-left:auto; opacity:0.7; line-height:1; }
 
 /* ── UPCOMING SECTION ── */
-.upcoming-section { margin:24px 0 0; }
+.upcoming-section { margin:0 0 8px; }
 .upcoming-title { display:flex; align-items:center; gap:10px; padding:0 16px; margin-bottom:16px; }
 .upcoming-title-text { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:0.08em; color:var(--text); }
 .upcoming-title-line { flex:1; height:1px; background:var(--bg-4); }
@@ -390,6 +390,16 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
     <button class="ann-close" id="annClose">✕</button>
   </div>
 
+  <!-- UPCOMING SECTION — primero para máximo impacto visual -->
+  <div class="upcoming-section" id="upcomingSection" style="display:none">
+    <div class="upcoming-title">
+      <div class="upcoming-title-line"></div>
+      <span class="upcoming-badge">🔜 PRÓXIMAMENTE</span>
+      <div class="upcoming-title-line"></div>
+    </div>
+    <div class="upcoming-grid" id="upcomingGrid"></div>
+  </div>
+
   <!-- SEARCH + QUICK TABS -->
   <div class="search-wrap" id="searchWrap">
     <span class="search-icon">🔍</span>
@@ -413,16 +423,6 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
       <div class="empty-menu-title">CARGANDO MENÚ...</div>
       <div class="empty-menu-text">Un momento por favor.</div>
     </div>
-  </div>
-
-  <!-- UPCOMING SECTION -->
-  <div class="upcoming-section" id="upcomingSection" style="display:none">
-    <div class="upcoming-title">
-      <div class="upcoming-title-line"></div>
-      <span class="upcoming-badge">🔜 PRÓXIMAMENTE</span>
-      <div class="upcoming-title-line"></div>
-    </div>
-    <div class="upcoming-grid" id="upcomingGrid"></div>
   </div>
 
 </div>
@@ -1629,7 +1629,7 @@ function renderFavPanel() {
       wrap.appendChild(item);
     });
   }
-  document.getElementById('upcomingSection').insertAdjacentElement('beforebegin', wrap);
+  document.getElementById('menuContent').insertAdjacentElement('beforebegin', wrap);
 }
 
 function renderHistPanel() {
@@ -1652,7 +1652,7 @@ function renderHistPanel() {
       wrap.appendChild(card);
     });
   }
-  document.getElementById('upcomingSection').insertAdjacentElement('beforebegin', wrap);
+  document.getElementById('menuContent').insertAdjacentElement('beforebegin', wrap);
 }
 
 function repeatOrder(entry) {
