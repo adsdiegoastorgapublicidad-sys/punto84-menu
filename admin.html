@@ -66,7 +66,11 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
 
 /* APP LAYOUT */
 .app { display:flex; min-height:100vh; }
-.sidebar { width:260px; background:var(--bg-2); border-right:1px solid var(--bg-5); padding:24px 16px; display:flex; flex-direction:column; gap:6px; position:fixed; left:0; top:0; bottom:0; z-index:50; transition:transform 0.3s; }
+.sidebar { width:260px; background:var(--bg-2); border-right:1px solid var(--bg-5); padding:24px 16px; display:flex; flex-direction:column; gap:6px; position:fixed; left:0; top:0; bottom:0; z-index:50; transition:transform 0.3s; overflow-y:auto; overflow-x:hidden; scrollbar-width:thin; scrollbar-color:var(--bg-5) transparent; }
+.sidebar::-webkit-scrollbar { width:4px; }
+.sidebar::-webkit-scrollbar-track { background:transparent; }
+.sidebar::-webkit-scrollbar-thumb { background:var(--bg-5); border-radius:4px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background:var(--primary); }
 .sidebar-header { display:flex; align-items:center; gap:12px; padding:0 8px 20px; border-bottom:1px solid var(--bg-4); margin-bottom:14px; }
 .sidebar-logo { width:42px; height:42px; object-fit:contain; }
 .sidebar-brand { font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:0.1em; color:var(--primary); line-height:1; }
