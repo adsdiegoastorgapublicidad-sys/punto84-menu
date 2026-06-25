@@ -364,6 +364,7 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <div class="nav-item" data-section="products"><span class="nav-icon">🍕</span><span>Productos</span></div>
       <div class="nav-item" data-section="ingredients"><span class="nav-icon">🧂</span><span>Ingredientes</span></div>
       <div class="nav-item" data-section="badges"><span class="nav-icon">🏷️</span><span>Badges</span></div>
+      <div class="nav-item" data-section="combos"><span class="nav-icon">🎁</span><span>Combos</span></div>
       <div class="nav-item" data-section="upcoming"><span class="nav-icon">🔜</span><span>Próximamente</span></div>
       <div class="nav-section-title">Operación</div>
       <div class="nav-item" data-section="hours"><span class="nav-icon">⏰</span><span>Horarios</span></div>
@@ -645,6 +646,21 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
         </div>
       </div>
 
+      <!-- COMBOS -->
+      <div class="section-view" data-view="combos" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">COM<span>BOS</span></div><div class="page-subtitle">Sugerencias inteligentes al agregar al carrito</div></div>
+          <button class="btn btn-primary btn-sm" id="btnAddCombo">+ NUEVO COMBO</button>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🎁 Combos configurados</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">🎁</span><div>Cuando el cliente agrega un producto de la <strong>categoría trigger</strong>, aparece un toast sugiriendo el <strong>producto complementario</strong>. Aumenta el ticket promedio automáticamente.</div></div>
+            <div id="combosList"><div class="empty-state"><div class="empty-icon">🎁</div>Sin combos configurados. El sistema sugerirá bebidas automáticamente si detecta esa categoría.</div></div>
+          </div>
+        </div>
+      </div>
+
       <!-- BADGES -->
       <div class="section-view" data-view="badges" style="display:none">
         <div class="page-header">
@@ -820,7 +836,7 @@ const app = initializeApp(FB);
 const db = getDatabase(app);
 const ROOT = 'menu';
 
-let data = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407', isOpen:false}, ingredients:[], payment:{}, badges:[], upcoming:[], announcement:{active:false,icon:'📣',text:'',color:'#f5a623'} };
+let data = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407', isOpen:false}, ingredients:[], payment:{}, badges:[], upcoming:[], announcement:{active:false,icon:'📣',text:'',color:'#f5a623'}, combos:[] };
 let editingProduct = null;
 let editingIngredient = null;
 let editingUpcoming = null;
@@ -846,6 +862,7 @@ async function initData() {
     data.upcoming = d.upcoming ? Object.values(d.upcoming) : [];
     data.announcement = d.announcement || {active:false,icon:'📣',text:'',color:'#f5a623'};
     data.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'};
+    data.combos = d.combos ? Object.values(d.combos) : [];
   }
   const passSnap = await get(ref(db, ROOT+'/password'));
   if(!passSnap.exists()) await set(ref(db, ROOT+'/password'), 'punto84admin');
@@ -893,6 +910,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if(sec==='ingredients') renderIngredients();
     if(sec==='payment') loadPaymentForm();
     if(sec==='badges') renderBadges();
+    if(sec==='combos') renderCombos();
     if(sec==='upcoming') renderUpcoming();
     if(sec==='announcement') loadAnnouncementForm();
     if(sec==='design') loadDesignForm();
@@ -1597,6 +1615,91 @@ async function deleteIngredient(id) {
 
 const _btnAddIng = document.getElementById('btnAddIngredient');
 if(_btnAddIng) _btnAddIng.addEventListener('click', () => openIngredientModal());
+
+// COMBOS
+function renderCombos() {
+  const list = document.getElementById('combosList');
+  if(!list) return;
+  if(!data.combos.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">🎁</div>Sin combos configurados. El sistema sugerirá bebidas automáticamente si detecta esa categoría.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  data.combos.forEach(combo => {
+    const trigCat = data.categories.find(c => c.id === combo.triggerCatId);
+    const sugProd = data.products.find(p => p.id === combo.suggestionProdId);
+    const row = document.createElement('div');
+    row.style.cssText = 'background:var(--bg-3);border:1px solid var(--bg-4);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:8px';
+    row.innerHTML =
+      `<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">Cuando agrega algo de <strong style="color:var(--primary)">${trigCat?trigCat.emoji+' '+trigCat.name:'Categoría eliminada'}</strong></div>`+
+      `<div style="font-size:12px;color:var(--text-dim)">→ Sugiere: <strong style="color:var(--accent)">${sugProd?sugProd.name:'Producto eliminado'}</strong>${sugProd?' ('+formatCLP(sugProd.price)+')':''}</div>`+
+      `<div style="font-size:10px;color:${combo.active!==false?'var(--green)':'var(--red)'};margin-top:4px">${combo.active!==false?'● Activo':'● Inactivo'}</div></div>`+
+      `<div style="display:flex;gap:6px"><button class="icon-btn" data-combo-edit="${combo.id}">✏️</button><button class="icon-btn danger" data-combo-del="${combo.id}">🗑</button></div>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('[data-combo-edit]').forEach(b => b.addEventListener('click', () => openComboModal(b.dataset.comboEdit)));
+  list.querySelectorAll('[data-combo-del]').forEach(b => b.addEventListener('click', async () => {
+    if(!confirm('¿Eliminar este combo?')) return;
+    data.combos = data.combos.filter(c => c.id !== b.dataset.comboDel);
+    if(await saveData('combos', data.combos)) { toast('✓ Combo eliminado'); renderCombos(); }
+  }));
+}
+
+function openComboModal(id = null) {
+  const isEdit = !!id;
+  const combo = isEdit ? data.combos.find(c => c.id === id) : null;
+  const catOpts = data.categories.map(c => `<option value="${c.id}" ${combo&&combo.triggerCatId===c.id?'selected':''}>${c.emoji||''} ${c.name}</option>`).join('');
+  const prodOpts = data.products.map(p => `<option value="${p.id}" ${combo&&combo.suggestionProdId===p.id?'selected':''}>${p.name} — ${formatCLP(p.price||0)}</option>`).join('');
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)';
+  modal.innerHTML = `<div style="background:var(--bg-2);border:1px solid var(--bg-5);border-radius:14px;max-width:480px;width:100%;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.1em;color:var(--primary)">${isEdit?'✏️ EDITAR':'🎁 NUEVO'} COMBO</div>
+      <button id="comboModalClose" style="background:var(--bg-3);border:1px solid var(--bg-4);color:var(--text-dim);width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
+    </div>
+    <div class="field"><span class="field-label">Categoría disparadora</span>
+      <select class="input" id="comboTriggerCat"><option value="">-- Seleccionar categoría --</option>${catOpts}</select>
+      <span class="field-hint">Cuando el cliente agrega un producto de esta categoría...</span>
+    </div>
+    <div class="field"><span class="field-label">Producto a sugerir</span>
+      <select class="input" id="comboSuggestProd"><option value="">-- Seleccionar producto --</option>${prodOpts}</select>
+      <span class="field-hint">...aparece este producto como sugerencia</span>
+    </div>
+    <div class="field"><span class="field-label">Estado</span>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <div class="toggle ${!combo||combo.active!==false?'on':''}" id="comboActiveToggle"></div>
+        <span id="comboActiveLabel" style="font-size:13px;color:var(--text-dim)">${!combo||combo.active!==false?'Activo':'Inactivo'}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      ${isEdit?`<button class="btn btn-danger btn-sm" id="comboDelBtn" style="width:auto;padding:0 16px">🗑 Eliminar</button>`:''}
+      <button class="btn btn-primary" id="comboSaveBtn" style="flex:1">💾 GUARDAR COMBO</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  let active = !combo || combo.active !== false;
+  const tog = modal.querySelector('#comboActiveToggle');
+  const lbl = modal.querySelector('#comboActiveLabel');
+  tog.addEventListener('click', () => { active=!active; tog.className='toggle'+(active?' on':''); lbl.textContent=active?'Activo':'Inactivo'; });
+  modal.querySelector('#comboModalClose').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  if(isEdit) modal.querySelector('#comboDelBtn').addEventListener('click', async () => {
+    data.combos = data.combos.filter(c => c.id !== id);
+    if(await saveData('combos', data.combos)) { toast('✓ Eliminado'); renderCombos(); modal.remove(); }
+  });
+  modal.querySelector('#comboSaveBtn').addEventListener('click', async () => {
+    const triggerCatId = modal.querySelector('#comboTriggerCat').value;
+    const suggestionProdId = modal.querySelector('#comboSuggestProd').value;
+    if(!triggerCatId || !suggestionProdId) { alert('Selecciona categoría y producto'); return; }
+    const comboData = { id: isEdit ? id : 'combo-'+Date.now(), triggerCatId, suggestionProdId, active };
+    if(isEdit) { const idx = data.combos.findIndex(c=>c.id===id); if(idx>=0) data.combos[idx]=comboData; }
+    else data.combos.push(comboData);
+    if(await saveData('combos', data.combos)) { toast('✓ Combo guardado'); renderCombos(); modal.remove(); }
+  });
+}
+
+const _btnAddCombo = document.getElementById('btnAddCombo');
+if(_btnAddCombo) _btnAddCombo.addEventListener('click', () => openComboModal());
 
 // BADGES
 const BADGE_PRESETS = [
