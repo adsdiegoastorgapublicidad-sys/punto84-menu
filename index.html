@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#00b4a6">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Punto84">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>Punto84 — Menú Digital</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -249,6 +256,40 @@ footer strong { color:var(--accent-dark); }
 .lang-btn.active { background:var(--primary); color:#012e29; }
 .lang-loading { font-size:10px; color:var(--text-mute); padding:0 4px; display:none; }
 .lang-loading.show { display:block; }
+
+/* ── FLY TO CART ── */
+.fly-item { position:fixed; width:44px; height:44px; border-radius:50%; background-size:cover; background-position:center; background-color:var(--bg-3); pointer-events:none; z-index:9999; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 4px 16px rgba(0,0,0,0.5); }
+@keyframes flyToCart { 0%{opacity:1;transform:scale(1)} 70%{opacity:0.8;transform:scale(0.5)} 100%{opacity:0;transform:scale(0.1)} }
+
+/* ── CONFETTI ── */
+.confetti-canvas { position:fixed; inset:0; pointer-events:none; z-index:9998; }
+
+/* ── SKELETON LOADING ── */
+.skeleton-wrap { padding:16px; }
+.skeleton-card { background:var(--bg-2); border:1px solid var(--bg-4); border-radius:12px; padding:12px; display:flex; gap:12px; margin-bottom:10px; overflow:hidden; position:relative; }
+.skeleton-card::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.04) 50%,transparent 100%); animation:shimmer 1.4s infinite; }
+@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+.skeleton-img { width:80px; height:80px; border-radius:8px; background:var(--bg-4); flex-shrink:0; }
+.skeleton-info { flex:1; display:flex; flex-direction:column; gap:8px; padding-top:4px; }
+.skeleton-line { height:12px; background:var(--bg-4); border-radius:6px; }
+.skeleton-line.w80 { width:80%; }
+.skeleton-line.w60 { width:60%; }
+.skeleton-line.w40 { width:40%; }
+.skeleton-cat { height:20px; width:140px; background:var(--bg-4); border-radius:6px; margin:16px 0 10px; }
+
+/* ── PARALLAX COVER ── */
+.cover { overflow:hidden; position:relative; height:200px; }
+.cover-inner { position:absolute; top:-30%; left:0; right:0; bottom:-30%; background-size:cover; background-position:center; will-change:transform; transition:transform 0.1s linear; }
+
+/* ── PWA INSTALL BANNER ── */
+.pwa-banner { position:fixed; bottom:0; left:0; right:0; background:var(--bg-2); border-top:2px solid var(--primary); padding:12px 16px; display:flex; align-items:center; gap:12px; z-index:300; transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1); box-shadow:0 -4px 24px rgba(0,0,0,0.5); max-width:780px; margin:0 auto; }
+.pwa-banner.show { transform:translateY(0); }
+.pwa-banner-icon { width:44px; height:44px; border-radius:10px; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.pwa-banner-info { flex:1; min-width:0; }
+.pwa-banner-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:1px; }
+.pwa-banner-sub { font-size:11px; color:var(--text-mute); }
+.pwa-banner-btn { background:var(--primary); color:#012e29; border:none; border-radius:8px; padding:9px 14px; font-family:var(--font-title); font-size:13px; letter-spacing:0.06em; cursor:pointer; flex-shrink:0; }
+.pwa-banner-close { background:none; border:none; color:var(--text-mute); font-size:20px; cursor:pointer; padding:0; flex-shrink:0; }
 body.light-mode {
   --bg-1:#f8f8f8; --bg-2:#ffffff; --bg-3:#f0f0f0; --bg-4:#e0e0e0; --bg-5:#d0d0d0;
   --text:#111111; --text-dim:#444444; --text-mute:#888888;
@@ -398,7 +439,10 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 <div class="container">
 
   <!-- COVER -->
-  <div class="cover" id="cover"><div class="cover-empty" id="coverEmpty"></div></div>
+  <div class="cover" id="cover">
+    <div class="cover-inner" id="coverInner"></div>
+    <div class="cover-empty" id="coverEmpty"></div>
+  </div>
 
   <!-- PROFILE -->
   <div class="profile-bar">
@@ -540,6 +584,20 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
   </div>
   <button class="combo-toast-btn" id="comboToastAdd">+ Agregar</button>
 </div>
+
+<!-- PWA INSTALL BANNER -->
+<div class="pwa-banner" id="pwaBanner">
+  <div class="pwa-banner-icon" id="pwaBannerIcon">🍕</div>
+  <div class="pwa-banner-info">
+    <div class="pwa-banner-title" id="pwaBannerTitle">Instala nuestra app</div>
+    <div class="pwa-banner-sub">Gratis · Sin App Store · En tu pantalla de inicio</div>
+  </div>
+  <button class="pwa-banner-btn" id="pwaBannerInstall">📲 Instalar</button>
+  <button class="pwa-banner-close" id="pwaBannerClose">✕</button>
+</div>
+
+<!-- CONFETTI CANVAS -->
+<canvas class="confetti-canvas" id="confettiCanvas"></canvas>
 
 <!-- CONFIRM ORDER MODAL -->
 <div class="confirm-modal" id="confirmModal">
@@ -699,13 +757,13 @@ function renderAll() {
 
 function renderHeader() {
   const cover = processDriveUrl(menuData.local.cover);
-  const coverEl = document.getElementById('cover');
+  const coverInner = document.getElementById('coverInner');
   const coverEmpty = document.getElementById('coverEmpty');
   if(cover) {
-    coverEl.style.backgroundImage = 'url('+cover+')';
+    coverInner.style.backgroundImage = 'url('+cover+')';
     coverEmpty.style.display = 'none';
   } else {
-    coverEl.style.backgroundImage = '';
+    coverInner.style.backgroundImage = '';
     coverEmpty.style.display = 'flex';
     coverEmpty.textContent = '';
   }
@@ -1682,6 +1740,30 @@ loadMenu();
 // Refresh status every minute
 setInterval(renderStatus, 60000);
 
+// ── SKELETON LOADING ──
+function showSkeleton() {
+  const content = document.getElementById('menuContent');
+  if(!content) return;
+  let html = '<div class="skeleton-wrap">';
+  // 3 categorías simuladas
+  for(let c = 0; c < 3; c++) {
+    html += '<div class="skeleton-cat"></div>';
+    for(let i = 0; i < 3; i++) {
+      html += '<div class="skeleton-card">';
+      html += '<div class="skeleton-img"></div>';
+      html += '<div class="skeleton-info">';
+      html += '<div class="skeleton-line w80"></div>';
+      html += '<div class="skeleton-line w60"></div>';
+      html += '<div class="skeleton-line w40"></div>';
+      html += '</div></div>';
+    }
+  }
+  html += '</div>';
+  content.innerHTML = html;
+}
+// Mostrar skeleton inmediatamente
+showSkeleton();
+
 // ── THEME TOGGLE ──
 function applyTheme(mode) {
   currentTheme = mode;
@@ -1909,6 +1991,171 @@ function renderUpcomingSection() {
       window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
     });
     grid.appendChild(card);
+  });
+}
+
+// ── PARALLAX COVER ──
+window.addEventListener('scroll', () => {
+  const coverInner = document.getElementById('coverInner');
+  if(!coverInner || !coverInner.style.backgroundImage) return;
+  const scrollY = window.scrollY;
+  coverInner.style.transform = `translateY(${scrollY * 0.35}px)`;
+}, { passive: true });
+
+// ── HAPTIC FEEDBACK MEJORADO ──
+function haptic(type) {
+  if(!navigator.vibrate) return;
+  if(type === 'add')     navigator.vibrate(40);
+  else if(type === 'fav')    navigator.vibrate([30, 20, 30]);
+  else if(type === 'confirm') navigator.vibrate([60, 30, 60, 30, 100]);
+  else if(type === 'light')   navigator.vibrate(20);
+}
+
+// ── FLY TO CART ANIMATION ──
+function flyToCart(sourceEl, imgUrl) {
+  const cartFab = document.getElementById('cartFab');
+  if(!cartFab || !sourceEl) return;
+  const srcRect = sourceEl.getBoundingClientRect();
+  const dstRect = cartFab.getBoundingClientRect();
+
+  const fly = document.createElement('div');
+  fly.className = 'fly-item';
+  if(imgUrl) fly.style.backgroundImage = `url(${imgUrl})`;
+  else fly.textContent = '🍕';
+  fly.style.left = (srcRect.left + srcRect.width/2 - 22) + 'px';
+  fly.style.top  = (srcRect.top  + window.scrollY + srcRect.height/2 - 22) + 'px';
+  document.body.appendChild(fly);
+
+  const dx = dstRect.left + dstRect.width/2  - (srcRect.left + srcRect.width/2);
+  const dy = dstRect.top  + dstRect.height/2 - (srcRect.top  + srcRect.height/2);
+
+  fly.animate([
+    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+    { transform: `translate(${dx}px,${dy}px) scale(0.15)`, opacity: 0 }
+  ], { duration: 650, easing: 'cubic-bezier(0.2,0.8,0.3,1)', fill: 'forwards' })
+  .onfinish = () => { fly.remove(); cartFab.animate([{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:200}); };
+}
+
+// Parchear addToCart para fly animation + haptic
+const _origAddToCart = addToCart;
+function addToCart(prodId) {
+  const btn = document.querySelector(`[data-add="${prodId}"]`);
+  const p = menuData.products.find(x => x.id === prodId);
+  _origAddToCart(prodId);
+  haptic('add');
+  if(btn && p) flyToCart(btn, p.img ? processDriveUrl(p.img) : null);
+}
+
+// Parchear toggleFavorite para haptic
+const _origToggleFavorite = toggleFavorite;
+function toggleFavorite(prodId) {
+  _origToggleFavorite(prodId);
+  haptic('fav');
+}
+
+// ── CONFETTI ──
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  if(!canvas) return;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const pieces = [];
+  const colors = ['#00b4a6','#f5a623','#e74c3c','#2ecc71','#9b59b6','#f1c40f','#3498db'];
+  for(let i = 0; i < 120; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: -10,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 5 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 4 + 2,
+      angle: Math.random() * 360,
+      va: (Math.random() - 0.5) * 6
+    });
+  }
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+      p.x += p.vx; p.y += p.vy; p.angle += p.va;
+    });
+    frame++;
+    if(frame < 90) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
+// ── PWA INSTALL ──
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Mostrar banner después de 3 segundos si no se instaló antes
+  if(!localStorage.getItem('p84_pwa_dismissed')) {
+    setTimeout(() => {
+      const banner = document.getElementById('pwaBanner');
+      if(banner) banner.classList.add('show');
+    }, 3000);
+  }
+});
+
+// Actualizar icono del banner con logo del local
+function updatePWABanner() {
+  const local = menuData.local || {};
+  const icon = document.getElementById('pwaBannerIcon');
+  const title = document.getElementById('pwaBannerTitle');
+  if(icon && local.logo) {
+    const img = processDriveUrl(local.logo);
+    if(img) { icon.style.backgroundImage=`url(${img})`; icon.style.backgroundSize='cover'; icon.textContent=''; }
+  }
+  if(title && local.name) title.textContent = `Instala ${local.name}`;
+}
+
+const _pwaBannerInstall = document.getElementById('pwaBannerInstall');
+const _pwaBannerClose   = document.getElementById('pwaBannerClose');
+
+if(_pwaBannerInstall) _pwaBannerInstall.addEventListener('click', async () => {
+  if(deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+  }
+  document.getElementById('pwaBanner').classList.remove('show');
+});
+
+if(_pwaBannerClose) _pwaBannerClose.addEventListener('click', () => {
+  document.getElementById('pwaBanner').classList.remove('show');
+  localStorage.setItem('p84_pwa_dismissed', '1');
+});
+
+// Lanzar confetti al confirmar pedido
+const _origOpenConfirmModal = openConfirmModal;
+function openConfirmModal(data) {
+  _origOpenConfirmModal(data);
+}
+
+// Hook confetti en sendOrder
+const _origSendOrder2 = sendOrder;
+async function sendOrder(data) {
+  await _origSendOrder2(data);
+  launchConfetti();
+  haptic('confirm');
+}
+
+// Registrar Service Worker para PWA
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
 }
 
