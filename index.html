@@ -913,20 +913,34 @@ function renderMenu() {
     // Render builder grid
     if(hasBuilder) {
       const bgrid = sec.querySelector('#builder-grid-'+cat.id);
+      // Pre-seleccionar Masa Base por defecto si no hay nada seleccionado aún
+      if(!builderSelections[cat.id]) {
+        const masaBase = builderIngs.find(i => /masa\s*base/i.test(i.name||''));
+        if(masaBase) {
+          builderSelections[cat.id] = { [masaBase.id]: masaBase.price||0 };
+        }
+      }
       const selMap = builderSelections[cat.id] || {};
       builderIngs.forEach(ing => {
         const ingImg = processDriveUrl(ing.img);
         const isSelected = !!selMap[ing.id];
+        const isMasaBase = /masa\s*base/i.test(ing.name||'');
         const bItem = document.createElement('div');
         bItem.className = 'builder-item'+(isSelected?' selected':'');
         bItem.dataset.ing = ing.id;
         bItem.dataset.cat = cat.id;
         bItem.innerHTML = '<div class="builder-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧀')+'</div>'+
-          '<div class="builder-name">'+(ing.name||'')+'</div>'+
+          '<div class="builder-name">'+(ing.name||'')+(isMasaBase?' <span style="font-size:9px;color:var(--primary);font-family:DM Sans,sans-serif">(requerida)</span>':'')+'</div>'+
           '<div class="builder-price">'+(ing.price?formatPrice(ing.price):'Gratis')+'</div>';
-        bItem.addEventListener('click', () => toggleBuilderIng(cat.id, ing.id, ing.price||0));
+        bItem.addEventListener('click', () => {
+          // No permitir deseleccionar la masa base
+          if(isMasaBase && selMap[ing.id]) return;
+          toggleBuilderIng(cat.id, ing.id, ing.price||0);
+        });
         bgrid.appendChild(bItem);
       });
+      // Actualizar UI para reflejar la pre-selección
+      updateBuilderUI(cat.id);
     }
 
     // Render agregados grid
