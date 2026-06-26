@@ -2122,7 +2122,10 @@ function showSkeleton() {
   content.innerHTML = html;
 }
 
-// INIT — manejado al final junto con features
+// INIT
+loadCart();
+showSkeleton();
+loadMenu();
 
 // Refresh status every minute
 setInterval(renderStatus, 60000);
