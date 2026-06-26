@@ -126,25 +126,32 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
   border-radius: 16px;
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 .product-item.flipped .product-item-inner {
   transform: rotateY(180deg);
 }
-.product-face-front,
+.product-face-front {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-2);
+  border: 1px solid rgba(255,255,255,0.06);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
 .product-face-back {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg);
   border-radius: 16px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: var(--bg-2);
-  border: 1px solid rgba(255,255,255,0.06);
-}
-.product-face-back {
-  transform: rotateY(180deg);
   background: var(--bg-3);
   padding: 12px 11px;
   justify-content: space-between;
