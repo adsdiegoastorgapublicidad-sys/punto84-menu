@@ -509,8 +509,8 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
     <button class="search-clear" id="searchClear">✕</button>
   </div>
   <div class="quick-tabs" id="quickTabs">
-    <button class="quick-tab" id="qtFavs" onclick="setQuickTab('favs')">❤️ Favoritos <span class="qt-count" id="favCount">0</span></button>
-    <button class="quick-tab" id="qtHistory" onclick="setQuickTab('history')">🕐 Mis pedidos <span class="qt-count" id="histCount">0</span></button>
+    <button class="quick-tab" id="qtFavs">❤️ Favoritos <span class="qt-count" id="favCount">0</span></button>
+    <button class="quick-tab" id="qtHistory">🕐 Mis pedidos <span class="qt-count" id="histCount">0</span></button>
   </div>
 
   <!-- CATEGORY TABS -->
@@ -1811,11 +1811,16 @@ function toggleFavorite(prodId) {
 let activeQuickTab = null;
 function setQuickTab(tab) {
   if(activeQuickTab === tab) {
+    // Cerrar panel activo
     activeQuickTab = null;
     document.getElementById('qtFavs').classList.remove('active');
     document.getElementById('qtHistory').classList.remove('active');
-    document.getElementById('catTabsWrap').style.display = '';
     document.getElementById('menuContent').style.display = '';
+    // Restaurar catTabsWrap solo si tiene tabs
+    const catTabs = document.getElementById('catTabs');
+    if(catTabs && catTabs.children.length > 0) {
+      document.getElementById('catTabsWrap').style.display = '';
+    }
     const fp = document.getElementById('favPanel');
     const hp = document.getElementById('histPanel');
     if(fp) fp.remove();
@@ -1825,10 +1830,8 @@ function setQuickTab(tab) {
   activeQuickTab = tab;
   document.getElementById('qtFavs').classList.toggle('active', tab==='favs');
   document.getElementById('qtHistory').classList.toggle('active', tab==='history');
-  // Ocultar menú normal pero mantener visible el área
   document.getElementById('catTabsWrap').style.display = 'none';
   document.getElementById('menuContent').style.display = 'none';
-  // Remover paneles anteriores
   const existing = document.getElementById('favPanel') || document.getElementById('histPanel');
   if(existing) existing.remove();
 
@@ -1837,7 +1840,6 @@ function setQuickTab(tab) {
 }
 
 function _insertPanel(wrap) {
-  // Insertar el panel visible justo después de los quick tabs
   const quickTabs = document.getElementById('quickTabs');
   if(quickTabs && quickTabs.parentNode) {
     quickTabs.parentNode.insertBefore(wrap, quickTabs.nextSibling);
@@ -1845,6 +1847,10 @@ function _insertPanel(wrap) {
     document.querySelector('.container').appendChild(wrap);
   }
 }
+
+// Listeners quick tabs
+document.getElementById('qtFavs').addEventListener('click', () => setQuickTab('favs'));
+document.getElementById('qtHistory').addEventListener('click', () => setQuickTab('history'));
 
 function renderFavPanel() {
   const wrap = document.createElement('div');
