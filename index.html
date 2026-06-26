@@ -1271,8 +1271,11 @@ function addToCart(prodId) {
   else cart.push({id:prodId, name:p.name, price:p.price, img:p.img, qty:1, note:''});
   saveCart();
   updateCartUI();
+  // Fly to cart + haptic
+  const btn = document.querySelector(`[data-add="${prodId}"]`);
+  if(btn) flyToCart(btn, p.img ? processDriveUrl(p.img) : null);
+  haptic('add');
   renderMenu();
-  if(navigator.vibrate) navigator.vibrate(30);
   // Sugerir combo si aplica
   triggerComboSuggestion(p);
 }
@@ -1715,6 +1718,9 @@ async function sendOrder({ name, addr, notes }) {
   // Guardar en historial
   saveToHistory(cartSnapshot, totalSnapshot, selectedPayment);
   window.open(url, '_blank');
+  // Celebración
+  launchConfetti();
+  haptic('confirm');
 }
 
 // CONFIRM MODAL
@@ -1733,19 +1739,11 @@ document.getElementById('cartModal').addEventListener('click', e => {
   if(e.target.id === 'cartModal') document.getElementById('cartModal').classList.remove('active');
 });
 
-// INIT
-loadCart();
-loadMenu();
-
-// Refresh status every minute
-setInterval(renderStatus, 60000);
-
 // ── SKELETON LOADING ──
 function showSkeleton() {
   const content = document.getElementById('menuContent');
   if(!content) return;
   let html = '<div class="skeleton-wrap">';
-  // 3 categorías simuladas
   for(let c = 0; c < 3; c++) {
     html += '<div class="skeleton-cat"></div>';
     for(let i = 0; i < 3; i++) {
@@ -1761,8 +1759,14 @@ function showSkeleton() {
   html += '</div>';
   content.innerHTML = html;
 }
-// Mostrar skeleton inmediatamente
-showSkeleton();
+
+// INIT
+loadCart();
+showSkeleton(); // Mostrar skeleton ANTES de cargar datos
+loadMenu();
+
+// Refresh status every minute
+setInterval(renderStatus, 60000);
 
 // ── THEME TOGGLE ──
 function applyTheme(mode) {
@@ -1785,6 +1789,7 @@ function toggleFavorite(prodId) {
   if(idx >= 0) favorites.splice(idx, 1);
   else favorites.push(prodId);
   localStorage.setItem('p84_favorites', JSON.stringify(favorites));
+  haptic('fav');
   updateQuickTabCounts();
   renderMenu();
   if(navigator.vibrate) navigator.vibrate(30);
@@ -2036,22 +2041,7 @@ function flyToCart(sourceEl, imgUrl) {
   .onfinish = () => { fly.remove(); cartFab.animate([{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:200}); };
 }
 
-// Parchear addToCart para fly animation + haptic
-const _origAddToCart = addToCart;
-function addToCart(prodId) {
-  const btn = document.querySelector(`[data-add="${prodId}"]`);
-  const p = menuData.products.find(x => x.id === prodId);
-  _origAddToCart(prodId);
-  haptic('add');
-  if(btn && p) flyToCart(btn, p.img ? processDriveUrl(p.img) : null);
-}
 
-// Parchear toggleFavorite para haptic
-const _origToggleFavorite = toggleFavorite;
-function toggleFavorite(prodId) {
-  _origToggleFavorite(prodId);
-  haptic('fav');
-}
 
 // ── CONFETTI ──
 function launchConfetti() {
@@ -2138,19 +2128,9 @@ if(_pwaBannerClose) _pwaBannerClose.addEventListener('click', () => {
   localStorage.setItem('p84_pwa_dismissed', '1');
 });
 
-// Lanzar confetti al confirmar pedido
-const _origOpenConfirmModal = openConfirmModal;
-function openConfirmModal(data) {
-  _origOpenConfirmModal(data);
-}
 
-// Hook confetti en sendOrder
-const _origSendOrder2 = sendOrder;
-async function sendOrder(data) {
-  await _origSendOrder2(data);
-  launchConfetti();
-  haptic('confirm');
-}
+
+
 
 // Registrar Service Worker para PWA
 if('serviceWorker' in navigator) {
