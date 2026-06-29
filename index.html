@@ -666,16 +666,18 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 .ing-sel-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0); /* oculto por defecto */
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 900;
-  color: transparent;
+  color: #fff;
   border-radius: inherit;
-  transition: background 0.15s, color 0.15s;
+  opacity: 0;
+  transition: opacity 0.15s;
   pointer-events: none;
+  z-index: 2;
 }
 .builder-item.selected .ing-sel-overlay,
 .agregado-item.selected .ing-sel-overlay {
@@ -1471,10 +1473,25 @@ function updateBuilderUI(catId) {
   const selMap = builderSelections[catId] || {};
   const ids = Object.keys(selMap);
   const total = ids.reduce((s,id) => s + (selMap[id]||0), 0);
+  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#00b4a6';
 
-  // Update item visual
   document.querySelectorAll('.builder-item[data-cat="'+catId+'"]').forEach(item => {
-    item.classList.toggle('selected', !!selMap[item.dataset.ing]);
+    const isSelected = !!selMap[item.dataset.ing];
+    item.classList.toggle('selected', isSelected);
+    const overlay = item.querySelector('.ing-sel-overlay');
+    if(isSelected) {
+      item.style.borderColor = primaryColor;
+      item.style.background = 'color-mix(in srgb, '+primaryColor+' 18%, var(--bg-3))';
+      item.style.transform = 'scale(1.05)';
+      item.style.boxShadow = '0 0 0 2.5px '+primaryColor+', 0 4px 16px '+primaryColor+'44';
+      if(overlay) { overlay.style.opacity = '1'; }
+    } else {
+      item.style.borderColor = '';
+      item.style.background = '';
+      item.style.transform = '';
+      item.style.boxShadow = '';
+      if(overlay) { overlay.style.opacity = '0'; }
+    }
   });
 
   const countEl = document.getElementById('builder-count-'+catId);
@@ -1527,9 +1544,25 @@ function updateAgregadosUI(catId) {
   const selMap = agregadosSelections[catId] || {};
   const ids = Object.keys(selMap);
   const total = ids.reduce((s,id) => s + (selMap[id]||0), 0);
+  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#00b4a6';
 
   document.querySelectorAll('.agregado-item[data-cat="'+catId+'"]').forEach(item => {
-    item.classList.toggle('selected', !!selMap[item.dataset.ing]);
+    const isSelected = !!selMap[item.dataset.ing];
+    item.classList.toggle('selected', isSelected);
+    const overlay = item.querySelector('.ing-sel-overlay');
+    if(isSelected) {
+      item.style.borderColor = primaryColor;
+      item.style.background = 'color-mix(in srgb, '+primaryColor+' 18%, var(--bg-3))';
+      item.style.transform = 'scale(1.05)';
+      item.style.boxShadow = '0 0 0 2.5px '+primaryColor+', 0 4px 16px '+primaryColor+'44';
+      if(overlay) { overlay.style.opacity = '1'; }
+    } else {
+      item.style.borderColor = '';
+      item.style.background = '';
+      item.style.transform = '';
+      item.style.boxShadow = '';
+      if(overlay) { overlay.style.opacity = '0'; }
+    }
   });
 
   const btnEl = document.getElementById('agr-btn-'+catId);
