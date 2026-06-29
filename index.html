@@ -662,10 +662,37 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 .cat-inner-tab.active { background:var(--primary); color:#012e29; }
 .builder-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
 .builder-item { background:var(--bg-3); border:1.5px solid var(--bg-4); border-radius:10px; padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; transition:all 0.15s; position:relative; }
-.builder-item.selected { border-color:var(--primary); background:rgba(0,180,166,0.1); }
-.builder-item.selected::after { content:'✓'; position:absolute; top:4px; right:5px; font-size:10px; color:var(--primary); font-weight:700; }
+/* Overlay de selección en ingredientes */
+.ing-sel-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0); /* oculto por defecto */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 900;
+  color: transparent;
+  border-radius: inherit;
+  transition: background 0.15s, color 0.15s;
+  pointer-events: none;
+}
+.builder-item.selected .ing-sel-overlay,
+.agregado-item.selected .ing-sel-overlay {
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+}
+.builder-item.selected { border-color:var(--primary); background:rgba(0,180,166,0.15); transform:scale(1.04); box-shadow:0 0 0 2.5px var(--primary), 0 4px 18px rgba(0,180,166,0.28); }
+.builder-item.selected::after { content:''; } /* reset */
+.builder-item.selected .builder-name { color:var(--primary); font-weight:700; }
+.builder-item.selected .builder-price { color:var(--accent); }
+
+.agregado-item.selected { border-color:var(--primary); background:rgba(0,180,166,0.15); transform:scale(1.04); box-shadow:0 0 0 2.5px var(--primary), 0 4px 18px rgba(0,180,166,0.22); }
+.agregado-item.selected::after { content:''; } /* reset */
+.agregado-item.selected .agregado-name { color:var(--primary); font-weight:700; }
+.agregado-item.selected .agregado-price { color:var(--accent); }
 .builder-item.unavailable { opacity:0.4; cursor:not-allowed; }
-.builder-img { width:100%; aspect-ratio:1; border-radius:7px; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:22px; }
+.builder-img { width:100%; aspect-ratio:1; border-radius:7px; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:22px; position:relative; overflow:hidden; }
 .builder-name { font-size:10px; font-weight:600; color:var(--text); text-align:center; line-height:1.2; }
 .builder-price { font-family:var(--font-title); font-size:12px; color:var(--accent); }
 .builder-summary { background:var(--bg-3); border:1px solid var(--bg-4); border-radius:10px; padding:12px 14px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; }
@@ -684,10 +711,9 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 .agregados-body.show { display:block; }
 .agregados-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
 .agregado-item { background:var(--bg-3); border:1.5px solid var(--bg-4); border-radius:9px; padding:7px 5px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; transition:all 0.15s; position:relative; }
-.agregado-item.selected { border-color:var(--accent); background:rgba(245,166,35,0.1); }
-.agregado-item.selected::after { content:'✓'; position:absolute; top:3px; right:4px; font-size:10px; color:var(--accent); font-weight:700; }
+
 .agregado-item.unavailable { opacity:0.4; cursor:not-allowed; }
-.agregado-img { width:100%; aspect-ratio:1; border-radius:6px; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:20px; }
+.agregado-img { width:100%; aspect-ratio:1; border-radius:6px; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:20px; position:relative; overflow:hidden; }
 .agregado-name { font-size:9px; font-weight:600; color:var(--text); text-align:center; line-height:1.2; }
 .agregado-price { font-family:var(--font-title); font-size:11px; color:var(--accent); }
 .agregados-add-btn { width:100%; margin-top:10px; background:rgba(245,166,35,0.08); border:1px solid var(--accent); color:var(--accent); border-radius:8px; padding:10px; font-family:var(--font-title); font-size:13px; letter-spacing:0.1em; cursor:pointer; transition:all 0.2s; }
@@ -1327,7 +1353,7 @@ function renderMenu() {
         bItem.className = 'builder-item'+(isSelected?' selected':'');
         bItem.dataset.ing = ing.id;
         bItem.dataset.cat = cat.id;
-        bItem.innerHTML = '<div class="builder-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧀')+'</div>'+
+        bItem.innerHTML = '<div class="builder-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧀')+'<span class="ing-sel-overlay">✓</span></div>'+
           '<div class="builder-name">'+(ing.name||'')+(isMasaBase?' <span style="font-size:9px;color:var(--primary);font-family:DM Sans,sans-serif">(requerida)</span>':'')+'</div>'+
           '<div class="builder-price">'+(ing.price?formatPrice(ing.price):'Gratis')+'</div>';
         bItem.addEventListener('click', () => {
@@ -1353,7 +1379,7 @@ function renderMenu() {
           aItem.className = 'agregado-item'+(isSelected?' selected':'');
           aItem.dataset.ing = ing.id;
           aItem.dataset.cat = cat.id;
-          aItem.innerHTML = '<div class="agregado-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧂')+'</div>'+
+          aItem.innerHTML = '<div class="agregado-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧂')+'<span class="ing-sel-overlay">✓</span></div>'+
             '<div class="agregado-name">'+(ing.name||'')+'</div>'+
             '<div class="agregado-price">'+(ing.price?formatPrice(ing.price):'Gratis')+'</div>';
           aItem.addEventListener('click', () => toggleAgregadoIng(cat.id, ing.id, ing.price||0));
