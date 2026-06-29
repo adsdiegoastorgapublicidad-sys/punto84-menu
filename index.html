@@ -661,36 +661,31 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 .cat-inner-tab { flex:1; padding:9px 12px; border-radius:9px; font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; text-align:center; cursor:pointer; transition:all 0.2s; color:var(--text-dim); }
 .cat-inner-tab.active { background:var(--primary); color:#012e29; }
 .builder-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-.builder-item { background:var(--bg-3); border:1.5px solid var(--bg-4); border-radius:10px; padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; transition:all 0.15s; position:relative; }
-/* Overlay de selección en ingredientes */
-.ing-sel-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  font-weight: 900;
-  color: #fff;
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity 0.15s;
-  pointer-events: none;
-  z-index: 2;
+.builder-item { background:var(--bg-3); border:2px solid var(--bg-4); border-radius:10px; padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; transition:all 0.15s; position:relative; }
+/* Checkbox de selección */
+.ing-checkbox {
+  width:16px; height:16px;
+  border-radius:4px;
+  border:1.5px solid var(--bg-5);
+  background:var(--bg-4);
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:800; color:transparent;
+  transition:all 0.15s;
+  flex-shrink:0;
 }
-.builder-item.selected .ing-sel-overlay,
-.agregado-item.selected .ing-sel-overlay {
-  background: rgba(0,0,0,0.45);
-  color: #fff;
+.builder-item.selected .ing-checkbox,
+.agregado-item.selected .ing-checkbox {
+  background:var(--primary);
+  border-color:var(--primary);
+  color:#fff;
 }
-.builder-item.selected { border-color:var(--primary); background:rgba(0,180,166,0.15); transform:scale(1.04); box-shadow:0 0 0 2.5px var(--primary), 0 4px 18px rgba(0,180,166,0.28); }
-.builder-item.selected::after { content:''; } /* reset */
+.builder-item.selected { border-color:var(--primary); background:rgba(0,180,166,0.12); }
+.builder-item.selected::after { content:'✓'; position:absolute; top:5px; right:6px; background:var(--primary); color:#fff; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; line-height:16px; text-align:center; }
 .builder-item.selected .builder-name { color:var(--primary); font-weight:700; }
 .builder-item.selected .builder-price { color:var(--accent); }
 
-.agregado-item.selected { border-color:var(--primary); background:rgba(0,180,166,0.15); transform:scale(1.04); box-shadow:0 0 0 2.5px var(--primary), 0 4px 18px rgba(0,180,166,0.22); }
-.agregado-item.selected::after { content:''; } /* reset */
+.agregado-item.selected { border-color:var(--primary); background:rgba(0,180,166,0.12); }
+.agregado-item.selected::after { content:'✓'; position:absolute; top:5px; right:6px; background:var(--primary); color:#fff; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; line-height:16px; text-align:center; }
 .agregado-item.selected .agregado-name { color:var(--primary); font-weight:700; }
 .agregado-item.selected .agregado-price { color:var(--accent); }
 .builder-item.unavailable { opacity:0.4; cursor:not-allowed; }
@@ -712,7 +707,7 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 .agregados-body { display:none; border-top:1px solid var(--bg-4); padding:12px; }
 .agregados-body.show { display:block; }
 .agregados-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
-.agregado-item { background:var(--bg-3); border:1.5px solid var(--bg-4); border-radius:9px; padding:7px 5px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; transition:all 0.15s; position:relative; }
+.agregado-item { background:var(--bg-3); border:2px solid var(--bg-4); border-radius:9px; padding:7px 5px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; transition:all 0.15s; position:relative; }
 
 .agregado-item.unavailable { opacity:0.4; cursor:not-allowed; }
 .agregado-img { width:100%; aspect-ratio:1; border-radius:6px; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:20px; position:relative; overflow:hidden; }
@@ -1355,8 +1350,9 @@ function renderMenu() {
         bItem.className = 'builder-item'+(isSelected?' selected':'');
         bItem.dataset.ing = ing.id;
         bItem.dataset.cat = cat.id;
-        bItem.innerHTML = '<div class="builder-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧀')+'<span class="ing-sel-overlay">✓</span></div>'+
+        bItem.innerHTML = '<div class="builder-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧀')+'</div>'+
           '<div class="builder-name">'+(ing.name||'')+(isMasaBase?' <span style="font-size:9px;color:var(--primary);font-family:DM Sans,sans-serif">(requerida)</span>':'')+'</div>'+
+          '<div class="ing-checkbox">✓</div>'+
           '<div class="builder-price">'+(ing.price?formatPrice(ing.price):'Gratis')+'</div>';
         bItem.addEventListener('click', () => {
           // No permitir deseleccionar la masa base
@@ -1381,8 +1377,9 @@ function renderMenu() {
           aItem.className = 'agregado-item'+(isSelected?' selected':'');
           aItem.dataset.ing = ing.id;
           aItem.dataset.cat = cat.id;
-          aItem.innerHTML = '<div class="agregado-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧂')+'<span class="ing-sel-overlay">✓</span></div>'+
+          aItem.innerHTML = '<div class="agregado-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧂')+'</div>'+
             '<div class="agregado-name">'+(ing.name||'')+'</div>'+
+            '<div class="ing-checkbox">✓</div>'+
             '<div class="agregado-price">'+(ing.price?formatPrice(ing.price):'Gratis')+'</div>';
           aItem.addEventListener('click', () => toggleAgregadoIng(cat.id, ing.id, ing.price||0));
           agrid.appendChild(aItem);
@@ -1473,25 +1470,9 @@ function updateBuilderUI(catId) {
   const selMap = builderSelections[catId] || {};
   const ids = Object.keys(selMap);
   const total = ids.reduce((s,id) => s + (selMap[id]||0), 0);
-  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#00b4a6';
 
   document.querySelectorAll('.builder-item[data-cat="'+catId+'"]').forEach(item => {
-    const isSelected = !!selMap[item.dataset.ing];
-    item.classList.toggle('selected', isSelected);
-    const overlay = item.querySelector('.ing-sel-overlay');
-    if(isSelected) {
-      item.style.borderColor = primaryColor;
-      item.style.background = 'color-mix(in srgb, '+primaryColor+' 18%, var(--bg-3))';
-      item.style.transform = 'scale(1.05)';
-      item.style.boxShadow = '0 0 0 2.5px '+primaryColor+', 0 4px 16px '+primaryColor+'44';
-      if(overlay) { overlay.style.opacity = '1'; }
-    } else {
-      item.style.borderColor = '';
-      item.style.background = '';
-      item.style.transform = '';
-      item.style.boxShadow = '';
-      if(overlay) { overlay.style.opacity = '0'; }
-    }
+    item.classList.toggle('selected', !!selMap[item.dataset.ing]);
   });
 
   const countEl = document.getElementById('builder-count-'+catId);
@@ -1544,31 +1525,15 @@ function updateAgregadosUI(catId) {
   const selMap = agregadosSelections[catId] || {};
   const ids = Object.keys(selMap);
   const total = ids.reduce((s,id) => s + (selMap[id]||0), 0);
-  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#00b4a6';
 
   document.querySelectorAll('.agregado-item[data-cat="'+catId+'"]').forEach(item => {
-    const isSelected = !!selMap[item.dataset.ing];
-    item.classList.toggle('selected', isSelected);
-    const overlay = item.querySelector('.ing-sel-overlay');
-    if(isSelected) {
-      item.style.borderColor = primaryColor;
-      item.style.background = 'color-mix(in srgb, '+primaryColor+' 18%, var(--bg-3))';
-      item.style.transform = 'scale(1.05)';
-      item.style.boxShadow = '0 0 0 2.5px '+primaryColor+', 0 4px 16px '+primaryColor+'44';
-      if(overlay) { overlay.style.opacity = '1'; }
-    } else {
-      item.style.borderColor = '';
-      item.style.background = '';
-      item.style.transform = '';
-      item.style.boxShadow = '';
-      if(overlay) { overlay.style.opacity = '0'; }
-    }
+    item.classList.toggle('selected', !!selMap[item.dataset.ing]);
   });
 
   const btnEl = document.getElementById('agr-btn-'+catId);
   if(btnEl) {
     btnEl.disabled = ids.length === 0;
-    btnEl.textContent = ids.length > 0 ? '➕ AGREGAR ('+ids.length+' ítem'+( ids.length>1?'s':'')+' — '+formatPrice(total)+')' : '➕ AGREGAR INGREDIENTES AL PEDIDO';
+    btnEl.textContent = ids.length > 0 ? '➕ AGREGAR ('+ids.length+' ítem'+(ids.length>1?'s':'')+' — '+formatPrice(total)+')' : '➕ AGREGAR INGREDIENTES AL PEDIDO';
   }
 }
 
