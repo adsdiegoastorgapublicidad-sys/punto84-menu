@@ -740,10 +740,41 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 .fav-btn { background:transparent; border:none; font-size:18px; cursor:pointer; padding:2px; line-height:1; transition:transform 0.15s; flex-shrink:0; }
 .fav-btn:active { transform:scale(1.3); }
 
-/* ── ANNOUNCEMENT BANNER ── */
-.announcement-banner { display:none; align-items:center; gap:10px; padding:12px 16px; font-size:13px; font-weight:600; cursor:default; }
-.announcement-banner.show { display:flex; }
-.ann-close { background:transparent; border:none; font-size:18px; cursor:pointer; margin-left:auto; opacity:0.7; line-height:1; }
+/* ── ANNOUNCEMENT BANNER PREMIUM ── */
+.announcement-banner { display:none; }
+.announcement-banner.show { display:block; }
+/* Estilo A: Flash Deal */
+.ann-flash { background:linear-gradient(135deg,#1a0500,#2d0800); border:1px solid rgba(255,80,0,0.25); border-radius:14px; padding:14px 16px; margin:8px 16px; position:relative; overflow:hidden; }
+.ann-flash::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 15% 50%,rgba(255,80,0,0.12),transparent 65%); pointer-events:none; }
+.ann-flash-badge { position:absolute; top:12px; right:42px; border-radius:20px; font-size:9px; font-weight:800; padding:3px 9px; letter-spacing:0.06em; }
+.ann-flash-live { font-size:9px; font-weight:800; letter-spacing:0.15em; display:flex; align-items:center; gap:5px; margin-bottom:5px; }
+.ann-flash-dot { width:5px; height:5px; border-radius:50%; animation:flashDotBlink 1s infinite; }
+@keyframes flashDotBlink { 0%,100%{opacity:1}50%{opacity:0.15} }
+.ann-flash-title { font-size:17px; font-weight:800; color:#fff; line-height:1.2; margin-bottom:2px; }
+.ann-flash-sub { font-size:11px; color:rgba(255,255,255,0.42); }
+.ann-flash-timer { display:flex; gap:6px; margin-top:10px; }
+.ann-timer-block { border-radius:7px; padding:5px 9px; text-align:center; min-width:44px; }
+.ann-timer-num { font-size:16px; font-weight:800; line-height:1; }
+.ann-timer-lab { font-size:7px; color:rgba(255,255,255,0.35); letter-spacing:0.1em; margin-top:1px; }
+/* Estilo B: Promo Banner */
+.ann-promo { background:linear-gradient(135deg,#0a1500,#1a2800); border:1px solid rgba(255,255,255,0.06); border-radius:14px; margin:8px 16px; position:relative; overflow:hidden; min-height:90px; }
+.ann-promo-bg-emoji { position:absolute; right:-8px; top:-8px; font-size:80px; opacity:0.1; filter:blur(2px); pointer-events:none; }
+.ann-promo-content { padding:14px 16px; position:relative; z-index:1; }
+.ann-promo-eyebrow { font-size:9px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4px; }
+.ann-promo-title { font-size:16px; font-weight:800; color:#fff; line-height:1.2; margin-bottom:4px; }
+.ann-promo-sub { font-size:11px; color:rgba(255,255,255,0.38); margin-bottom:8px; }
+.ann-promo-cta { display:inline-block; font-size:9px; font-weight:800; padding:4px 12px; border-radius:20px; letter-spacing:0.06em; }
+/* Estilo D: Wave Bar */
+.ann-wave { background:#0d0d0d; border-radius:0; margin:0; overflow:hidden; }
+.ann-wave-line { height:3px; background-size:200% 100%; animation:waveFlow 3s linear infinite; }
+@keyframes waveFlow { 0%{background-position:0% 0%}100%{background-position:200% 0%} }
+.ann-wave-body { padding:10px 16px; display:flex; align-items:center; gap:10px; }
+.ann-wave-icon { font-size:20px; flex-shrink:0; }
+.ann-wave-msg { font-size:12px; color:#fff; font-weight:600; flex:1; line-height:1.4; }
+.ann-wave-chip { border-radius:20px; font-size:9px; font-weight:800; padding:3px 9px; flex-shrink:0; white-space:nowrap; letter-spacing:0.06em; }
+/* Close btn */
+.ann-close-btn { position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.5); width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; z-index:10; transition:background 0.15s; }
+.ann-close-btn:hover { background:rgba(255,255,255,0.15); }
 
 /* ── UPCOMING SECTION ── */
 .upcoming-section { margin:0 0 8px; }
@@ -912,11 +943,7 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
   <div class="description" id="description"></div>
 
   <!-- ANNOUNCEMENT BANNER -->
-  <div class="announcement-banner" id="announcementBanner">
-    <span id="annIcon" style="font-size:20px">📣</span>
-    <span id="annText" style="flex:1"></span>
-    <button class="ann-close" id="annClose">✕</button>
-  </div>
+  <div class="announcement-banner" id="announcementBanner"></div>
 
   <!-- CONTADOR DE PEDIDOS HOY -->
   <div class="order-counter" id="orderCounter" style="display:none">
@@ -2598,22 +2625,89 @@ if(_searchClear) {
 
 // ── ANNOUNCEMENT BANNER ──
 let annDismissed = sessionStorage.getItem('p84_ann_dismissed') === '1';
+let _annCountdownInterval = null;
+
 function renderAnnouncement() {
   const ann = menuData.announcement || {};
   const banner = document.getElementById('announcementBanner');
   if(!banner) return;
-  if(ann.active && ann.text && !annDismissed) {
-    banner.style.background = ann.color || '#f5a623';
-    const isDark = ann.color === '#1a1a2e';
-    const txtColor = isDark ? '#fff' : (ann.color === '#ffffff' ? '#111' : '#fff');
-    banner.style.color = txtColor;
-    document.getElementById('annIcon').textContent = ann.icon || '📣';
-    document.getElementById('annText').textContent = ann.text;
-    banner.classList.add('show');
-  } else {
-    banner.classList.remove('show');
+  if(!ann.active || !ann.text || annDismissed) { banner.classList.remove('show'); return; }
+
+  const c = ann.color || '#f5a623';
+  const icon = ann.icon || '📣';
+  const text = ann.text || '';
+  const sub  = ann.sub  || '';
+  const style = ann.style || 'flash';
+  const isDark = c === '#1a1a2e' || c === '#000000';
+  const txtOnColor = isDark ? '#fff' : (c === '#ffffff' ? '#111' : '#fff');
+
+  if(style === 'flash') {
+    banner.innerHTML =
+      '<div class="ann-flash" style="position:relative">'+
+        '<button class="ann-close-btn" id="annCloseBtn">✕</button>'+
+        '<div class="ann-flash-badge" style="background:'+c+';color:'+txtOnColor+'">'+icon+' OFERTA</div>'+
+        '<div class="ann-flash-live" style="color:'+c+'"><span class="ann-flash-dot" style="background:'+c+'"></span>EN VIVO AHORA</div>'+
+        '<div class="ann-flash-title">'+text+'</div>'+
+        (sub ? '<div class="ann-flash-sub">'+sub+'</div>' : '')+
+        (ann.countdown ? '<div class="ann-flash-timer" id="annTimer"></div>' : '')+
+      '</div>';
+    if(ann.countdown) {
+      if(_annCountdownInterval) clearInterval(_annCountdownInterval);
+      function updateTimer() {
+        const timerEl = document.getElementById('annTimer');
+        if(!timerEl) { clearInterval(_annCountdownInterval); return; }
+        const now = new Date();
+        const end = new Date(); end.setHours(ann.countdownHour||0, ann.countdownMin||0, 0, 0);
+        const diff = Math.max(0, end - now);
+        const hh = String(Math.floor(diff/3600000)).padStart(2,'0');
+        const mm = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+        const ss = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+        const bStyle = 'background:rgba(255,255,255,0.07);border:1px solid rgba(255,80,0,0.3);border-radius:7px;padding:5px 9px;text-align:center;min-width:44px';
+        timerEl.innerHTML =
+          '<div style="'+bStyle+'"><div class="ann-timer-num" style="color:'+c+'">'+hh+'</div><div class="ann-timer-lab">HRS</div></div>'+
+          '<div style="'+bStyle+'"><div class="ann-timer-num" style="color:'+c+'">'+mm+'</div><div class="ann-timer-lab">MIN</div></div>'+
+          '<div style="'+bStyle+'"><div class="ann-timer-num" style="color:'+c+'">'+ss+'</div><div class="ann-timer-lab">SEG</div></div>';
+      }
+      updateTimer();
+      _annCountdownInterval = setInterval(updateTimer, 1000);
+    }
+  } else if(style === 'promo') {
+    banner.innerHTML =
+      '<div class="ann-promo" style="position:relative">'+
+        '<button class="ann-close-btn" id="annCloseBtn">✕</button>'+
+        '<div class="ann-promo-bg-emoji">'+icon+'</div>'+
+        '<div class="ann-promo-content">'+
+          '<div class="ann-promo-eyebrow" style="color:'+c+'">✦ oferta del día</div>'+
+          '<div class="ann-promo-title">'+text+'</div>'+
+          (sub ? '<div class="ann-promo-sub">'+sub+'</div>' : '')+
+          '<div class="ann-promo-cta" style="background:'+c+';color:'+txtOnColor+'">VER PRECIO →</div>'+
+        '</div>'+
+      '</div>';
+  } else { // wave
+    banner.innerHTML =
+      '<div class="ann-wave" style="position:relative">'+
+        '<div class="ann-wave-line" style="background:linear-gradient(90deg,'+c+',#00b4a6,'+c+')"></div>'+
+        '<div class="ann-wave-body">'+
+          '<span class="ann-wave-icon">'+icon+'</span>'+
+          '<span class="ann-wave-msg">'+text+'</span>'+
+          '<span class="ann-wave-chip" style="background:rgba(0,180,166,0.12);border:1px solid rgba(0,180,166,0.25);color:#00b4a6">HOY</span>'+
+          '<button class="ann-close-btn" id="annCloseBtn" style="position:relative;top:auto;right:auto;flex-shrink:0">✕</button>'+
+        '</div>'+
+      '</div>';
   }
+
+  banner.classList.add('show');
+
+  // Close button
+  const closeBtn = document.getElementById('annCloseBtn');
+  if(closeBtn) closeBtn.addEventListener('click', () => {
+    annDismissed = true;
+    sessionStorage.setItem('p84_ann_dismissed', '1');
+    banner.classList.remove('show');
+    if(_annCountdownInterval) { clearInterval(_annCountdownInterval); _annCountdownInterval = null; }
+  });
 }
+
 const _annClose = document.getElementById('annClose');
 if(_annClose) _annClose.addEventListener('click', () => {
   annDismissed = true;

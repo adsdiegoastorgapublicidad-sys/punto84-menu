@@ -707,25 +707,93 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
           <div class="card-header"><div class="card-title">📣 Anuncio Emergente</div></div>
           <div class="card-body">
             <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">📣</span><div>Activa un banner visible para todos los clientes al entrar al menú. Ideal para avisos de horario, demoras, promociones del día, etc.</div></div>
+
             <div class="field"><span class="field-label">Estado del Anuncio</span>
               <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
                 <div class="toggle" id="announcementToggle"></div>
                 <span id="announcementToggleLabel" style="font-size:13px;color:var(--text-dim)">Desactivado</span>
               </div>
             </div>
+
+            <!-- ESTILO DEL BANNER -->
+            <div class="field"><span class="field-label">Estilo del Banner</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px" id="annStyleGrid">
+                <div class="ann-style-opt" data-style="flash" style="border:2px solid var(--primary);border-radius:12px;padding:10px;cursor:pointer;background:rgba(0,180,166,0.08)">
+                  <div style="background:linear-gradient(135deg,#1a0500,#2d0800);border-radius:8px;padding:8px;margin-bottom:8px;position:relative;overflow:hidden">
+                    <div style="font-size:8px;font-weight:800;color:#ff6030;letter-spacing:0.1em">🔴 FLASH DEAL</div>
+                    <div style="font-size:11px;font-weight:800;color:#fff;margin:2px 0">OFERTA <span style="color:#ff6030">HOY</span></div>
+                    <div style="display:flex;gap:4px;margin-top:4px">
+                      <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,80,0,0.3);border-radius:4px;padding:2px 5px;text-align:center"><div style="font-size:10px;font-weight:800;color:#ff6030">02</div><div style="font-size:7px;color:rgba(255,255,255,0.4)">HRS</div></div>
+                      <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,80,0,0.3);border-radius:4px;padding:2px 5px;text-align:center"><div style="font-size:10px;font-weight:800;color:#ff6030">30</div><div style="font-size:7px;color:rgba(255,255,255,0.4)">MIN</div></div>
+                    </div>
+                  </div>
+                  <div style="text-align:center;font-size:11px;font-weight:700;color:var(--primary)">A — Flash Deal</div>
+                  <div style="text-align:center;font-size:9px;color:var(--text-mute)">Fuego + countdown</div>
+                </div>
+                <div class="ann-style-opt" data-style="promo" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                  <div style="background:linear-gradient(135deg,#0a1a00,#1a3800);border-radius:8px;padding:8px;margin-bottom:8px;position:relative;overflow:hidden;height:60px">
+                    <div style="font-size:8px;font-weight:700;color:#88cc44;letter-spacing:0.1em">✦ OFERTA DEL DÍA</div>
+                    <div style="font-size:11px;font-weight:800;color:#fff;margin-top:2px">PROMOCIÓN <span style="color:#aaee44">ESPECIAL</span></div>
+                    <div style="position:absolute;right:-5px;top:-5px;font-size:36px;opacity:0.15">🍟</div>
+                    <div style="display:inline-block;margin-top:4px;background:#88cc44;color:#1a3800;font-size:7px;font-weight:800;padding:2px 6px;border-radius:10px">VER →</div>
+                  </div>
+                  <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">B — Promo Banner</div>
+                  <div style="text-align:center;font-size:9px;color:var(--text-mute)">Inmersivo + emoji</div>
+                </div>
+                <div class="ann-style-opt" data-style="wave" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                  <div style="background:#111;border-radius:8px;overflow:hidden;margin-bottom:8px">
+                    <div style="height:3px;background:linear-gradient(90deg,#f5a623,#00b4a6,#f5a623)"></div>
+                    <div style="padding:8px;display:flex;align-items:center;gap:6px">
+                      <span style="font-size:16px">📣</span>
+                      <span style="font-size:10px;color:#fff;font-weight:600;flex:1">Papas fritas en <span style="color:#f5a623">OFERTA</span></span>
+                      <span style="background:rgba(0,180,166,0.15);color:#00b4a6;font-size:7px;font-weight:800;padding:2px 5px;border-radius:10px">HOY</span>
+                    </div>
+                  </div>
+                  <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">D — Wave Bar</div>
+                  <div style="text-align:center;font-size:9px;color:var(--text-mute)">Barra + ola animada</div>
+                </div>
+              </div>
+            </div>
+
             <div class="field"><span class="field-label">Ícono</span>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="announcementIconGrid"></div>
             </div>
+
             <div class="field"><span class="field-label">Mensaje</span>
               <textarea class="input" id="announcementText" rows="3" placeholder="Ej: Hoy cerramos a las 21:00 · Sin delivery por lluvia · 2x1 en pizzas hasta las 20hrs" style="resize:vertical"></textarea>
             </div>
-            <div class="field"><span class="field-label">Color del Banner</span>
+
+            <!-- Subtítulo (solo para estilo A y B) -->
+            <div class="field" id="annSubField"><span class="field-label">Subtítulo <span style="font-size:11px;color:var(--text-mute)">(línea pequeña debajo)</span></span>
+              <input type="text" class="input" id="announcementSub" placeholder="Ej: Solo hoy hasta que se acaben · Cantidad limitada">
+            </div>
+
+            <!-- Countdown (solo para estilo A) -->
+            <div class="field" id="annCountdownField">
+              <span class="field-label">Countdown</span>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+                <div class="toggle" id="countdownToggle"></div>
+                <span id="countdownToggleLabel" style="font-size:13px;color:var(--text-dim)">Sin countdown</span>
+              </div>
+              <div id="countdownInputs" style="display:none;margin-top:12px">
+                <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">⏱ La oferta termina a las:</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="number" class="input" id="countdownHour" min="0" max="23" value="22" style="width:70px;text-align:center" placeholder="HH">
+                  <span style="color:var(--text-dim);font-size:18px;font-weight:700">:</span>
+                  <input type="number" class="input" id="countdownMin" min="0" max="59" value="0" style="width:70px;text-align:center" placeholder="MM">
+                  <span style="font-size:12px;color:var(--text-mute)">hrs de hoy</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field"><span class="field-label">Color Principal</span>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="announcementColorGrid"></div>
             </div>
+
             <div class="card" style="margin-top:16px;margin-bottom:16px">
               <div class="card-header"><div class="card-title" style="font-size:12px">👁️ PREVIEW</div></div>
               <div class="card-body" style="padding:12px">
-                <div id="announcementPreview" style="border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600"></div>
+                <div id="announcementPreview"></div>
               </div>
             </div>
             <button class="btn btn-primary" id="btnSaveAnnouncement" style="width:100%">💾 GUARDAR ANUNCIO</button>
@@ -860,7 +928,7 @@ async function initData() {
     data.payment = d.payment || {};
     data.badges = d.badges ? Object.values(d.badges) : [];
     data.upcoming = d.upcoming ? Object.values(d.upcoming) : [];
-    data.announcement = d.announcement || {active:false,icon:'📣',text:'',color:'#f5a623'};
+    data.announcement = d.announcement || {active:false,icon:'📣',text:'',sub:'',color:'#f5a623',style:'flash',countdown:false,countdownHour:22,countdownMin:0};
     data.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'};
     data.combos = d.combos ? Object.values(d.combos) : [];
   }
@@ -1960,14 +2028,19 @@ const ANNOUNCEMENT_COLORS = [
   {color:'#1a1a2e',label:'Negro'},{color:'#ffffff',label:'Blanco'},
 ];
 
-let annIcon = '📣', annColor = '#f5a623', annActive = false;
+let annIcon = '📣', annColor = '#f5a623', annActive = false, annStyle = 'flash', annCountdown = false, annCountdownHour = 22, annCountdownMin = 0;
 
 function loadAnnouncementForm() {
   const ann = data.announcement || {};
-  annIcon = ann.icon || '📣';
-  annColor = ann.color || '#f5a623';
-  annActive = !!ann.active;
+  annIcon    = ann.icon    || '📣';
+  annColor   = ann.color   || '#f5a623';
+  annActive  = !!ann.active;
+  annStyle   = ann.style   || 'flash';
+  annCountdown     = !!ann.countdown;
+  annCountdownHour = ann.countdownHour ?? 22;
+  annCountdownMin  = ann.countdownMin  ?? 0;
 
+  // Toggle activo
   const toggle = document.getElementById('announcementToggle');
   const toggleLabel = document.getElementById('announcementToggleLabel');
   if(toggle) {
@@ -1981,8 +2054,61 @@ function loadAnnouncementForm() {
     };
   }
 
+  // Texto principal
   const textEl = document.getElementById('announcementText');
   if(textEl) { textEl.value = ann.text || ''; textEl.oninput = updateAnnouncementPreview; }
+
+  // Subtítulo
+  const subEl = document.getElementById('announcementSub');
+  if(subEl) { subEl.value = ann.sub || ''; subEl.oninput = updateAnnouncementPreview; }
+
+  // Selector de estilo A/B/D
+  document.querySelectorAll('.ann-style-opt').forEach(opt => {
+    const s = opt.dataset.style;
+    opt.style.border = s === annStyle ? '2px solid var(--primary)' : '2px solid var(--bg-4)';
+    opt.style.background = s === annStyle ? 'rgba(0,180,166,0.08)' : '';
+    opt.addEventListener('click', () => {
+      annStyle = s;
+      document.querySelectorAll('.ann-style-opt').forEach(o => {
+        o.style.border = '2px solid var(--bg-4)'; o.style.background = '';
+      });
+      opt.style.border = '2px solid var(--primary)'; opt.style.background = 'rgba(0,180,166,0.08)';
+      // Mostrar/ocultar campos según estilo
+      const cdField = document.getElementById('annCountdownField');
+      const subField = document.getElementById('annSubField');
+      if(cdField) cdField.style.display = s === 'flash' ? '' : 'none';
+      if(subField) subField.style.display = s !== 'wave' ? '' : 'none';
+      updateAnnouncementPreview();
+    });
+  });
+  // Estado inicial campos opcionales
+  const cdField = document.getElementById('annCountdownField');
+  const subField = document.getElementById('annSubField');
+  if(cdField) cdField.style.display = annStyle === 'flash' ? '' : 'none';
+  if(subField) subField.style.display = annStyle !== 'wave' ? '' : 'none';
+
+  // Toggle countdown
+  const cdToggle = document.getElementById('countdownToggle');
+  const cdLabel  = document.getElementById('countdownToggleLabel');
+  const cdInputs = document.getElementById('countdownInputs');
+  const cdHour   = document.getElementById('countdownHour');
+  const cdMin    = document.getElementById('countdownMin');
+  if(cdToggle) {
+    cdToggle.className = 'toggle'+(annCountdown?' on':'');
+    cdLabel.textContent = annCountdown ? 'Con countdown activo' : 'Sin countdown';
+    if(cdInputs) cdInputs.style.display = annCountdown ? '' : 'none';
+    if(cdHour) cdHour.value = annCountdownHour;
+    if(cdMin)  cdMin.value  = annCountdownMin;
+    cdToggle.onclick = () => {
+      annCountdown = !annCountdown;
+      cdToggle.className = 'toggle'+(annCountdown?' on':'');
+      cdLabel.textContent = annCountdown ? 'Con countdown activo' : 'Sin countdown';
+      if(cdInputs) cdInputs.style.display = annCountdown ? '' : 'none';
+      updateAnnouncementPreview();
+    };
+    if(cdHour) cdHour.oninput = () => { annCountdownHour = parseInt(cdHour.value)||0; updateAnnouncementPreview(); };
+    if(cdMin)  cdMin.oninput  = () => { annCountdownMin  = parseInt(cdMin.value)||0;  updateAnnouncementPreview(); };
+  }
 
   // Icon grid
   const iconGrid = document.getElementById('announcementIconGrid');
@@ -1990,7 +2116,7 @@ function loadAnnouncementForm() {
     iconGrid.innerHTML = '';
     ANNOUNCEMENT_ICONS.forEach(ic => {
       const btn = document.createElement('button');
-      btn.style.cssText = `width:38px;height:38px;border-radius:8px;border:2px solid ${ic===annIcon?'var(--primary)':'var(--bg-4)'};background:${ic===annIcon?'rgba(0,180,166,0.1)':'var(--bg-3)'};font-size:18px;cursor:pointer;transition:all 0.15s`;
+      btn.style.cssText = 'width:38px;height:38px;border-radius:8px;border:2px solid '+(ic===annIcon?'var(--primary)':'var(--bg-4)')+';background:'+(ic===annIcon?'rgba(0,180,166,0.1)':'var(--bg-3)')+';font-size:18px;cursor:pointer;transition:all 0.15s';
       btn.textContent = ic;
       btn.addEventListener('click', () => {
         annIcon = ic;
@@ -2009,7 +2135,7 @@ function loadAnnouncementForm() {
     ANNOUNCEMENT_COLORS.forEach(({color, label}) => {
       const btn = document.createElement('button');
       btn.title = label;
-      btn.style.cssText = `width:32px;height:32px;border-radius:50%;border:3px solid ${color===annColor?'var(--text)':'transparent'};background:${color};cursor:pointer;transition:all 0.15s`;
+      btn.style.cssText = 'width:32px;height:32px;border-radius:50%;border:3px solid '+(color===annColor?'var(--text)':'transparent')+';background:'+color+';cursor:pointer;transition:all 0.15s';
       btn.addEventListener('click', () => {
         annColor = color;
         colorGrid.querySelectorAll('button').forEach(b2 => b2.style.borderColor='transparent');
@@ -2027,16 +2153,64 @@ function updateAnnouncementPreview() {
   const preview = document.getElementById('announcementPreview');
   if(!preview) return;
   const text = (document.getElementById('announcementText')||{}).value || 'Tu mensaje aquí...';
-  const isDark = annColor === '#1a1a2e' || annColor === '#000000';
-  const textColor = isDark || annColor === '#ffffff' ? (annColor === '#ffffff' ? '#111' : '#fff') : '#fff';
-  preview.style.cssText = `border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;background:${annColor};color:${textColor}`;
-  preview.innerHTML = `<span style="font-size:18px">${annIcon}</span><span style="flex:1">${text}</span>${annActive?'<span style="font-size:10px;opacity:0.8">● ACTIVO</span>':'<span style="font-size:10px;opacity:0.5">DESACTIVADO</span>'}`;
+  const sub  = (document.getElementById('announcementSub')||{}).value  || 'Solo hoy · Cantidad limitada';
+  const c = annColor || '#f5a623';
+
+  // Calcular tiempo restante para preview countdown
+  let cdHTML = '';
+  if(annStyle === 'flash' && annCountdown) {
+    const now = new Date();
+    const end = new Date(); end.setHours(annCountdownHour, annCountdownMin, 0, 0);
+    const diff = Math.max(0, end - now);
+    const hh = String(Math.floor(diff/3600000)).padStart(2,'0');
+    const mm = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    const ss = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+    cdHTML = '<div style="display:flex;gap:6px;margin-top:8px">'
+      +['<div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,80,0,0.35);border-radius:6px;padding:4px 8px;text-align:center"><div style="font-size:14px;font-weight:800;color:#ff6030">'+hh+'</div><div style="font-size:7px;color:rgba(255,255,255,0.4)">HRS</div></div>',
+         '<div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,80,0,0.35);border-radius:6px;padding:4px 8px;text-align:center"><div style="font-size:14px;font-weight:800;color:#ff6030">'+mm+'</div><div style="font-size:7px;color:rgba(255,255,255,0.4)">MIN</div></div>',
+         '<div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,80,0,0.35);border-radius:6px;padding:4px 8px;text-align:center"><div style="font-size:14px;font-weight:800;color:#ff6030">'+ss+'</div><div style="font-size:7px;color:rgba(255,255,255,0.4)">SEG</div></div>'].join('')
+      +'</div>';
+  }
+
+  if(annStyle === 'flash') {
+    preview.innerHTML = '<div style="background:linear-gradient(135deg,#1a0500,#2d0800);border:1px solid rgba(255,80,0,0.3);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden">'
+      +'<div style="position:absolute;top:10px;right:12px;background:'+c+';color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:20px">🔥 OFERTA</div>'
+      +'<div style="font-size:9px;font-weight:800;color:'+c+';letter-spacing:0.1em;margin-bottom:4px;display:flex;align-items:center;gap:5px"><span style="width:5px;height:5px;border-radius:50%;background:'+c+';display:inline-block"></span>EN VIVO AHORA</div>'
+      +'<div style="font-size:16px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:2px">'+annIcon+' '+text+'</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.45)">'+sub+'</div>'
+      +cdHTML
+      +'</div>';
+  } else if(annStyle === 'promo') {
+    const textColor = c === '#ffffff' ? '#111' : '#fff';
+    preview.innerHTML = '<div style="background:linear-gradient(135deg,#0a1500,#1a2800);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;min-height:80px">'
+      +'<div style="position:absolute;right:-10px;top:-5px;font-size:72px;opacity:0.12;filter:blur(1px)">'+annIcon+'</div>'
+      +'<div style="font-size:9px;font-weight:700;color:'+c+';letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px">✦ OFERTA DEL DÍA</div>'
+      +'<div style="font-size:16px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:4px">'+text+'</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:8px">'+sub+'</div>'
+      +'<div style="display:inline-block;background:'+c+';color:'+textColor+';font-size:9px;font-weight:800;padding:4px 12px;border-radius:20px;letter-spacing:0.06em">VER PRECIO →</div>'
+      +'</div>';
+  } else { // wave
+    preview.innerHTML = '<div style="background:#111;border-radius:12px;overflow:hidden">'
+      +'<div style="height:3px;background:linear-gradient(90deg,'+c+',#00b4a6,'+c+')"></div>'
+      +'<div style="padding:10px 14px;display:flex;align-items:center;gap:10px">'
+      +'<span style="font-size:20px;flex-shrink:0">'+annIcon+'</span>'
+      +'<span style="font-size:12px;color:#fff;font-weight:600;flex:1">'+text+'</span>'
+      +'<span style="background:rgba(0,180,166,0.15);border:1px solid rgba(0,180,166,0.3);color:#00b4a6;font-size:9px;font-weight:800;padding:3px 8px;border-radius:20px;flex-shrink:0;white-space:nowrap">HOY</span>'
+      +'</div></div>';
+  }
 }
 
 const _btnSaveAnn = document.getElementById('btnSaveAnnouncement');
 if(_btnSaveAnn) _btnSaveAnn.addEventListener('click', async () => {
   const text = (document.getElementById('announcementText')||{}).value?.trim() || '';
-  data.announcement = { active: annActive, icon: annIcon, text, color: annColor };
+  const sub  = (document.getElementById('announcementSub')||{}).value?.trim()  || '';
+  const cdHour = parseInt((document.getElementById('countdownHour')||{}).value)||0;
+  const cdMin  = parseInt((document.getElementById('countdownMin')||{}).value)||0;
+  data.announcement = {
+    active: annActive, icon: annIcon, text, sub, color: annColor,
+    style: annStyle, countdown: annCountdown,
+    countdownHour: cdHour, countdownMin: cdMin
+  };
   if(await saveData('announcement', data.announcement)) toast('✓ Anuncio guardado');
 });
 
