@@ -436,6 +436,9 @@ body::before {
 .cart-item-note-input { width:100%; background:var(--bg); border:1px solid var(--bg-5); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--text); outline:none; margin-top:4px; font-family:'DM Sans',sans-serif; }
 .cart-item-note-input::placeholder { color:var(--text-mute); font-style:italic; }
 .cart-item-note-input:focus { border-color:var(--primary-dark); }
+.cart-item-extras { display:flex; align-items:center; flex-wrap:wrap; gap:5px; padding:7px 0 4px; border-top:1px solid rgba(0,180,166,0.12); margin-top:6px; background:transparent; }
+.cart-item-extras-icon { font-size:11px; opacity:0.7; flex-shrink:0; }
+.cart-item-extra-pill { background:rgba(0,180,166,0.14); border:1px solid rgba(0,180,166,0.28); color:var(--primary); border-radius:20px; font-size:10px; padding:2px 9px; font-weight:600; letter-spacing:0.03em; }
 .qty-controls { display:flex; align-items:center; gap:8px; margin-top:6px; }
 .qty-btn { background:var(--bg); border:1px solid var(--bg-5); color:var(--text); width:28px; height:28px; border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
 .qty-btn:hover { border-color:var(--primary-dark); color:var(--primary); }
@@ -683,12 +686,11 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 .builder-item.selected::after { content:'✓'; position:absolute; top:5px; right:6px; background:var(--primary); color:#fff; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; line-height:16px; text-align:center; }
 .builder-item.selected .builder-name { color:var(--primary) !important; font-weight:700 !important; }
 .builder-item.selected .builder-price { color:var(--accent) !important; }
-
+.builder-item.selected .ing-checkbox { background:var(--primary) !important; border-color:var(--primary) !important; color:#fff !important; }
 .agregado-item.selected { border-color:var(--primary) !important; background:rgba(0,180,166,0.18) !important; }
-.agregado-item.selected::after { content:'✓'; position:absolute; top:5px; right:6px; background:var(--primary); color:#fff; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; line-height:16px; text-align:center; }
+.agregado-item.selected::after { display:none !important; }
 .agregado-item.selected .agregado-name { color:var(--primary) !important; font-weight:700 !important; }
 .agregado-item.selected .agregado-price { color:var(--accent) !important; }
-.builder-item.selected .ing-checkbox,
 .agregado-item.selected .ing-checkbox { background:var(--primary) !important; border-color:var(--primary) !important; color:#fff !important; }
 .builder-item.unavailable { opacity:0.4; cursor:not-allowed; }
 .builder-img { width:100%; aspect-ratio:1; border-radius:7px; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:22px; position:relative; overflow:hidden; }
@@ -708,13 +710,12 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
 .agregados-arrow.open { transform:rotate(180deg); color:var(--accent); }
 .agregados-body { display:none; border-top:1px solid var(--bg-4); padding:12px; }
 .agregados-body.show { display:block; }
-.agregados-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
-.agregado-item { background:var(--bg-3); border:2px solid var(--bg-4); border-radius:9px; padding:7px 5px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; transition:all 0.15s; position:relative; }
-
+.agregados-grid { display:flex; flex-direction:column; gap:5px; }
+.agregado-item { background:var(--bg-3); border:2px solid var(--bg-4); border-radius:9px; padding:6px 10px; display:flex; flex-direction:row; align-items:center; gap:9px; cursor:pointer; transition:all 0.15s; position:relative; }
 .agregado-item.unavailable { opacity:0.4; cursor:not-allowed; }
-.agregado-img { width:100%; aspect-ratio:1; border-radius:6px; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:20px; position:relative; overflow:hidden; }
-.agregado-name { font-size:9px; font-weight:600; color:var(--text); text-align:center; line-height:1.2; }
-.agregado-price { font-family:var(--font-title); font-size:11px; color:var(--accent); }
+.agregado-img { width:36px; height:36px; flex-shrink:0; border-radius:6px; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--text-mute); font-size:16px; position:relative; overflow:hidden; }
+.agregado-name { font-size:12px; font-weight:600; color:var(--text); flex:1; line-height:1.2; }
+.agregado-price { font-family:var(--font-title); font-size:12px; color:var(--accent); margin-left:auto; flex-shrink:0; }
 .agregados-add-btn { width:100%; margin-top:10px; background:rgba(245,166,35,0.08); border:1px solid var(--accent); color:var(--accent); border-radius:8px; padding:10px; font-family:var(--font-title); font-size:13px; letter-spacing:0.1em; cursor:pointer; transition:all 0.2s; }
 .agregados-add-btn:hover { background:rgba(245,166,35,0.18); }
 .agregados-add-btn:disabled { opacity:0.3; cursor:not-allowed; }
@@ -1257,38 +1258,176 @@ function renderMenu() {
       secHTML += '</div>';
     }
 
-    // Contenedor de vista normal
+    // Contenedor de vista normal (lista de productos, acordeón agregados va en el nuevo bloque)
     secHTML += '<div id="view-normal-'+cat.id+'"><div class="products-list" id="list-'+cat.id+'"></div>';
 
-    // Acordeón de agregados dentro de la vista normal
+    secHTML += '</div>'; // end view-normal
+
+    // Vista builder — renderizado 100% inline
+    if(hasBuilder) {
+      // Pre-seleccionar Masa Base
+      if(!builderSelections[cat.id]) {
+        const masaBase = builderIngs.find(i => /masa\s*base/i.test(i.name||''));
+        if(masaBase) builderSelections[cat.id] = { [masaBase.id]: masaBase.price||0 };
+      }
+      const bSel = builderSelections[cat.id] || {};
+      let builderItemsHTML = '';
+      builderIngs.forEach(ing => {
+        const ingImg = processDriveUrl(ing.img);
+        const isSel = !!bSel[ing.id];
+        const isMasa = /masa\s*base/i.test(ing.name||'');
+        builderItemsHTML += '<div class="builder-item'+(isSel?' selected':'')+'" data-ing="'+ing.id+'" data-cat="'+cat.id+'" data-price="'+(ing.price||0)+'" data-masa="'+(isMasa?'1':'0')+'">'
+          +'<div class="builder-img'+(ingImg?'':' no-img')+'"'+(ingImg?' style="background-image:url('+ingImg+')"':'')+'>'+(!ingImg?'🧀':'')+'</div>'
+          +'<div class="builder-name">'+(ing.name||'')+(isMasa?' <span style="font-size:9px;color:var(--primary)">(requerida)</span>':'')+'</div>'
+          +'<div class="ing-checkbox">✓</div>'
+          +'<div class="builder-price">'+(ing.price?formatPrice(ing.price):'Gratis')+'</div>'
+          +'</div>';
+      });
+      const bTotal = Object.values(bSel).reduce((s,v)=>s+v,0);
+      const bCount = Object.keys(bSel).length;
+      secHTML += '<div id="view-builder-'+cat.id+'" style="display:none">';
+      secHTML += '<p style="font-family:Crimson Pro,serif;font-style:italic;font-size:13px;color:var(--text-dim);margin-bottom:12px;">Elige los ingredientes de tu pizza personalizada:</p>';
+      secHTML += '<div class="builder-grid" id="builder-grid-'+cat.id+'">'+builderItemsHTML+'</div>';
+      secHTML += '<div class="builder-summary"><div class="builder-summary-info">Seleccionados: <strong id="builder-count-'+cat.id+'">'+bCount+'</strong> ingredientes — <strong id="builder-total-'+cat.id+'">'+formatPrice(bTotal)+'</strong></div>';
+      secHTML += '<button class="builder-add-btn" id="builder-btn-'+cat.id+'"'+(bCount===0?' disabled':'')+'>🛒 '+(bCount>0?'AGREGAR AL PEDIDO ('+formatPrice(bTotal)+')':'AGREGAR AL PEDIDO')+'</button></div>';
+      secHTML += '</div>';
+    }
+
+    // Acordeón agregados — renderizado 100% inline
     if(hasAgregados) {
+      const aSel = agregadosSelections[cat.id] || {};
+      let agItemsHTML = '';
+      agregadosIngs.forEach(ing => {
+        const ingImg = processDriveUrl(ing.img);
+        const isSel = !!aSel[ing.id];
+        agItemsHTML += '<div class="agregado-item'+(isSel?' selected':'')+'" data-ing="'+ing.id+'" data-cat="'+cat.id+'" data-price="'+(ing.price||0)+'">'
+          +'<div class="agregado-img'+(ingImg?'':' no-img')+'"'+(ingImg?' style="background-image:url('+ingImg+')"':'')+'>'+(!ingImg?'🧂':'')+'</div>'
+          +'<div class="agregado-name">'+(ing.name||'')+'</div>'
+          +'<div class="agregado-price">'+(ing.price?'+'+formatPrice(ing.price):'Gratis')+'</div>'
+          +'<div class="ing-checkbox">✓</div>'
+          +'</div>';
+      });
+      const aCount = Object.keys(aSel).length;
+      const aTotal = Object.values(aSel).reduce((s,v)=>s+v,0);
+      // Insertar acordeón DENTRO de view-normal, antes de cerrarlo
+      // Se agrega al secHTML de view-normal justo antes del cierre
       secHTML += '<div class="agregados-accordion" id="agr-acc-'+cat.id+'">';
       secHTML += '<div class="agregados-header" id="agr-hdr-'+cat.id+'">';
       secHTML += '<div class="agregados-label">➕ Ingredientes Extra <span class="agregados-badge">'+agregadosIngs.length+' opciones</span></div>';
       secHTML += '<span class="agregados-arrow" id="agr-arrow-'+cat.id+'">▼</span>';
       secHTML += '</div>';
       secHTML += '<div class="agregados-body" id="agr-body-'+cat.id+'">';
-      secHTML += '<div class="agregados-grid" id="agr-grid-'+cat.id+'"></div>';
-      secHTML += '<button class="agregados-add-btn" id="agr-btn-'+cat.id+'" disabled>➕ AGREGAR INGREDIENTES AL PEDIDO</button>';
+      secHTML += '<div class="agregados-grid">'+agItemsHTML+'</div>';
+      secHTML += '<button class="agregados-add-btn" id="agr-btn-'+cat.id+'"'+(aCount===0?' disabled':'')+'>➕ '+(aCount>0?'AGREGAR ('+aCount+' ítem'+(aCount>1?'s':'')+' — '+formatPrice(aTotal)+')':'AGREGAR INGREDIENTES AL PEDIDO')+'</button>';
       secHTML += '</div></div>';
-    }
-
-    secHTML += '</div>'; // end view-normal
-
-    // Vista builder
-    if(hasBuilder) {
-      secHTML += '<div id="view-builder-'+cat.id+'" style="display:none">';
-      secHTML += '<p style="font-family:Crimson Pro,serif;font-style:italic;font-size:13px;color:var(--text-dim);margin-bottom:12px;">Elige los ingredientes de tu pizza personalizada:</p>';
-      secHTML += '<div class="builder-grid" id="builder-grid-'+cat.id+'"></div>';
-      secHTML += '<div class="builder-summary"><div class="builder-summary-info">Seleccionados: <strong id="builder-count-'+cat.id+'">0</strong> ingredientes — <strong id="builder-total-'+cat.id+'">$0</strong></div>';
-      secHTML += '<button class="builder-add-btn" id="builder-btn-'+cat.id+'" disabled>🛒 AGREGAR AL PEDIDO</button></div>';
-      secHTML += '</div>';
     }
 
     sec.innerHTML = secHTML;
     content.appendChild(sec);
 
-    // Render lista de productos normales
+    // ── EVENT LISTENERS post-render ──
+
+    // Builder: click en cada item directamente sobre el elemento real
+    if(hasBuilder) {
+      sec.querySelectorAll('.builder-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const ingId = el.dataset.ing;
+          const catId = el.dataset.cat;
+          const price = parseFloat(el.dataset.price)||0;
+          const isMasa = el.dataset.masa === '1';
+          if(!builderSelections[catId]) builderSelections[catId] = {};
+          if(builderSelections[catId][ingId]) {
+            if(isMasa) return;
+            delete builderSelections[catId][ingId];
+            el.classList.remove('selected');
+            el.style.borderColor = '';
+            el.style.background = '';
+            const cb = el.querySelector('.ing-checkbox');
+            if(cb) { cb.style.background=''; cb.style.borderColor=''; cb.style.color='transparent'; }
+          } else {
+            builderSelections[catId][ingId] = price;
+            el.classList.add('selected');
+            el.style.borderColor = 'var(--primary)';
+            el.style.background = 'rgba(0,180,166,0.18)';
+            const cb = el.querySelector('.ing-checkbox');
+            if(cb) { cb.style.background='var(--primary)'; cb.style.borderColor='var(--primary)'; cb.style.color='#fff'; }
+          }
+          // Actualizar summary sin tocar el DOM del grid
+          const sel = builderSelections[catId];
+          const ids = Object.keys(sel);
+          const total = ids.reduce((s,id)=>s+(sel[id]||0),0);
+          const countEl = document.getElementById('builder-count-'+catId);
+          const totalEl = document.getElementById('builder-total-'+catId);
+          const btnEl  = document.getElementById('builder-btn-'+catId);
+          if(countEl) countEl.textContent = ids.length;
+          if(totalEl) totalEl.textContent = formatPrice(total);
+          if(btnEl){ btnEl.disabled = ids.length===0; btnEl.textContent = ids.length>0?'🛒 AGREGAR AL PEDIDO ('+formatPrice(total)+')':'🛒 AGREGAR AL PEDIDO'; }
+        });
+      });
+      // Botón agregar builder
+      const bBtn = sec.querySelector('#builder-btn-'+cat.id);
+      if(bBtn) bBtn.addEventListener('click', () => addBuilderToCart(cat.id));
+    }
+
+    // Agregados: click en cada item
+    if(hasAgregados) {
+      sec.querySelectorAll('.agregado-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const ingId = el.dataset.ing;
+          const catId = el.dataset.cat;
+          const price = parseFloat(el.dataset.price)||0;
+          if(!agregadosSelections[catId]) agregadosSelections[catId] = {};
+          if(agregadosSelections[catId][ingId]) {
+            delete agregadosSelections[catId][ingId];
+            el.classList.remove('selected');
+            el.style.borderColor = '';
+            el.style.background = '';
+            const cb = el.querySelector('.ing-checkbox');
+            if(cb) { cb.style.background=''; cb.style.borderColor=''; cb.style.color='transparent'; }
+          } else {
+            agregadosSelections[catId][ingId] = price;
+            el.classList.add('selected');
+            el.style.borderColor = 'var(--primary)';
+            el.style.background = 'rgba(0,180,166,0.18)';
+            const cb = el.querySelector('.ing-checkbox');
+            if(cb) { cb.style.background='var(--primary)'; cb.style.borderColor='var(--primary)'; cb.style.color='#fff'; }
+          }
+          const sel = agregadosSelections[catId];
+          const ids = Object.keys(sel);
+          const total = ids.reduce((s,id)=>s+(sel[id]||0),0);
+          const btnEl = document.getElementById('agr-btn-'+catId);
+          if(btnEl){ btnEl.disabled=ids.length===0; btnEl.textContent=ids.length>0?'➕ AGREGAR ('+ids.length+' ítem'+(ids.length>1?'s':'')+' — '+formatPrice(total)+')':'➕ AGREGAR INGREDIENTES AL PEDIDO'; }
+        });
+      });
+      // Botón agregar agregados
+      const aBtn = sec.querySelector('#agr-btn-'+cat.id);
+      if(aBtn) aBtn.addEventListener('click', () => addAgregadosToCart(cat.id, cat.name, cat.emoji));
+      // Acordeón toggle
+      const agrHdr = sec.querySelector('#agr-hdr-'+cat.id);
+      if(agrHdr) agrHdr.addEventListener('click', () => {
+        const body = document.getElementById('agr-body-'+cat.id);
+        const arrow = document.getElementById('agr-arrow-'+cat.id);
+        body.classList.toggle('show');
+        arrow.classList.toggle('open', body.classList.contains('show'));
+      });
+    }
+
+    // Inner tabs builder/normal
+    if(hasBuilder) {
+      sec.querySelectorAll('.cat-inner-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          sec.querySelectorAll('.cat-inner-tab').forEach(t=>t.classList.remove('active'));
+          tab.classList.add('active');
+          const mode = tab.dataset.inner;
+          const cid = tab.dataset.cat;
+          const vn = document.getElementById('view-normal-'+cid);
+          const vb = document.getElementById('view-builder-'+cid);
+          if(vn) vn.style.display = mode==='normal' ? '' : 'none';
+          if(vb) vb.style.display = mode==='builder' ? '' : 'none';
+        });
+      });
+    }
+    // Render productos en la lista normal
     const list = sec.querySelector('#list-'+cat.id);
     prods.forEach(p => {
       const item = document.createElement('div');
@@ -1333,89 +1472,6 @@ function renderMenu() {
       list.appendChild(item);
     });
 
-    // Render builder grid
-    if(hasBuilder) {
-      const bgrid = sec.querySelector('#builder-grid-'+cat.id);
-      // Pre-seleccionar Masa Base por defecto si no hay nada seleccionado aún
-      if(!builderSelections[cat.id]) {
-        const masaBase = builderIngs.find(i => /masa\s*base/i.test(i.name||''));
-        if(masaBase) {
-          builderSelections[cat.id] = { [masaBase.id]: masaBase.price||0 };
-        }
-      }
-      const selMap = builderSelections[cat.id] || {};
-      builderIngs.forEach(ing => {
-        const ingImg = processDriveUrl(ing.img);
-        const isSelected = !!selMap[ing.id];
-        const isMasaBase = /masa\s*base/i.test(ing.name||'');
-        const bItem = document.createElement('div');
-        bItem.className = 'builder-item'+(isSelected?' selected':'');
-        bItem.dataset.ing = ing.id;
-        bItem.dataset.cat = cat.id;
-        bItem.innerHTML = '<div class="builder-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧀')+'</div>'+
-          '<div class="builder-name">'+(ing.name||'')+(isMasaBase?' <span style="font-size:9px;color:var(--primary);font-family:DM Sans,sans-serif">(requerida)</span>':'')+'</div>'+
-          '<div class="ing-checkbox">✓</div>'+
-          '<div class="builder-price">'+(ing.price?formatPrice(ing.price):'Gratis')+'</div>';
-        bItem.addEventListener('click', () => {
-          // Leer estado actual en tiempo real (no desde el closure)
-          const currentSel = builderSelections[cat.id] || {};
-          if(isMasaBase && currentSel[ing.id]) return;
-          toggleBuilderIng(cat.id, ing.id, ing.price||0);
-        });
-        bgrid.appendChild(bItem);
-      });
-      // Actualizar UI para reflejar la pre-selección
-      updateBuilderUI(cat.id);
-    }
-
-    // Render agregados grid
-    if(hasAgregados) {
-      const agrid = sec.querySelector('#agr-grid-'+cat.id);
-      if(agrid) {
-        const selMap = agregadosSelections[cat.id] || {};
-        agregadosIngs.forEach(ing => {
-          const ingImg = processDriveUrl(ing.img);
-          const isSelected = !!selMap[ing.id];
-          const aItem = document.createElement('div');
-          aItem.className = 'agregado-item'+(isSelected?' selected':'');
-          aItem.dataset.ing = ing.id;
-          aItem.dataset.cat = cat.id;
-          aItem.innerHTML = '<div class="agregado-img '+(ingImg?'':' no-img')+'" '+(ingImg?'style="background-image:url('+ingImg+')"':'')+'>'+(ingImg?'':'🧂')+'</div>'+
-            '<div class="agregado-name">'+(ing.name||'')+'</div>'+
-            '<div class="ing-checkbox">✓</div>'+
-            '<div class="agregado-price">'+(ing.price?formatPrice(ing.price):'Gratis')+'</div>';
-          aItem.addEventListener('click', () => toggleAgregadoIng(cat.id, ing.id, ing.price||0));
-          agrid.appendChild(aItem);
-        });
-
-        // Botón agregar agregados
-        const agrBtn = sec.querySelector('#agr-btn-'+cat.id);
-        if(agrBtn) agrBtn.addEventListener('click', () => addAgregadosToCart(cat.id, cat.name, cat.emoji));
-      }
-
-      // Toggle acordeón
-      const agrHdr = sec.querySelector('#agr-hdr-'+cat.id);
-      if(agrHdr) agrHdr.addEventListener('click', () => {
-        const body = document.getElementById('agr-body-'+cat.id);
-        const arrow = document.getElementById('agr-arrow-'+cat.id);
-        const isOpen = body.classList.toggle('show');
-        arrow.classList.toggle('open', isOpen);
-      });
-    }
-
-    // Inner tabs (builder/normal)
-    if(hasBuilder) {
-      sec.querySelectorAll('.cat-inner-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          sec.querySelectorAll('.cat-inner-tab').forEach(t=>t.classList.remove('active'));
-          tab.classList.add('active');
-          const mode = tab.dataset.inner;
-          const catId = tab.dataset.cat;
-          document.getElementById('view-normal-'+catId).style.display = mode==='normal'?'':'none';
-          document.getElementById('view-builder-'+catId).style.display = mode==='builder'?'':'none';
-        });
-      });
-    }
   });
 
   // Listeners generales
@@ -1554,8 +1610,22 @@ function addAgregadosToCart(catId, catName, catEmoji) {
     return ing ? ing.name : id;
   });
   const total = ids.reduce((s,id) => s + (selMap[id]||0), 0);
-  const cartName = (catEmoji||'➕')+' Agregados ('+(catName||'')+'):' + ingNames.join(', ');
-  cart.push({id:'agr-'+catId+'-'+Date.now(), name:cartName, price:total, img:'', qty:1, note:'', isAgregado:true});
+
+  // Buscar producto del carrito que pertenezca a esta categoría
+  const existingProd = cart.find(c => {
+    const p = menuData.products.find(x => x.id === c.id);
+    return p && p.catId === catId && !c.isAgregado && !c.isBuilder;
+  });
+
+  if(existingProd) {
+    existingProd.price += total;
+    existingProd.agregados = [...(existingProd.agregados||[]), ...ingNames];
+  } else {
+    // No hay producto de esa categoría en el carrito — agregar como item separado
+    const cartName = (catEmoji||'➕')+' Agregados ('+(catName||'')+': '+ingNames.join(', ')+')';
+    cart.push({id:'agr-'+catId+'-'+Date.now(), name:cartName, price:total, img:'', qty:1, note:'', isAgregado:true});
+  }
+
   agregadosSelections[catId] = {};
   saveCart(); updateCartUI();
   updateAgregadosUI(catId);
@@ -1758,10 +1828,16 @@ function renderCart() {
   let html = '';
   cart.forEach(item => {
     const img = processDriveUrl(item.img);
+    const extrasHTML = (item.agregados && item.agregados.length)
+      ? '<div class="cart-item-extras"><span class="cart-item-extras-icon">✨</span>'+
+        item.agregados.map(e=>'<span class="cart-item-extra-pill">+ '+e+'</span>').join('')+
+        '</div>'
+      : '';
     html += '<div class="cart-item">'+
       '<div class="cart-item-img" '+(img?'style="background-image:url('+img+')"':'')+'>'+(img?'':'📷')+'</div>'+
       '<div class="cart-item-info">'+
         '<div class="cart-item-row"><div class="cart-item-name">'+item.name+'</div><div class="cart-item-price">'+formatPrice(item.price * item.qty)+'</div></div>'+
+        extrasHTML+
         '<input class="cart-item-note-input" type="text" placeholder="Notas: sin cebolla, extra salsa..." value="'+(item.note||'').replace(/"/g,'&quot;')+'" data-note="'+item.id+'">'+
         '<div class="qty-controls">'+
           '<button class="qty-btn '+(item.qty===1?'danger':'')+'" data-minus="'+item.id+'">'+(item.qty===1?'🗑':'−')+'</button>'+
