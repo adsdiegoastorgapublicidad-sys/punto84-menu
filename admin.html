@@ -524,6 +524,73 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
           </div>
         </div>
 
+        <!-- ESTILO DE TÍTULOS DE CATEGORÍA -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">🔥 Estilo de Títulos de Sección</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">🔥</span><div>Elige cómo se ven los títulos de cada categoría (Hamburguesas, Pizzas, etc). Cada categoría toma un color distinto automáticamente, manteniendo el mismo estilo elegido aquí.</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="titleStyleGrid">
+
+              <div class="title-style-opt" data-style="x1" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                <div style="background:#000;border-radius:8px;padding:10px;margin-bottom:8px">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#ff4400,#f5a623);display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 0 14px rgba(255,80,0,0.4)">🍔</div>
+                    <div style="font-size:12px;font-weight:900;color:#fff">HAMBURGUESAS</div>
+                  </div>
+                  <div style="height:3px;margin-top:6px;border-radius:3px;background:linear-gradient(90deg,#ff4400,#f5a623,transparent)"></div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">X1 — Mega Fuego</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Glow masivo + barra</div>
+              </div>
+
+              <div class="title-style-opt" data-style="x2" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                <div style="border-radius:8px;padding:1.5px;background:linear-gradient(90deg,#ff0080,#7928ca,#0070f3);margin-bottom:8px">
+                  <div style="background:#050505;border-radius:7px;padding:9px">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span style="font-size:14px">🍔</span>
+                      <span style="font-size:12px;font-weight:900;color:#fff">HAMBURGUESAS</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">X2 — Holográfico RGB</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Borde cromático animado</div>
+              </div>
+
+              <div class="title-style-opt" data-style="x3" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                <div style="background:#000;border-radius:8px;padding:10px;margin-bottom:8px;display:flex;justify-content:center">
+                  <div style="background:#f5a623;padding:6px 14px;transform:skewX(-3deg)">
+                    <div style="transform:skewX(3deg);font-size:12px;font-weight:900;color:#0a0500">🍔 HAMBURGUESAS</div>
+                  </div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">X3 — Brutal Block</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Bloque sólido + sombra</div>
+              </div>
+
+              <div class="title-style-opt" data-style="x4" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                <div style="background:linear-gradient(135deg,#0a0015,#000);border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid rgba(168,85,247,0.2)">
+                  <div style="font-size:8px;font-weight:800;letter-spacing:0.15em;color:#a855f7;margin-bottom:4px">★ DESTACADA</div>
+                  <div style="font-size:12px;font-weight:900;background:linear-gradient(135deg,#fff,#f5a623);-webkit-background-clip:text;background-clip:text;color:transparent">🍔 HAMBURGUESAS</div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">X4 — Cinematic Glow</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Partículas + scanlines</div>
+              </div>
+
+              <div class="title-style-opt" data-style="mix" style="border:2px solid var(--primary);border-radius:12px;padding:10px;cursor:pointer;background:rgba(0,180,166,0.06);grid-column:1/3">
+                <div style="background:linear-gradient(135deg,#0a0015,#000);border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid rgba(168,85,247,0.15)">
+                  <div style="font-size:8px;font-weight:800;letter-spacing:0.15em;color:#a855f7;margin-bottom:5px">★ CATEGORÍA DESTACADA</div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#ff4400,#f5a623);display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 0 14px rgba(255,80,0,0.4)">🍔</div>
+                    <div style="font-size:13px;font-weight:900;background:linear-gradient(135deg,#fff,#f5a623);-webkit-background-clip:text;background-clip:text;color:transparent">HAMBURGUESAS</div>
+                  </div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--primary)">⭐ MIX X1+X4 (Recomendado)</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Lo mejor de ambos — máximo impacto</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- CATEGORIES -->
@@ -904,7 +971,7 @@ const app = initializeApp(FB);
 const db = getDatabase(app);
 const ROOT = 'menu';
 
-let data = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407', isOpen:false}, ingredients:[], payment:{}, badges:[], upcoming:[], announcement:{active:false,icon:'📣',text:'',color:'#f5a623'}, combos:[] };
+let data = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407', isOpen:false}, ingredients:[], payment:{}, badges:[], upcoming:[], announcement:{active:false,icon:'📣',text:'',color:'#f5a623'}, combos:[] };
 let editingProduct = null;
 let editingIngredient = null;
 let editingUpcoming = null;
@@ -929,7 +996,7 @@ async function initData() {
     data.badges = d.badges ? Object.values(d.badges) : [];
     data.upcoming = d.upcoming ? Object.values(d.upcoming) : [];
     data.announcement = d.announcement || {active:false,icon:'📣',text:'',sub:'',color:'#f5a623',style:'flash',countdown:false,countdownHour:22,countdownMin:0};
-    data.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'};
+    data.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix'};
     data.combos = d.combos ? Object.values(d.combos) : [];
   }
   const passSnap = await get(ref(db, ROOT+'/password'));
@@ -2222,12 +2289,13 @@ const FONTS = [
   {name:'Montserrat', label:'Montserrat', sample:'Punto84'},
   {name:'Poppins', label:'Poppins', sample:'Punto84'},
 ];
-let selectedFont = 'Bebas Neue', selectedMode = 'dark', selectedCardStyle = 'horizontal';
+let selectedFont = 'Bebas Neue', selectedMode = 'dark', selectedCardStyle = 'horizontal', selectedTitleStyle = 'mix';
 
 function loadDesignForm() {
   selectedFont = data.design?.font || 'Bebas Neue';
   selectedMode = data.design?.mode || 'dark';
   selectedCardStyle = data.design?.cardStyle || 'horizontal';
+  selectedTitleStyle = data.design?.titleStyle || 'mix';
 
   // Font grid
   const fontGrid = document.getElementById('fontGrid');
@@ -2260,6 +2328,8 @@ function loadDesignForm() {
   selectMode(selectedMode);
   // Card style
   selectCardStyle(selectedCardStyle);
+  // Title style
+  selectTitleStyle(selectedTitleStyle);
 }
 
 function selectMode(mode) {
@@ -2277,7 +2347,19 @@ function selectCardStyle(style) {
   });
 }
 
-// Override btnSaveDesign para incluir font, mode y cardStyle
+function selectTitleStyle(style) {
+  selectedTitleStyle = style;
+  document.querySelectorAll('.title-style-opt').forEach(el => {
+    const isActive = el.dataset.style === style;
+    el.style.border = isActive ? '2px solid var(--primary)' : '2px solid var(--bg-4)';
+    el.style.background = isActive ? 'rgba(0,180,166,0.08)' : '';
+  });
+}
+document.querySelectorAll('.title-style-opt').forEach(el => {
+  el.addEventListener('click', () => selectTitleStyle(el.dataset.style));
+});
+
+// Override btnSaveDesign para incluir font, mode, cardStyle y titleStyle
 const _oldSaveDesign = document.getElementById('btnSaveDesign');
 if(_oldSaveDesign) {
   _oldSaveDesign.onclick = async () => {
@@ -2287,6 +2369,7 @@ if(_oldSaveDesign) {
       font: selectedFont,
       mode: selectedMode,
       cardStyle: selectedCardStyle,
+      titleStyle: selectedTitleStyle,
     };
     if(await saveData('design', designData)) { data.design = designData; toast('✓ Diseño guardado'); }
   };

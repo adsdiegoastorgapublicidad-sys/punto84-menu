@@ -121,9 +121,75 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; border-
 
 /* PRODUCTS SECTION */
 .cat-section { padding:16px 12px 4px; scroll-margin-top:80px; }
+
+/* ══════════════════════════════════════
+   SISTEMA DE TÍTULOS DE CATEGORÍA — 5 ESTILOS X1/X2/X3/X4/MIX
+══════════════════════════════════════ */
+.cat-title-wrap { margin-bottom:14px; position:relative; }
+
+/* Fallback simple (sin estilo especial) */
 .cat-title { font-family:var(--font-title); font-size:12px; font-weight:700; letter-spacing:0.18em; color:var(--primary); margin-bottom:10px; display:flex; align-items:center; gap:8px; line-height:1; text-transform:uppercase; }
 .cat-emoji { font-size:16px; }
 .cat-line { flex:1; height:1px; background:var(--bg-4); }
+
+/* ── X1: Mega Fuego ── */
+.ctX1-wrap { position:relative; padding:14px 16px; overflow:visible; }
+.ctX1-glow { position:absolute; inset:-20px; pointer-events:none; filter:blur(10px); z-index:0; }
+.ctX1-row { position:relative; display:flex; align-items:center; gap:12px; z-index:1; }
+.ctX1-icon { width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; position:relative; }
+.ctX1-icon::after { content:''; position:absolute; inset:-2px; border-radius:13px; z-index:-1; filter:blur(7px); opacity:0.6; }
+.ctX1-text { font-family:var(--font-title); font-size:19px; font-weight:900; letter-spacing:-0.01em; line-height:1; color:#fff; }
+.ctX1-bar { height:3px; margin-top:8px; border-radius:3px; position:relative; z-index:1; }
+
+/* ── X2: Holográfico RGB ── */
+.ctX2-wrap { border-radius:14px; padding:1.5px; position:relative; background-size:400% 100%; animation:ctX2rgb 5s linear infinite; }
+@keyframes ctX2rgb { to { background-position:400% 0; } }
+.ctX2-inner { background:var(--bg-2); border-radius:13px; padding:11px 16px; position:relative; overflow:hidden; }
+.ctX2-noise { position:absolute; inset:0; opacity:0.5; pointer-events:none; }
+.ctX2-row { position:relative; display:flex; align-items:center; gap:10px; z-index:1; }
+.ctX2-icon { font-size:19px; }
+.ctX2-text { font-family:var(--font-title); font-size:16px; font-weight:900; letter-spacing:-0.01em; color:#fff; }
+
+/* ── X3: Brutal Block ── */
+.ctX3-wrap { position:relative; padding-bottom:2px; }
+.ctX3-shadow { position:absolute; inset:0; background:#000; transform:translate(5px,5px) skewX(-3deg); z-index:0; border-radius:2px; }
+.ctX3-block { position:relative; border-radius:2px; padding:11px 16px; transform:skewX(-3deg); z-index:1; }
+.ctX3-content { transform:skewX(3deg); display:flex; align-items:center; gap:9px; }
+.ctX3-icon { font-size:17px; }
+.ctX3-text { font-family:var(--font-title); font-size:17px; font-weight:900; letter-spacing:-0.01em; color:#0a0500; line-height:1; }
+
+/* ── X4: Cinematic Glow ── */
+.ctX4-wrap { position:relative; padding:13px 16px; border-radius:14px; background:linear-gradient(135deg,#0a0015,#06060a); overflow:hidden; border:1px solid rgba(168,85,247,0.18); }
+.ctX4-scan { position:absolute; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,0.012) 3px,rgba(255,255,255,0.012) 4px); pointer-events:none; }
+.ctX4-glow1, .ctX4-glow2 { position:absolute; width:100px; height:100px; filter:blur(14px); pointer-events:none; }
+.ctX4-glow1 { top:-30px; left:-15px; }
+.ctX4-glow2 { bottom:-30px; right:-15px; }
+.ctX4-particles { position:absolute; inset:0; pointer-events:none; }
+.ctX4-p { position:absolute; width:2px; height:2px; border-radius:50%; background:#a855f7; animation:ctX4float 3s infinite ease-in-out; }
+@keyframes ctX4float { 0%,100%{opacity:0.2;transform:translateY(0)} 50%{opacity:1;transform:translateY(-10px)} }
+.ctX4-content { position:relative; z-index:1; }
+.ctX4-eyebrow { font-size:8px; font-weight:800; letter-spacing:0.25em; color:#a855f7; margin-bottom:5px; }
+.ctX4-row { display:flex; align-items:center; gap:9px; }
+.ctX4-icon { font-size:19px; }
+.ctX4-text { font-family:var(--font-title); font-size:17px; font-weight:900; letter-spacing:-0.01em; }
+
+/* ── MIX X1+X4 ── */
+.ctMix-wrap { position:relative; padding:13px 16px; border-radius:14px; background:linear-gradient(135deg,#0a0015,#06060a); overflow:hidden; border:1px solid rgba(168,85,247,0.14); }
+.ctMix-scan { position:absolute; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,0.012) 3px,rgba(255,255,255,0.012) 4px); pointer-events:none; }
+.ctMix-glow { position:absolute; inset:-20px; pointer-events:none; filter:blur(12px); }
+.ctMix-particles { position:absolute; inset:0; pointer-events:none; }
+.ctMix-p { position:absolute; width:2px; height:2px; border-radius:50%; background:#a855f7; animation:ctX4float 3s infinite ease-in-out; }
+.ctMix-content { position:relative; z-index:1; }
+.ctMix-eyebrow { font-size:8px; font-weight:800; letter-spacing:0.25em; color:#a855f7; margin-bottom:6px; }
+.ctMix-row { display:flex; align-items:center; gap:11px; }
+.ctMix-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; position:relative; }
+.ctMix-icon::after { content:''; position:absolute; inset:-2px; border-radius:12px; z-index:-1; filter:blur(7px); opacity:0.6; }
+.ctMix-text { font-family:var(--font-title); font-size:18px; font-weight:900; letter-spacing:-0.01em; line-height:1; }
+.ctMix-bar { display:flex; gap:3px; margin-top:9px; }
+.ctMix-seg { height:3px; border-radius:3px; }
+.ctMix-seg:nth-child(1) { flex:2; }
+.ctMix-seg:nth-child(2) { flex:1; opacity:0.5; }
+.ctMix-seg:nth-child(3) { flex:1; opacity:0.2; }
 
 /* ── GRID 2 COLUMNAS ULTRA PREMIUM ── */
 .products-list { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
@@ -1217,7 +1283,7 @@ const db = getDatabase(app);
 const DAYS_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
 const DAYS_NAMES = {mon:'Lunes',tue:'Martes',wed:'Miércoles',thu:'Jueves',fri:'Viernes',sat:'Sábado',sun:'Domingo'};
 
-let menuData = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407',isOpen:false}, ingredients:[], payment:{}, badges:[], upcoming:[], announcement:{}, combos:[] };
+let menuData = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407',isOpen:false}, ingredients:[], payment:{}, badges:[], upcoming:[], announcement:{}, combos:[] };
 let cart = [];
 let selectedZone = null;
 let selectedPayment = 'cash';
@@ -1260,7 +1326,7 @@ async function loadMenu() {
       menuData.badges = d.badges ? Object.values(d.badges) : [];
       menuData.upcoming = d.upcoming ? Object.values(d.upcoming).filter(u=>u.active!==false) : [];
       menuData.announcement = d.announcement || {};
-      menuData.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'};
+      menuData.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix'};
       menuData.combos = d.combos ? Object.values(d.combos) : [];
     }
     applyDesign();
@@ -1287,7 +1353,7 @@ async function loadMenu() {
       menuData.badges = d.badges ? Object.values(d.badges) : [];
       menuData.upcoming = d.upcoming ? Object.values(d.upcoming).filter(u=>u.active!==false) : [];
       menuData.announcement = d.announcement || {};
-      menuData.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal'};
+      menuData.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix'};
       menuData.combos = d.combos ? Object.values(d.combos) : [];
       applyDesign();
       renderAll();
@@ -1522,7 +1588,7 @@ function renderMenu() {
 
   // Sections
   content.innerHTML = '';
-  menuData.categories.forEach(cat => {
+  menuData.categories.forEach((cat, catIdx) => {
     const prods = menuData.products.filter(p => {
       if(p.catId !== cat.id) return false;
       if(!searchQuery) return true;
@@ -1540,8 +1606,8 @@ function renderMenu() {
     sec.className = 'cat-section';
     sec.id = 'cat-'+cat.id;
 
-    // Título de categoría
-    let secHTML = '<div class="cat-title"><span class="cat-emoji">'+(cat.emoji||'🍕')+'</span><span>'+(cat.name||'')+'</span><span class="cat-line"></span></div>';
+    // Título de categoría — sistema dinámico de 5 estilos con color rotativo
+    let secHTML = '<div class="cat-title-wrap">'+renderCatTitleHTML(cat.name, cat.emoji, catIdx, prods.length)+'</div>';
 
     // Si tiene builder, agregar tabs internos
     if(hasBuilder) {
@@ -3510,9 +3576,114 @@ function initLiveTicker(orders) {
 
 // ══════════════════════════════════════
 // ══════════════════════════════════════
-// WOW 6 — PIZZA CHEF SVG PREMIUM
+// ══════════════════════════════════════
+// SISTEMA DE TÍTULOS DE CATEGORÍA — 5 ESTILOS DINÁMICOS
 // ══════════════════════════════════════
 
+// Paleta de colores rotativos por categoría (cada uno con sus variantes)
+const CAT_COLOR_PALETTE = [
+  { name:'fuego',    c1:'#ff4400', c2:'#f5a623', glow:'rgba(255,80,0,0.22)',  glow2:'rgba(245,166,35,0.15)', rgb1:'#ff4400', rgb2:'#ff8800', rgb3:'#f5a623' },
+  { name:'violeta',  c1:'#a855f7', c2:'#7928ca', glow:'rgba(168,85,247,0.22)', glow2:'rgba(121,40,202,0.15)', rgb1:'#a855f7', rgb2:'#7928ca', rgb3:'#c084fc' },
+  { name:'cian',     c1:'#00b4a6', c2:'#00dfd8', glow:'rgba(0,180,166,0.22)', glow2:'rgba(0,223,216,0.15)', rgb1:'#00b4a6', rgb2:'#00dfd8', rgb3:'#0070f3' },
+  { name:'rosa',     c1:'#ff0080', c2:'#ff4488', glow:'rgba(255,0,128,0.22)', glow2:'rgba(255,68,136,0.15)', rgb1:'#ff0080', rgb2:'#ff4488', rgb3:'#a855f7' },
+  { name:'verde',    c1:'#22aa55', c2:'#5fd687', glow:'rgba(34,170,85,0.22)', glow2:'rgba(95,214,135,0.15)', rgb1:'#22aa55', rgb2:'#5fd687', rgb3:'#00dfd8' },
+  { name:'azul',     c1:'#0070f3', c2:'#3b9eff', glow:'rgba(0,112,243,0.22)', glow2:'rgba(59,158,255,0.15)', rgb1:'#0070f3', rgb2:'#3b9eff', rgb3:'#a855f7' },
+  { name:'dorado',   c1:'#f5a623', c2:'#ffcc55', glow:'rgba(245,166,35,0.22)', glow2:'rgba(255,204,85,0.15)', rgb1:'#f5a623', rgb2:'#ffcc55', rgb3:'#ff4400' },
+  { name:'magenta',  c1:'#d633ff', c2:'#ff66cc', glow:'rgba(214,51,255,0.22)', glow2:'rgba(255,102,204,0.15)', rgb1:'#d633ff', rgb2:'#ff66cc', rgb3:'#a855f7' },
+];
+
+// Asigna color consistente según índice de categoría (rota la paleta)
+function getCatColor(catIndex) {
+  return CAT_COLOR_PALETTE[catIndex % CAT_COLOR_PALETTE.length];
+}
+
+// Genera el HTML del título de categoría según el estilo elegido en admin
+function renderCatTitleHTML(catName, catEmoji, catIndex, productCount) {
+  const style = (menuData.design && menuData.design.titleStyle) || 'mix';
+  const color = getCatColor(catIndex);
+  const name = (catName||'').toUpperCase();
+  const emoji = catEmoji || '🍕';
+
+  if(style === 'x1') {
+    return '<div class="ctX1-wrap">'+
+      '<div class="ctX1-glow" style="background:radial-gradient(ellipse at 0% 50%,'+color.glow+',transparent 60%)"></div>'+
+      '<div class="ctX1-row">'+
+        '<div class="ctX1-icon" style="background:linear-gradient(135deg,'+color.c1+','+color.c2+');box-shadow:0 0 20px '+color.glow+'"><span>'+emoji+'</span></div>'+
+        '<div class="ctX1-text">'+name+'</div>'+
+      '</div>'+
+      '<div class="ctX1-bar" style="background:linear-gradient(90deg,'+color.c1+','+color.c2+',transparent);box-shadow:0 0 10px '+color.glow+'"></div>'+
+    '</div>';
+  }
+
+  if(style === 'x2') {
+    return '<div class="ctX2-wrap" style="background:linear-gradient(90deg,'+color.rgb1+','+color.rgb3+','+color.rgb2+','+color.rgb1+')">'+
+      '<div class="ctX2-inner">'+
+        '<div class="ctX2-noise" style="background:radial-gradient(circle at 30% 20%,'+color.glow+',transparent 50%),radial-gradient(circle at 80% 80%,'+color.glow2+',transparent 50%)"></div>'+
+        '<div class="ctX2-row">'+
+          '<span class="ctX2-icon">'+emoji+'</span>'+
+          '<span class="ctX2-text">'+name+'</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  if(style === 'x3') {
+    return '<div class="ctX3-wrap">'+
+      '<div class="ctX3-shadow"></div>'+
+      '<div class="ctX3-block" style="background:'+color.c1+'">'+
+        '<div class="ctX3-content">'+
+          '<span class="ctX3-icon">'+emoji+'</span>'+
+          '<span class="ctX3-text">'+name+'</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  if(style === 'x4') {
+    return '<div class="ctX4-wrap" style="border-color:'+color.glow+'">'+
+      '<div class="ctX4-scan"></div>'+
+      '<div class="ctX4-glow1" style="background:radial-gradient(circle,'+color.glow+',transparent 70%)"></div>'+
+      '<div class="ctX4-glow2" style="background:radial-gradient(circle,'+color.glow2+',transparent 70%)"></div>'+
+      '<div class="ctX4-particles">'+
+        '<div class="ctX4-p" style="top:20%;left:85%;background:'+color.c1+';animation-delay:0s"></div>'+
+        '<div class="ctX4-p" style="top:70%;left:90%;background:'+color.c1+';animation-delay:1s"></div>'+
+      '</div>'+
+      '<div class="ctX4-content">'+
+        '<div class="ctX4-eyebrow" style="color:'+color.c1+'">★ CATEGORÍA DESTACADA</div>'+
+        '<div class="ctX4-row">'+
+          '<span class="ctX4-icon">'+emoji+'</span>'+
+          '<span class="ctX4-text" style="background:linear-gradient(135deg,#fff,'+color.c2+');-webkit-background-clip:text;background-clip:text;color:transparent">'+name+'</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  // MIX X1+X4 (default)
+  return '<div class="ctMix-wrap" style="border-color:'+color.glow+'">'+
+    '<div class="ctMix-scan"></div>'+
+    '<div class="ctMix-glow" style="background:radial-gradient(ellipse at 0% 50%,'+color.glow+',transparent 55%),radial-gradient(ellipse at 100% 100%,rgba(168,85,247,0.12),transparent 55%)"></div>'+
+    '<div class="ctMix-particles">'+
+      '<div class="ctMix-p" style="top:15%;left:85%;background:'+color.c1+';animation-delay:0s"></div>'+
+      '<div class="ctMix-p" style="top:75%;left:90%;background:'+color.c1+';animation-delay:1s"></div>'+
+    '</div>'+
+    '<div class="ctMix-content">'+
+      '<div class="ctMix-eyebrow">★ CATEGORÍA DESTACADA</div>'+
+      '<div class="ctMix-row">'+
+        '<div class="ctMix-icon" style="background:linear-gradient(135deg,'+color.c1+','+color.c2+');box-shadow:0 0 20px '+color.glow+'"><span>'+emoji+'</span></div>'+
+        '<div class="ctMix-text" style="background:linear-gradient(135deg,#fff,'+color.c2+');-webkit-background-clip:text;background-clip:text;color:transparent">'+name+'</div>'+
+      '</div>'+
+      '<div class="ctMix-bar">'+
+        '<div class="ctMix-seg" style="background:linear-gradient(90deg,'+color.c1+','+color.c2+');box-shadow:0 0 10px '+color.glow+'"></div>'+
+        '<div class="ctMix-seg" style="background:linear-gradient(90deg,'+color.c1+','+color.c2+')"></div>'+
+        '<div class="ctMix-seg" style="background:linear-gradient(90deg,'+color.c1+','+color.c2+')"></div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+// ══════════════════════════════════════
+// WOW 6 — PIZZA CHEF SVG PREMIUM
+// ══════════════════════════════════════
 // SVG shapes for each ingredient type — as a real chef would plate them
 const PIZZA_ING_SVG = {
   tomate: (cx,cy,r,delay) =>
