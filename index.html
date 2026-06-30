@@ -80,9 +80,11 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 .cat-tabs-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--primary-dark), var(--primary), var(--accent), var(--accent-dark)); }
 .cat-tabs { display:flex; gap:6px; padding:0 12px; overflow-x:auto; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
 .cat-tabs::-webkit-scrollbar { display:none; }
-.cat-tab { flex-shrink:0; padding:6px 14px; background:var(--bg-3); border:1px solid var(--bg-4); border-radius:20px; font-size:11px; font-weight:600; letter-spacing:0.04em; color:var(--text-mute); cursor:pointer; transition:all 0.2s; white-space:nowrap; display:flex; align-items:center; gap:5px; }
+.cat-tab { flex-shrink:0; padding:7px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:20px; font-size:11px; font-weight:700; letter-spacing:0.03em; color:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.2s; white-space:nowrap; display:flex; align-items:center; gap:5px; }
 .cat-tab:hover { border-color:var(--primary-dark); color:var(--text); }
-.cat-tab.active { background:var(--accent); border-color:var(--accent); color:#07080d; font-weight:700; }
+.cat-tab.active { background:rgba(245,166,35,0.1); border-color:rgba(245,166,35,0.3); color:var(--accent); font-weight:700; box-shadow:0 0 14px rgba(245,166,35,0.1); }
+body.light-mode .cat-tab { background:#f0f0f0; color:#444; border-color:#e0e0e0; }
+body.light-mode .cat-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); box-shadow:none; }
 
 /* PRODUCTS SECTION */
 .cat-section { padding:16px 12px 4px; scroll-margin-top:80px; }
@@ -723,27 +725,42 @@ body.light-mode {
 }
 body.light-mode .topbar { background:rgba(255,255,255,0.92); border-bottom:1px solid #e0e0e0; }
 body.light-mode .product-item { background:#fff; border-color:#e8e8e8; }
-body.light-mode .cat-tab { background:#f0f0f0; color:#444; }
-body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
+
 
 /* ── THEME TOGGLE BTN ── */
 .theme-toggle-btn { background:var(--bg-3); border:1px solid var(--bg-4); color:var(--text-dim); border-radius:50%; width:36px; height:36px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; }
 .theme-toggle-btn:hover { background:var(--bg-4); }
 
-/* ── SEARCH BAR ── */
-.search-wrap { padding:0 16px 12px; position:relative; z-index:20; }
-.search-input { width:100%; background:var(--bg-3); border:1px solid var(--bg-4); border-radius:12px; padding:11px 16px 11px 42px; font-size:14px; color:var(--text); outline:none; transition:border-color 0.2s; }
-.search-input:focus { border-color:var(--primary); }
-.search-input::placeholder { color:var(--text-mute); }
-.search-icon { position:absolute; left:28px; top:50%; transform:translateY(-50%); font-size:16px; color:var(--text-mute); pointer-events:none; }
-.search-clear { position:absolute; right:28px; top:50%; transform:translateY(-50%); background:var(--bg-4); border:none; color:var(--text-mute); border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:none; align-items:center; justify-content:center; }
+/* ── SEARCH + QUICK TABS + CAT TABS — MIX M1+M2 PREMIUM ── */
+.mix-search-section { position:relative; padding-top:8px; }
+.mix-glow { position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:260px; height:100px; background:radial-gradient(ellipse, rgba(245,166,35,0.1), rgba(138,43,226,0.05) 60%, transparent 80%); pointer-events:none; z-index:0; }
+
+.search-wrap { padding:0 16px 0; position:relative; z-index:20; }
+.mix-search-bar { background:rgba(255,255,255,0.03); border:1px solid rgba(245,166,35,0.15); border-radius:14px; position:relative; overflow:hidden; }
+.mix-search-bar::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(245,166,35,0.05), transparent); pointer-events:none; }
+.search-input { width:100%; background:transparent; border:none; border-radius:14px; padding:12px 42px 12px 44px; font-size:14px; color:var(--text); outline:none; position:relative; z-index:1; }
+.search-input::placeholder { color:rgba(255,255,255,0.18); }
+body.light-mode .search-input::placeholder { color:rgba(0,0,0,0.25); }
+.search-icon { position:absolute; left:16px; top:50%; transform:translateY(-50%); font-size:16px; color:var(--accent); opacity:0.45; pointer-events:none; z-index:2; }
+.search-clear { position:absolute; right:14px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.08); border:none; color:var(--text-mute); border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:none; align-items:center; justify-content:center; z-index:2; }
 .search-clear.show { display:flex; }
 
-/* ── FAV + HISTORY QUICK TABS ── */
-.quick-tabs { display:flex; gap:8px; padding:0 16px 12px; position:relative; z-index:20; }
-.quick-tab { padding:7px 14px; border-radius:20px; border:1px solid var(--bg-4); background:transparent; color:var(--text-dim); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.2s; }
-.quick-tab.active { background:var(--primary); border-color:var(--primary); color:#012e29; }
-.quick-tab .qt-count { background:rgba(0,0,0,0.15); border-radius:10px; padding:1px 6px; font-size:10px; }
+/* ── QUICK TABS (Favoritos / Mis pedidos) — neon shortcut cards ── */
+.quick-tabs { display:flex; gap:6px; padding:10px 16px 0; position:relative; z-index:20; }
+.quick-tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; border-radius:12px; padding:9px 6px; cursor:pointer; position:relative; overflow:hidden; transition:all 0.2s; background:rgba(255,40,40,0.04); border:1px solid rgba(255,60,120,0.15); }
+.quick-tab::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(255,60,120,0.5), transparent); }
+.quick-tab#qtHistory { background:rgba(0,180,166,0.04); border-color:rgba(0,200,255,0.15); }
+.quick-tab#qtHistory::before { background:linear-gradient(90deg, transparent, rgba(0,200,255,0.5), transparent); }
+.quick-tab-label { font-size:9px; font-weight:700; letter-spacing:0.06em; color:rgba(255,100,130,0.75); }
+.quick-tab#qtHistory .quick-tab-label { color:rgba(0,200,255,0.75); }
+.quick-tab .qt-count { font-size:11px; font-weight:900; color:#ff4480; }
+.quick-tab#qtHistory .qt-count { color:#00c8ff; }
+.quick-tab.active { background:rgba(255,60,120,0.12); border-color:rgba(255,60,120,0.4); box-shadow:0 0 14px rgba(255,60,120,0.12); }
+.quick-tab#qtHistory.active { background:rgba(0,200,255,0.1); border-color:rgba(0,200,255,0.4); box-shadow:0 0 14px rgba(0,200,255,0.12); }
+
+/* Scanline separador animado */
+.mix-scanline { height:1px; margin:12px 16px 10px; background:linear-gradient(90deg, transparent, rgba(245,166,35,0.4), rgba(138,43,226,0.3), transparent); background-size:200% 100%; animation:mixScanMove 3s linear infinite; position:relative; z-index:1; }
+@keyframes mixScanMove { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
 
 /* ── PRODUCT BADGE ── */
 .prod-badges { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:4px; }
@@ -1009,15 +1026,21 @@ body.light-mode .cat-tab.active { background:var(--primary); color:#fff; }
     <div class="upcoming-grid" id="upcomingGrid"></div>
   </div>
 
-  <!-- SEARCH + QUICK TABS -->
-  <div class="search-wrap" id="searchWrap">
-    <span class="search-icon">🔍</span>
-    <input class="search-input" id="searchInput" type="text" placeholder="Buscar productos...">
-    <button class="search-clear" id="searchClear">✕</button>
-  </div>
-  <div class="quick-tabs" id="quickTabs">
-    <button class="quick-tab" id="qtFavs">❤️ Favoritos <span class="qt-count" id="favCount">0</span></button>
-    <button class="quick-tab" id="qtHistory">🕐 Mis pedidos <span class="qt-count" id="histCount">0</span></button>
+  <!-- SEARCH + QUICK TABS — MIX M1+M2 PREMIUM -->
+  <div class="mix-search-section">
+    <div class="mix-glow"></div>
+    <div class="search-wrap" id="searchWrap">
+      <div class="mix-search-bar">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="searchInput" type="text" placeholder="Buscar productos...">
+        <button class="search-clear" id="searchClear">✕</button>
+      </div>
+    </div>
+    <div class="quick-tabs" id="quickTabs">
+      <button class="quick-tab" id="qtFavs"><span style="font-size:18px">❤️</span><span class="quick-tab-label">FAVORITOS</span><span class="qt-count" id="favCount">0</span></button>
+      <button class="quick-tab" id="qtHistory"><span style="font-size:18px">🕐</span><span class="quick-tab-label">MIS PEDIDOS</span><span class="qt-count" id="histCount">0</span></button>
+    </div>
+    <div class="mix-scanline"></div>
   </div>
 
   <!-- CATEGORY TABS -->
