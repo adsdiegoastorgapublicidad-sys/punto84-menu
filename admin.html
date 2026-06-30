@@ -591,6 +591,67 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
           </div>
         </div>
 
+        <!-- ESTILO VISUAL DE CARDS DE PRODUCTO -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">💎 Estilo Visual de las Cards</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">💎</span><div>Elige el efecto visual que tendrán las cards de producto en el menú del cliente. Cada estilo tiene su propia identidad de color y animación.</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="cardVisualGrid">
+
+              <div class="card-visual-opt" data-cv="none" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                <div style="background:#0d0d0d;border-radius:10px;height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:8px">
+                  <div style="font-size:11px;color:var(--text-mute)">Sin efecto extra</div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">Clásico</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Diseño actual estándar</div>
+              </div>
+
+              <div class="card-visual-opt" data-cv="b1" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                <div style="background:#050008;border:1px solid rgba(168,85,247,0.3);border-radius:10px;height:80px;position:relative;overflow:hidden;margin-bottom:8px">
+                  <div style="position:absolute;top:-20px;left:-15px;width:70px;height:70px;background:radial-gradient(circle,rgba(168,85,247,0.3),transparent 70%)"></div>
+                  <div style="position:absolute;bottom:6px;left:8px;font-size:7px;font-weight:800;letter-spacing:0.15em;color:#a855f7">★ EDICIÓN ESPECIAL</div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">B1 — Cinematic Violeta</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Scanlines + partículas</div>
+              </div>
+
+              <div class="card-visual-opt" data-cv="b2" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                <div style="position:relative;height:80px;margin-bottom:8px">
+                  <div style="position:absolute;inset:0;background:#000;transform:translate(5px,5px);border-radius:8px"></div>
+                  <div style="position:relative;background:#0d0d0d;border:2px solid #f5a623;border-radius:8px;height:100%;display:flex;align-items:center;justify-content:center">
+                    <div style="background:#f5a623;color:#0a0500;font-size:10px;font-weight:900;padding:4px 10px;border-radius:6px">$9.500</div>
+                  </div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">B2 — Brutal Block 3D</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Sombra dura + bloque precio</div>
+              </div>
+
+              <div class="card-visual-opt" data-cv="b3" style="border:2px solid var(--bg-4);border-radius:12px;padding:10px;cursor:pointer">
+                <div style="border-radius:10px;padding:1.5px;background:linear-gradient(90deg,#ff0080,#7928ca,#0070f3,#00dfd8);margin-bottom:8px">
+                  <div style="background:#050505;border-radius:9px;height:77px;display:flex;align-items:center;justify-content:center">
+                    <div style="font-size:11px;color:var(--text-mute)">Holográfico RGB</div>
+                  </div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--text)">B3 — Holográfico RGB</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Borde cromático animado</div>
+              </div>
+
+              <div class="card-visual-opt" data-cv="b4" style="border:2px solid var(--primary);border-radius:12px;padding:10px;cursor:pointer;background:rgba(0,180,166,0.06);grid-column:1/3">
+                <div style="background:#0a0500;border:1.5px solid rgba(255,80,0,0.3);border-radius:10px;height:80px;position:relative;overflow:hidden;margin-bottom:8px;display:flex;align-items:center">
+                  <div style="position:absolute;inset:-15px;background:radial-gradient(ellipse at 50% 100%,rgba(255,68,0,0.3),transparent 60%)"></div>
+                  <div style="position:relative;display:flex;align-items:center;gap:8px;padding:0 14px;width:100%">
+                    <div style="background:linear-gradient(135deg,#ff4400,#ff8800);color:#fff;font-size:9px;font-weight:900;padding:3px 9px;border-radius:20px;box-shadow:0 0 14px rgba(255,68,0,0.5)">🔥 HOT</div>
+                    <div style="flex:1;height:3px;background:linear-gradient(90deg,#ff4400,#f5a623,#ff4400);border-radius:3px;margin-left:auto;width:60px"></div>
+                  </div>
+                </div>
+                <div style="text-align:center;font-size:11px;font-weight:700;color:var(--primary)">⭐ B4 — Fuego Total (Recomendado)</div>
+                <div style="text-align:center;font-size:9px;color:var(--text-mute)">Glow masivo + barra ardiente — máximo impacto</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- CATEGORIES -->
@@ -2289,13 +2350,14 @@ const FONTS = [
   {name:'Montserrat', label:'Montserrat', sample:'Punto84'},
   {name:'Poppins', label:'Poppins', sample:'Punto84'},
 ];
-let selectedFont = 'Bebas Neue', selectedMode = 'dark', selectedCardStyle = 'horizontal', selectedTitleStyle = 'mix';
+let selectedFont = 'Bebas Neue', selectedMode = 'dark', selectedCardStyle = 'horizontal', selectedTitleStyle = 'mix', selectedCardVisual = 'b4';
 
 function loadDesignForm() {
   selectedFont = data.design?.font || 'Bebas Neue';
   selectedMode = data.design?.mode || 'dark';
   selectedCardStyle = data.design?.cardStyle || 'horizontal';
   selectedTitleStyle = data.design?.titleStyle || 'mix';
+  selectedCardVisual = data.design?.cardVisual || 'b4';
 
   // Font grid
   const fontGrid = document.getElementById('fontGrid');
@@ -2330,6 +2392,8 @@ function loadDesignForm() {
   selectCardStyle(selectedCardStyle);
   // Title style
   selectTitleStyle(selectedTitleStyle);
+  // Card visual style
+  selectCardVisual(selectedCardVisual);
 }
 
 function selectMode(mode) {
@@ -2359,6 +2423,18 @@ document.querySelectorAll('.title-style-opt').forEach(el => {
   el.addEventListener('click', () => selectTitleStyle(el.dataset.style));
 });
 
+function selectCardVisual(style) {
+  selectedCardVisual = style;
+  document.querySelectorAll('.card-visual-opt').forEach(el => {
+    const isActive = el.dataset.cv === style;
+    el.style.border = isActive ? '2px solid var(--primary)' : '2px solid var(--bg-4)';
+    el.style.background = isActive ? 'rgba(0,180,166,0.08)' : '';
+  });
+}
+document.querySelectorAll('.card-visual-opt').forEach(el => {
+  el.addEventListener('click', () => selectCardVisual(el.dataset.cv));
+});
+
 // Override btnSaveDesign para incluir font, mode, cardStyle y titleStyle
 const _oldSaveDesign = document.getElementById('btnSaveDesign');
 if(_oldSaveDesign) {
@@ -2370,6 +2446,7 @@ if(_oldSaveDesign) {
       mode: selectedMode,
       cardStyle: selectedCardStyle,
       titleStyle: selectedTitleStyle,
+      cardVisual: selectedCardVisual,
     };
     if(await saveData('design', designData)) { data.design = designData; toast('✓ Diseño guardado'); }
   };
