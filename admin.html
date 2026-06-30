@@ -3037,7 +3037,10 @@ function exportPDF() {
     card(M, y, CW, 9, D4);
     accentLeft(M, y, 9, col);
     doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...col);
-    doc.text((icon+' '+text).trim().toUpperCase(), M+6, y+5.8);
+    // No pasar emoji por doc.text/toUpperCase: jsPDF con fuentes estándar (helvetica)
+    // no soporta caracteres fuera de WinAnsi y los corrompe. Se omite el ícono aquí;
+    // el color + barra lateral ya dan la identificación visual de la sección.
+    doc.text(text.trim().toUpperCase(), M+6, y+5.8);
     return y+13;
   }
   function checkY(needed, curY) {
