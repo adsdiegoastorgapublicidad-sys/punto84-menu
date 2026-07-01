@@ -2590,105 +2590,94 @@ function openConfirmModal({ name, addr, notes }) {
     if(transferInfo) transferInfo.style.display = '';
   });
 
-  // El link de WhatsApp: se construye el href ANTES del click para que sea nativo
-  // (nunca bloqueado por iOS Safari, Android Chrome, etc.)
+  // ── BOTÓN ENVIAR WHATSAPP ──────────────────────────────
+  // location.href es el único método 100% compatible con
+  // iOS Safari, Android Chrome, Instagram IAB, TikTok IAB, Facebook IAB.
   const waPhone = (menuData.config.whatsapp || '+56938902407').replace(/[^0-9]/g,'');
   const waLink = document.getElementById('btnConfirmSend');
-  if(waLink) {
-    // Pre-construir el msg y setear el href ahora, antes de cualquier interacción
-    const buildWAMsg = () => {
-      const brandName = menuData.local.name || 'PUNTO84';
-      let m = '*📋 NUEVO PEDIDO — ' + brandName.toUpperCase() + '*\n';
-      m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-      m += '👤 *Cliente:* ' + name + '\n';
-      m += '📍 *Dirección:* ' + addr + '\n';
-      if(selectedZone) m += '🛵 *Zona:* ' + selectedZone.name + '\n';
-      m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-      m += '🛒 *DETALLE DEL PEDIDO:*\n\n';
-      cart.forEach(item => {
-        const lineTotal = item.price * item.qty;
-        m += '• ' + item.qty + 'x ' + item.name + '\n';
-        m += '   ' + formatPrice(item.price) + ' c/u → *' + formatPrice(lineTotal) + '*\n';
-        if(item.note && item.note.trim()) m += '   📝 _' + item.note.trim() + '_\n';
-        m += '\n';
-      });
-      m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-      m += 'Subtotal: ' + formatPrice(cartSubtotal()) + '\n';
-      if(selectedZone) {
-        m += 'Delivery (' + selectedZone.name + '): ' + formatPrice(selectedZone.price) + '\n';
-        m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-        m += '💰 *TOTAL: ' + formatPrice(cartTotal()) + '*\n';
-      } else {
-        m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-        m += '💰 *TOTAL: ' + formatPrice(cartSubtotal()) + '*\n';
-      }
-      if(notesVal) m += '━━━━━━━━━━━━━━━━━━━━━━━\n📝 *Notas:*\n' + notesVal + '\n';
-      m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-      const now = getSantiagoNow();
-      m += '⏰ Enviado: ' + now.toLocaleString('es-CL',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
-      m += '\n━━━━━━━━━━━━━━━━━━━━━━━\n';
-      if(selectedPayment === 'transfer') {
-        m += '🏦 *💳 PAGO: EL CLIENTE REALIZARÁ TRANSFERENCIA BANCARIA 💳*\n';
-        m += '*⚠️ VERIFICAR TRANSFERENCIA ANTES DE PREPARAR ⚠️*\n';
-      } else {
-        m += '💵 *PAGO: El cliente pagará en EFECTIVO*\n';
-      }
-      return m;
-    };
 
-    // Setear href inicial
-    waLink.href = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(buildWAMsg());
-
-    // Reconstruir href en cada cambio de pago/zona para que esté siempre actualizado
-    function refreshWAHref() {
-      if(waLink) waLink.href = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(buildWAMsg());
+  function buildWAUrl() {
+    const brandName = menuData.local.name || 'PUNTO84';
+    let m = '*📋 NUEVO PEDIDO — ' + brandName.toUpperCase() + '*\n';
+    m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
+    m += '👤 *Cliente:* ' + name + '\n';
+    m += '📍 *Dirección:* ' + addr + '\n';
+    if(selectedZone) m += '🛵 *Zona:* ' + selectedZone.name + '\n';
+    m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
+    m += '🛒 *DETALLE DEL PEDIDO:*\n\n';
+    cart.forEach(function(item) {
+      var lt = item.price * item.qty;
+      m += '• ' + item.qty + 'x ' + item.name + '\n';
+      m += '   ' + formatPrice(item.price) + ' c/u → *' + formatPrice(lt) + '*\n';
+      if(item.note && item.note.trim()) m += '   📝 _' + item.note.trim() + '_\n';
+      m += '\n';
+    });
+    m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
+    m += 'Subtotal: ' + formatPrice(cartSubtotal()) + '\n';
+    if(selectedZone) {
+      m += 'Delivery (' + selectedZone.name + '): ' + formatPrice(selectedZone.price) + '\n';
+      m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
+      m += '💰 *TOTAL: ' + formatPrice(cartTotal()) + '*\n';
+    } else {
+      m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
+      m += '💰 *TOTAL: ' + formatPrice(cartSubtotal()) + '*\n';
     }
-    const payOptCash = document.getElementById('payOptCash');
-    const payOptTransfer = document.getElementById('payOptTransfer');
-    if(payOptCash) payOptCash.addEventListener('click', () => setTimeout(refreshWAHref, 50));
-    if(payOptTransfer) payOptTransfer.addEventListener('click', () => setTimeout(refreshWAHref, 50));
+    if(notes && notes.trim()) m += '━━━━━━━━━━━━━━━━━━━━━━━\n📝 *Notas:*\n' + notes.trim() + '\n';
+    m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
+    var now = getSantiagoNow();
+    m += '⏰ Enviado: ' + now.toLocaleString('es-CL',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+    m += '\n━━━━━━━━━━━━━━━━━━━━━━━\n';
+    if(selectedPayment === 'transfer') {
+      m += '🏦 *💳 PAGO: TRANSFERENCIA BANCARIA 💳*\n*⚠️ VERIFICAR ANTES DE PREPARAR ⚠️*\n';
+    } else {
+      m += '💵 *PAGO: EFECTIVO*\n';
+    }
+    return 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(m);
+  }
 
-    waLink.addEventListener('click', (e) => {
-      // Reconstruir href en el momento exacto del click — captura estado actual de pago/zona
-      const finalUrl = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(buildWAMsg());
-      waLink.href = finalUrl;
+  if(waLink) {
+    waLink.href = buildWAUrl();
 
-      // Guardar snapshot ANTES de limpiar carrito
-      const cartSnapshot = [...cart];
-      const totalSnapshot = cartTotal();
+    var _pC = document.getElementById('payOptCash');
+    var _pT = document.getElementById('payOptTransfer');
+    if(_pC) _pC.addEventListener('click', function(){ setTimeout(function(){ waLink.href = buildWAUrl(); }, 80); });
+    if(_pT) _pT.addEventListener('click', function(){ setTimeout(function(){ waLink.href = buildWAUrl(); }, 80); });
 
-      // Limpiar UI (después del click — el link ya navegó)
-      setTimeout(() => {
-        cart = [];
-        saveCart();
-        updateCartUI();
+    waLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      var finalUrl = buildWAUrl();
+      var cartSnap = cart.slice();
+      var totalSnap = cartTotal();
+
+      setTimeout(function() {
+        cart = []; saveCart(); updateCartUI();
         document.getElementById('cartModal').classList.remove('active');
         document.getElementById('confirmModal').classList.remove('active');
-        saveToHistory(cartSnapshot, totalSnapshot, selectedPayment);
-        launchConfetti();
-        haptic('confirm');
-      }, 300);
+        saveToHistory(cartSnap, totalSnap, selectedPayment);
+        launchConfetti(); haptic('confirm');
+      }, 200);
 
-      // Guardar en Firebase en background
-      const orderData = {
-        customer: { name, address: addr, zone: selectedZone ? selectedZone.name : 'Sin zona' },
-        items: cartSnapshot.map(i => ({ name:i.name, qty:i.qty, price:i.price, note:i.note||'' })),
+      push(ref(db, 'menu/orders'), {
+        customer: { name: name, address: addr, zone: selectedZone ? selectedZone.name : 'Sin zona' },
+        items: cartSnap.map(function(i){ return { name:i.name, qty:i.qty, price:i.price, note:i.note||'' }; }),
         subtotal: cartSubtotal(),
         delivery: selectedZone ? { zone:selectedZone.name, price:selectedZone.price } : null,
-        total: totalSnapshot,
-        notes: notesVal || '',
+        total: totalSnap,
+        notes: notes || '',
         status: 'pending',
         timestamp: Date.now(),
         date: getSantiagoNow().toISOString().split('T')[0],
         time: getSantiagoNow().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}),
-        ts: Date.now(),
-      };
-      push(ref(db, 'menu/orders'), orderData).catch(e => console.error('Order save:', e));
+        ts: Date.now()
+      }).catch(function(e){ console.error('Order save:', e); });
+
+      window.location.href = finalUrl;
     });
   }
 
   document.getElementById('confirmModal').classList.add('active');
 }
+
 
 function copyText(text, btn) {
   // Fallback universal — funciona en iOS/Android sin depender de clipboard API
