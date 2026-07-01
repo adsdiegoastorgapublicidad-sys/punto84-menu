@@ -2647,24 +2647,10 @@ async function sendOrder({ name, addr, notes }) {
   const phone = (menuData.config.whatsapp || '+56938902407').replace(/[^0-9]/g,'');
   const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
 
-  // Save order to Firebase
-  try {
-    const orderData = {
-      customer: { name, address: addr, zone: selectedZone ? selectedZone.name : 'Sin zona' },
-      items: cart.map(i => ({ name:i.name, qty:i.qty, price:i.price, note:i.note||'' })),
-      subtotal: cartSubtotal(),
-      delivery: selectedZone ? { zone:selectedZone.name, price:selectedZone.price } : null,
-      total: cartTotal(),
-      notes: notes || '',
-      status: 'pending',
-      timestamp: Date.now(),
-      date: getSantiagoNow().toISOString().split('T')[0],
-      time: getSantiagoNow().toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'}),
-    };
-    await push(ref(db, 'menu/orders'), orderData);
-  } catch(e) { console.error('Order save error:', e); }
+  // Abrir WhatsApp PRIMERO — directo sin await para que el browser no lo bloquee
+  window.open(url, '_blank');
 
-  // Clear cart after sending
+  // Clear cart y UI inmediatamente
   const cartSnapshot = [...cart];
   const totalSnapshot = cartTotal();
   cart = [];
@@ -2672,12 +2658,27 @@ async function sendOrder({ name, addr, notes }) {
   updateCartUI();
   document.getElementById('cartModal').classList.remove('active');
   document.getElementById('confirmModal').classList.remove('active');
-  // Guardar en historial
   saveToHistory(cartSnapshot, totalSnapshot, selectedPayment);
-  window.open(url, '_blank');
-  // Celebración
   launchConfetti();
   haptic('confirm');
+
+  // Save order to Firebase EN BACKGROUND (no bloquea ni pospone el open)
+  try {
+    const orderData = {
+      customer: { name, address: addr, zone: selectedZone ? selectedZone.name : 'Sin zona' },
+      items: cartSnapshot.map(i => ({ name:i.name, qty:i.qty, price:i.price, note:i.note||'' })),
+      subtotal: cartSubtotal(),
+      delivery: selectedZone ? { zone:selectedZone.name, price:selectedZone.price } : null,
+      total: totalSnapshot,
+      notes: notes || '',
+      status: 'pending',
+      timestamp: Date.now(),
+      date: getSantiagoNow().toISOString().split('T')[0],
+      time: getSantiagoNow().toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'}),
+      ts: Date.now(),
+    };
+    push(ref(db, 'menu/orders'), orderData).catch(e => console.error('Order save error:', e));
+  } catch(e) { console.error('Order save error:', e); }
 }
 
 // CONFIRM MODAL
