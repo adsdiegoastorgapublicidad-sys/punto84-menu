@@ -664,18 +664,6 @@ body::before {
 @keyframes ingPop { from{transform-origin:center;transform:scale(0) rotate(-20deg);opacity:0} to{transform-origin:center;transform:scale(1) rotate(0deg);opacity:1} }
 .ing-animate { animation: ingPop 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
 /* ── INSTAGRAM IN-APP BROWSER BANNER ── */
-.iab-banner { display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.92); backdrop-filter:blur(8px); flex-direction:column; align-items:center; justify-content:center; padding:24px; }
-.iab-banner.show { display:flex; }
-.iab-box { background:#111; border:1px solid #222; border-radius:20px; padding:28px 24px; max-width:340px; width:100%; text-align:center; }
-.iab-icon { font-size:48px; margin-bottom:16px; }
-.iab-title { font-family:var(--font-title); font-size:22px; letter-spacing:0.04em; color:#fff; margin-bottom:8px; }
-.iab-desc { font-size:13px; color:var(--text-dim); line-height:1.6; margin-bottom:20px; }
-.iab-step { display:flex; align-items:center; gap:12px; background:var(--bg-3); border:1px solid var(--bg-4); border-radius:12px; padding:12px 14px; margin-bottom:8px; text-align:left; }
-.iab-step-num { width:26px; height:26px; border-radius:50%; background:var(--primary); color:#012e29; font-size:12px; font-weight:900; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.iab-step-txt { font-size:12px; color:var(--text); line-height:1.4; }
-.iab-step-txt b { color:var(--primary); }
-.iab-copy-btn { width:100%; background:var(--primary); color:#012e29; border:none; border-radius:12px; padding:14px; font-family:var(--font-title); font-size:16px; letter-spacing:0.06em; cursor:pointer; margin-top:12px; display:flex; align-items:center; justify-content:center; gap:8px; }
-.iab-skip { margin-top:12px; font-size:11px; color:var(--text-mute); cursor:pointer; text-decoration:underline; }
 .promo-select-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:4000; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.25s; backdrop-filter:blur(6px); }
 .promo-select-overlay.active { opacity:1; pointer-events:all; }
 .promo-select-box { background:var(--bg-2); border:1px solid var(--bg-4); border-radius:20px; overflow:hidden; width:100%; max-width:380px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(30px); transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
@@ -1251,31 +1239,6 @@ body.light-mode .search-input::placeholder { color:rgba(0,0,0,0.25); }
 </footer>
 
 <!-- CART FAB -->
-  <!-- INSTAGRAM IN-APP BROWSER BANNER -->
-  <div class="iab-banner" id="iabBanner">
-    <div class="iab-box">
-      <div class="iab-icon">📲</div>
-      <div class="iab-title">ABRE EN TU BROWSER</div>
-      <div class="iab-desc">Estás viendo esto desde Instagram. Para hacer tu pedido por WhatsApp necesitas abrirlo en Safari o Chrome.</div>
-      <div class="iab-step">
-        <div class="iab-step-num">1</div>
-        <div class="iab-step-txt">Toca los <b>3 puntos ···</b> o el ícono de menú arriba a la derecha</div>
-      </div>
-      <div class="iab-step">
-        <div class="iab-step-num">2</div>
-        <div class="iab-step-txt">Selecciona <b>"Abrir en Safari"</b> o <b>"Abrir en Chrome"</b></div>
-      </div>
-      <div class="iab-step">
-        <div class="iab-step-num">3</div>
-        <div class="iab-step-txt">¡Listo! Podrás hacer tu pedido sin problemas 🙌</div>
-      </div>
-      <button class="iab-copy-btn" id="iabCopyBtn">
-        <span>📋</span> COPIAR LINK DEL MENÚ
-      </button>
-      <div class="iab-skip" id="iabSkip">Continuar de todas formas</div>
-    </div>
-  </div>
-
   <!-- MODAL SELECCIÓN PROMO B -->
   <div class="promo-select-overlay" id="promoSelectOverlay">
     <div class="promo-select-box">
@@ -4209,79 +4172,6 @@ updateSoundBtn();
 // ══════════════════════════════════════════════
 // ══════════════════════════════════════
 // INSTAGRAM IN-APP BROWSER DETECTION + FIX
-// ══════════════════════════════════════
-(function detectIAB() {
-  const ua = navigator.userAgent || '';
-  // Instagram IAB se identifica por 'Instagram' en el UA
-  // También TikTok, Facebook tienen sus propios IAB
-  const isInstagramIAB = /Instagram/i.test(ua);
-  const isFacebookIAB = /FBAN|FBAV|FB_IAB|FB4A|FBIOS/i.test(ua);
-  const isTikTokIAB = /musical_ly|TikTok/i.test(ua);
-  const isIAB = isInstagramIAB || isFacebookIAB || isTikTokIAB;
-
-  if(!isIAB) return;
-
-  // Mostrar banner de aviso al cargar
-  const banner = document.getElementById('iabBanner');
-  if(banner) {
-    // Solo mostrarlo si el usuario no lo ignoró antes en esta sesión
-    if(!sessionStorage.getItem('p84_iab_skip')) {
-      banner.classList.add('show');
-    }
-  }
-
-  // Botón copiar link
-  const copyBtn = document.getElementById('iabCopyBtn');
-  if(copyBtn) {
-    copyBtn.addEventListener('click', () => {
-      const url = window.location.href;
-      // Intentar clipboard API
-      if(navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
-          copyBtn.innerHTML = '<span>✅</span> ¡LINK COPIADO!';
-          copyBtn.style.background = '#22aa55';
-          setTimeout(() => {
-            copyBtn.innerHTML = '<span>📋</span> COPIAR LINK DEL MENÚ';
-            copyBtn.style.background = '';
-          }, 2500);
-        }).catch(() => fallbackCopy(url, copyBtn));
-      } else {
-        fallbackCopy(url, copyBtn);
-      }
-    });
-  }
-
-  function fallbackCopy(text, btn) {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
-    document.body.appendChild(ta);
-    ta.focus(); ta.select();
-    try {
-      document.execCommand('copy');
-      btn.innerHTML = '<span>✅</span> ¡LINK COPIADO!';
-      btn.style.background = '#22aa55';
-      setTimeout(() => {
-        btn.innerHTML = '<span>📋</span> COPIAR LINK DEL MENÚ';
-        btn.style.background = '';
-      }, 2500);
-    } catch(e) {}
-    document.body.removeChild(ta);
-  }
-
-  // Botón ignorar
-  const skipBtn = document.getElementById('iabSkip');
-  if(skipBtn) {
-    skipBtn.addEventListener('click', () => {
-      sessionStorage.setItem('p84_iab_skip', '1');
-      banner.classList.remove('show');
-    });
-  }
-
-  // (El botón de envío WhatsApp usa location.href directamente — no necesita patch IAB)
-
-
-})();
 // ══════════════════════════════════════
 let _promoSelectProdId = null;
 let _promoSelectedLinkedProd = null;
