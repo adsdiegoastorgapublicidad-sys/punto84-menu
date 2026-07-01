@@ -681,6 +681,7 @@ body::before {
 .promo-opt-img { width:100%; aspect-ratio:1; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:28px; color:var(--text-mute); }
 .promo-opt-check { position:absolute; top:7px; right:7px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,0.5); border:1.5px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:10px; color:transparent; z-index:2; transition:all 0.15s; }
 .promo-opt.selected .promo-opt-check { background:var(--primary); border-color:var(--primary); color:#fff; }
+.promo-opt-counter { position:absolute; top:7px; left:7px; width:22px; height:22px; border-radius:50%; background:var(--primary); color:#012e29; font-size:12px; font-weight:900; display:none; align-items:center; justify-content:center; z-index:3; box-shadow:0 0 8px rgba(0,180,166,0.5); }
 .promo-opt-info { padding:8px 9px 9px; }
 .promo-opt-name { font-size:11px; font-weight:700; color:var(--text); line-height:1.3; }
 .promo-opt.selected .promo-opt-name { color:var(--primary); }
@@ -2209,11 +2210,21 @@ function addToCart(prodId) {
   triggerComboSuggestion(p);
 }
 
-function removeFromCart(prodId) {
-  cart = cart.filter(c => c.id !== prodId);
+function removeFromCart(prodId, linkedSelection) {
+  if(linkedSelection !== undefined) {
+    // Eliminar solo el ítem específico con ese linkedSelection
+    cart = cart.filter(c => !(c.id === prodId && c.linkedSelection === linkedSelection));
+  } else {
+    cart = cart.filter(c => c.id !== prodId || c.linkedSelection !== undefined);
+    // Si no tiene linkedSelection, eliminar el que no tiene
+    if(cart.some(c => c.id === prodId && !c.linkedSelection)) {
+      cart = cart.filter(c => !(c.id === prodId && !c.linkedSelection));
+    }
+  }
   saveCart();
   updateCartUI();
   refreshProductButtons();
+  // Solo cerrar si el carrito queda completamente vacío
   if(cart.length === 0) document.getElementById('cartModal').classList.remove('active');
 }
 
@@ -2227,18 +2238,34 @@ function refreshProductButtons() {
   });
 }
 
-function changeQty(prodId, delta) {
-  const item = cart.find(c => c.id === prodId);
-  if(!item) return;
+function changeQty(prodId, delta, linkedSelection) {
+  // Buscar el ítem específico — con o sin linkedSelection
+  const item = linkedSelection !== undefined
+    ? cart.find(c => c.id === prodId && c.linkedSelection === linkedSelection)
+    : cart.find(c => c.id === prodId && !c.linkedSelection);
+  if(!item) {
+    // Fallback: buscar cualquiera con ese id
+    const anyItem = cart.find(c => c.id === prodId);
+    if(!anyItem) return;
+    anyItem.qty += delta;
+    if(anyItem.qty <= 0) { removeFromCart(prodId, anyItem.linkedSelection); return; }
+    saveCart(); updateCartUI(); return;
+  }
   item.qty += delta;
-  if(item.qty <= 0) { removeFromCart(prodId); return; }
+  if(item.qty <= 0) { removeFromCart(prodId, linkedSelection); return; }
   saveCart();
   updateCartUI();
 }
 
-function updateNote(prodId, note) {
-  const item = cart.find(c => c.id === prodId);
-  if(!item) return;
+function updateNote(prodId, note, linkedSelection) {
+  const item = linkedSelection !== undefined
+    ? cart.find(c => c.id === prodId && c.linkedSelection === linkedSelection)
+    : cart.find(c => c.id === prodId && !c.linkedSelection);
+  if(!item) {
+    const anyItem = cart.find(c => c.id === prodId);
+    if(anyItem) { anyItem.note = note; saveCart(); }
+    return;
+  }
   item.note = note;
   saveCart();
 }
@@ -2290,23 +2317,24 @@ function renderCart() {
 
   // Items
   let html = '';
-  cart.forEach(item => {
+  cart.forEach((item, idx) => {
     const img = processDriveUrl(item.img);
+    const lsAttr = item.linkedSelection !== undefined ? ' data-ls="'+item.linkedSelection+'"' : '';
     const extrasHTML = (item.agregados && item.agregados.length)
       ? '<div class="cart-item-extras"><span class="cart-item-extras-icon">✨</span>'+
         item.agregados.map(e=>'<span class="cart-item-extra-pill">+ '+e+'</span>').join('')+
         '</div>'
       : '';
-    html += '<div class="cart-item">'+
+    html += '<div class="cart-item" data-cart-idx="'+idx+'">'+
       '<div class="cart-item-img" '+(img?'style="background-image:url('+img+')"':'')+'>'+(img?'':'📷')+'</div>'+
       '<div class="cart-item-info">'+
         '<div class="cart-item-row"><div class="cart-item-name">'+item.name+'</div><div class="cart-item-price">'+formatPrice(item.price * item.qty)+'</div></div>'+
         extrasHTML+
-        '<input class="cart-item-note-input" type="text" placeholder="Notas: sin cebolla, extra salsa..." value="'+(item.note||'').replace(/"/g,'&quot;')+'" data-note="'+item.id+'">'+
+        '<input class="cart-item-note-input" type="text" placeholder="Notas: sin cebolla, extra salsa..." value="'+(item.note||'').replace(/"/g,'&quot;')+'" data-note="'+item.id+'"'+lsAttr+'>'+
         '<div class="qty-controls">'+
-          '<button class="qty-btn '+(item.qty===1?'danger':'')+'" data-minus="'+item.id+'">'+(item.qty===1?'🗑':'−')+'</button>'+
+          '<button class="qty-btn '+(item.qty===1?'danger':'')+'" data-minus="'+item.id+'"'+lsAttr+'>'+(item.qty===1?'🗑':'−')+'</button>'+
           '<span class="qty-num">'+item.qty+'</span>'+
-          '<button class="qty-btn" data-plus="'+item.id+'">+</button>'+
+          '<button class="qty-btn" data-plus="'+item.id+'"'+lsAttr+'>+</button>'+
         '</div>'+
       '</div>'+
     '</div>';
@@ -2361,10 +2389,10 @@ function renderCart() {
 
   // Totals
   html += '<div class="totals">';
-  html += '<div class="total-row '+(menuData.zones.length?'divider':'grand')+'"><span class="label">Subtotal</span><span>'+formatPrice(cartSubtotal())+'</span></div>';
+  html += '<div class="total-row '+(menuData.zones.length?'divider':'grand')+'"><span class="label">Subtotal</span><span id="cartSubtotalVal">'+formatPrice(cartSubtotal())+'</span></div>';
   if(menuData.zones.length) {
-    html += '<div class="total-row divider"><span class="label">Delivery</span><span>'+(selectedZone?formatPrice(selectedZone.price):'Selecciona zona')+'</span></div>';
-    html += '<div class="total-row grand"><span class="label">TOTAL</span><span>'+formatPrice(cartTotal())+'</span></div>';
+    html += '<div class="total-row divider" id="cartDeliveryRow" style="'+(selectedZone?'':'display:none')+'"><span class="label">Delivery</span><span id="cartDeliveryVal">'+(selectedZone?formatPrice(selectedZone.price):'')+'</span></div>';
+    html += '<div class="total-row grand"><span class="label">TOTAL</span><span id="cartTotalVal">'+formatPrice(cartTotal())+'</span></div>';
   }
   html += '</div>';
 
@@ -2386,18 +2414,33 @@ function renderCart() {
     renderCart();
   }));
 
-  content.querySelectorAll('[data-plus]').forEach(b => b.addEventListener('click', () => { changeQty(b.dataset.plus, 1); renderCart(); }));
-  content.querySelectorAll('[data-minus]').forEach(b => b.addEventListener('click', () => { changeQty(b.dataset.minus, -1); renderCart(); }));
-  content.querySelectorAll('[data-note]').forEach(inp => inp.addEventListener('input', () => updateNote(inp.dataset.note, inp.value)));
+  content.querySelectorAll('[data-plus]').forEach(b => b.addEventListener('click', () => { changeQty(b.dataset.plus, 1, b.dataset.ls); renderCart(); }));
+  content.querySelectorAll('[data-minus]').forEach(b => b.addEventListener('click', () => { changeQty(b.dataset.minus, -1, b.dataset.ls); renderCart(); }));
+  content.querySelectorAll('[data-note]').forEach(inp => inp.addEventListener('input', () => updateNote(inp.dataset.note, inp.value, inp.dataset.ls)));
 
   const zoneSel = document.getElementById('custZone');
   if(zoneSel) zoneSel.addEventListener('change', () => {
     const idx = zoneSel.value;
     selectedZone = idx === '' ? null : menuData.zones[+idx];
-    renderCart();
+    // Solo actualizar el resumen de precios — NO re-renderizar el carrito completo
+    // para no borrar los inputs que el cliente ya rellenó
+    updateCartTotalsUI();
   });
 
   document.getElementById('btnSend').addEventListener('click', validateAndOpenConfirm);
+}
+
+function updateCartTotalsUI() {
+  // Actualiza solo los valores de subtotal/delivery/total en el carrito
+  // sin tocar los inputs de nombre, dirección, zona o notas
+  const subtotalEl = document.getElementById('cartSubtotalVal');
+  const deliveryRow = document.getElementById('cartDeliveryRow');
+  const deliveryVal = document.getElementById('cartDeliveryVal');
+  const totalEl = document.getElementById('cartTotalVal');
+  if(subtotalEl) subtotalEl.textContent = formatPrice(cartSubtotal());
+  if(deliveryRow) deliveryRow.style.display = selectedZone ? '' : 'none';
+  if(deliveryVal && selectedZone) deliveryVal.textContent = formatPrice(selectedZone.price);
+  if(totalEl) totalEl.textContent = formatPrice(cartTotal());
 }
 
 function validateAndOpenConfirm() {
@@ -2567,6 +2610,7 @@ function openConfirmModal({ name, addr, notes }) {
       var lt = item.price * item.qty;
       m += '• ' + item.qty + 'x ' + item.name + '\n';
       m += '   ' + formatPrice(item.price) + ' c/u → *' + formatPrice(lt) + '*\n';
+      if(item.agregados && item.agregados.length) m += '   ➕ _Extras: ' + item.agregados.join(', ') + '_\n';
       if(item.note && item.note.trim()) m += '   📝 _' + item.note.trim() + '_\n';
       m += '\n';
     });
@@ -4227,23 +4271,48 @@ function openPromoSelectModal(promoProdId) {
   const grid = document.getElementById('promoSelectGrid');
   grid.innerHTML = '';
 
+  // Contador por producto — permite seleccionar la misma hamburguesa varias veces
+  const itemCounts = {}; // { prodId: count }
+  function totalSelected() { return Object.values(itemCounts).reduce((s,n)=>s+n,0); }
+
   function updatePreviewAndBtn() {
     const previewEl = document.getElementById('promoSelectedText');
     const btnEl = document.getElementById('promoConfirmBtn');
-    if(selectedItems.length === 0) {
+    const total = totalSelected();
+    if(total === 0) {
       previewEl.innerHTML = 'Toca una opción para seleccionar';
       btnEl.disabled = true;
       btnEl.textContent = 'AGREGAR AL PEDIDO';
-    } else if(selectedItems.length < maxSel) {
-      previewEl.innerHTML = selectedItems.map(p=>'<b>'+p.name+'</b>').join(' + ')+
-        ' <span style="color:var(--text-mute)">· Faltan '+(maxSel-selectedItems.length)+'</span>';
-      btnEl.disabled = true;
-      btnEl.textContent = 'AGREGAR AL PEDIDO ('+selectedItems.length+'/'+maxSel+')';
     } else {
-      previewEl.innerHTML = selectedItems.map(p=>'<b>'+p.name+'</b>').join(' + ');
+      // Mostrar resumen: "Clásica x2 + Mexicana x1"
+      const parts = Object.entries(itemCounts)
+        .filter(([,n])=>n>0)
+        .map(([id,n])=>{
+          const prod = linkedProds.find(p=>p.id===id);
+          return '<b>'+(prod?prod.name:id)+'</b>'+(n>1?' x'+n:'');
+        });
+      previewEl.innerHTML = parts.join(' + ')+
+        ' <span style="color:var(--primary);font-size:10px;font-weight:700">('+total+' promo'+(total>1?'s':'')+' · '+formatPrice(promo.price * total)+')</span>';
       btnEl.disabled = false;
-      btnEl.textContent = '🛒 AGREGAR AL PEDIDO';
+      btnEl.textContent = '🛒 AGREGAR '+total+' AL PEDIDO — '+formatPrice(promo.price * total);
     }
+    // Actualizar contadores en el grid
+    grid.querySelectorAll('.promo-opt').forEach(div => {
+      const pid = div.dataset.linkedProdId;
+      const count = itemCounts[pid] || 0;
+      const counterEl = div.querySelector('.promo-opt-counter');
+      const checkEl = div.querySelector('.promo-opt-check');
+      if(count > 0) {
+        div.classList.add('selected');
+        if(counterEl) counterEl.textContent = count;
+        if(counterEl) counterEl.style.display = 'flex';
+        if(checkEl) checkEl.style.display = 'none';
+      } else {
+        div.classList.remove('selected');
+        if(counterEl) counterEl.style.display = 'none';
+        if(checkEl) checkEl.style.display = 'flex';
+      }
+    });
   }
 
   linkedProds.forEach(p => {
@@ -4253,41 +4322,41 @@ function openPromoSelectModal(promoProdId) {
     div.dataset.linkedProdId = p.id;
     div.innerHTML =
       '<div class="promo-opt-img" '+(img?'style="background-image:url('+img+');background-size:cover;background-position:center"':'')+'>'+(img?'':'🍕')+'</div>'+
-      '<div class="promo-opt-check">✓</div>'+
+      // Burbuja contador (número de veces seleccionado)
+      '<div class="promo-opt-counter" style="display:none;position:absolute;top:7px;left:7px;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#012e29;font-size:12px;font-weight:900;align-items:center;justify-content:center;z-index:3">1</div>'+
+      '<div class="promo-opt-check" style="position:absolute;top:7px;right:7px">✓</div>'+
       '<div class="promo-opt-info">'+
         '<div class="promo-opt-name">'+(p.name||'')+'</div>'+
-        '<div class="promo-opt-price">'+(p.description?p.description.slice(0,38):'Incluida en tu promo')+'</div>'+
+        '<div class="promo-opt-price">'+(p.description?p.description.slice(0,35):'Incluida en tu promo')+'</div>'+
       '</div>';
 
     div.addEventListener('click', () => {
-      const alreadySel = selectedItems.find(x => x.id===p.id);
-      if(alreadySel) {
-        // Deseleccionar
-        selectedItems = selectedItems.filter(x => x.id!==p.id);
-        div.classList.remove('selected');
-      } else {
-        if(selectedItems.length >= maxSel) {
-          // Si ya llegó al máximo, quitar el primero seleccionado (FIFO)
-          const removed = selectedItems.shift();
-          const removedEl = grid.querySelector('[data-linked-prod-id="'+removed.id+'"]');
-          if(removedEl) removedEl.classList.remove('selected');
-        }
-        selectedItems.push(p);
-        div.classList.add('selected');
-      }
+      // Cada toque suma 1. Toque largo o doble toque en selected resta 1
+      itemCounts[p.id] = (itemCounts[p.id] || 0) + 1;
       haptic('add');
-      updateInstruction();
       updatePreviewAndBtn();
     });
+
+    // Botón quitar (- ) al mantener presionado o con botón dedicado
+    div.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if(itemCounts[p.id] > 0) { itemCounts[p.id]--; if(itemCounts[p.id]===0) delete itemCounts[p.id]; }
+      haptic('add'); updatePreviewAndBtn();
+    });
+
     grid.appendChild(div);
   });
+
+  // Instrucción actualizada
+  document.getElementById('promoSelectInstruction').innerHTML =
+    'Toca para agregar · <span style="color:var(--primary)">toca varias veces</span> para pedir más de una'+(linkedCatName?' de '+linkedCatEmoji+' <b>'+linkedCatName+'</b>':'');
 
   updatePreviewAndBtn();
   document.getElementById('promoSelectOverlay').classList.add('active');
 
-  // Guardar referencia al estado para el botón confirmar
-  document.getElementById('promoConfirmBtn')._selectedItems = () => selectedItems;
-  document.getElementById('promoConfirmBtn')._maxSel = maxSel;
+  // Exponer estado al botón confirmar
+  document.getElementById('promoConfirmBtn')._getItemCounts = () => itemCounts;
+  document.getElementById('promoConfirmBtn')._linkedProds = linkedProds;
 
   return true;
 }
@@ -4309,27 +4378,35 @@ document.getElementById('promoConfirmBtn').addEventListener('click', () => {
   if(!promo) return;
 
   const btn = document.getElementById('promoConfirmBtn');
-  const selectedItems = btn._selectedItems ? btn._selectedItems() : [];
-  if(!selectedItems.length) return;
+  const itemCounts = btn._getItemCounts ? btn._getItemCounts() : {};
+  const linkedProds = btn._linkedProds || [];
+  const total = Object.values(itemCounts).reduce((s,n)=>s+n,0);
+  if(!total) return;
 
-  // Nombre compuesto con todas las selecciones
-  const selectionNames = selectedItems.map(p => p.name).join(' + ');
-  const selectionIds = selectedItems.map(p => p.id).join(',');
+  // Agregar cada hamburguesa como promo separada
+  Object.entries(itemCounts).forEach(([prodId, count]) => {
+    if(!count) return;
+    const selectedProd = linkedProds.find(p => p.id === prodId);
+    if(!selectedProd) return;
+    const cartName = promo.name + ' — ' + selectedProd.name;
+    const selectionKey = _promoSelectProdId + '_' + prodId;
+    const existing = cart.find(c => c.id === _promoSelectProdId && c.linkedSelection === selectionKey);
+    if(existing) {
+      existing.qty += count;
+    } else {
+      cart.push({
+        id: _promoSelectProdId,
+        name: cartName,
+        price: promo.price,
+        img: promo.img || '',
+        qty: count,
+        note: '',
+        linkedSelection: selectionKey,
+        linkedSelectionName: selectedProd.name,
+      });
+    }
+  });
 
-  const existing = cart.find(c => c.id===_promoSelectProdId && c.linkedSelection===selectionIds);
-  if(existing) {
-    existing.qty++;
-  } else {
-    cart.push({
-      id: _promoSelectProdId,
-      name: promo.name+' — '+selectionNames,
-      price: promo.price,
-      img: promo.img||'',
-      qty: 1, note: '',
-      linkedSelection: selectionIds,
-      linkedSelectionName: selectionNames,
-    });
-  }
   saveCart(); updateCartUI(); refreshProductButtons();
   haptic('add');
   if(typeof playPopSound==='function') playPopSound();
