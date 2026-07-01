@@ -1007,13 +1007,31 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <div class="field"><span class="field-label">Descripción</span><textarea class="textarea" id="prodDesc" placeholder="Masa artesanal, mozzarella, pepperoni..."></textarea></div>
       <div class="field"><span class="field-label">Precio ($)</span><input class="input" id="prodPrice" type="number" min="0" step="100" placeholder="9990"></div>
       <div class="field"><span class="field-label">URL de la foto (Google Drive)</span><input class="input" id="prodImg" type="url" placeholder="https://drive.google.com/..."><span class="field-hint">Opcional. Pega el link compartido de Google Drive.</span></div>
-      <div class="field">
-        <span class="field-label">Requiere selección de producto <span style="color:var(--text-mute);font-weight:400">(opcional)</span></span>
-        <select class="input" id="prodLinkedCat">
-          <option value="">Sin selección requerida</option>
-        </select>
-        <span class="field-hint">Si esta es una promo/combo, elige la categoría cuyos productos el cliente debe seleccionar al agregarla. Ej: Promo Burger → Hamburguesas.</span>
+
+      <!-- SELECTOR DE PROMO / COMBO -->
+      <div class="field" id="promoSelectorField">
+        <span class="field-label">Selección requerida al agregar <span style="color:var(--text-mute);font-weight:400">(opcional — para promos y combos)</span></span>
+        <div style="display:flex;gap:8px;margin-top:8px;margin-bottom:10px">
+          <button type="button" id="promoModeNone" class="btn btn-sm" style="flex:1;font-size:11px;padding:7px 10px">Sin selección</button>
+          <button type="button" id="promoModeCat" class="btn btn-sm" style="flex:1;font-size:11px;padding:7px 10px">Categoría completa</button>
+          <button type="button" id="promoModeProds" class="btn btn-sm" style="flex:1;font-size:11px;padding:7px 10px">Productos específicos</button>
+        </div>
+
+        <!-- Modo: Categoría completa -->
+        <div id="promoFieldCat" style="display:none">
+          <select class="input" id="prodLinkedCat">
+            <option value="">— Elige una categoría —</option>
+          </select>
+          <span class="field-hint">El cliente verá todos los productos de esa categoría para elegir. Ej: Promo Burger → toda la categoría Hamburguesas.</span>
+        </div>
+
+        <!-- Modo: Productos específicos -->
+        <div id="promoFieldProds" style="display:none">
+          <span class="field-hint" style="display:block;margin-bottom:8px">Marca exactamente qué productos puede elegir el cliente. Ideal para promos con items limitados.</span>
+          <div id="prodLinkedProdsGrid" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;border:1px solid var(--bg-4);border-radius:10px;padding:8px"></div>
+        </div>
       </div>
+
       <div class="field"><div style="display:flex;align-items:center;gap:12px"><div class="toggle" id="prodAvailToggle"></div><div><div style="font-weight:600">Producto disponible</div><div class="field-hint" style="margin-top:2px">Desactivar = aparece como agotado</div></div></div></div>
     </div>
     <div class="modal-footer">
@@ -1420,31 +1438,104 @@ async function deleteProduct(id) {
   toast('✓ Producto eliminado');
 }
 
+// Estado del modo de promo para el modal activo
+let _promoMode = 'none';
+let _selectedLinkedProds = [];
+
+function _setPromoMode(mode) {
+  _promoMode = mode;
+  document.getElementById('promoFieldCat').style.display = mode==='cat' ? '' : 'none';
+  document.getElementById('promoFieldProds').style.display = mode==='prods' ? '' : 'none';
+  ['None','Cat','Prods'].forEach(m => {
+    const btn = document.getElementById('promoMode'+m);
+    if(!btn) return;
+    btn.className = 'btn btn-sm'+(m.toLowerCase()===mode ? ' btn-primary' : ' btn-ghost');
+  });
+}
+
+function _renderLinkedProdsGrid() {
+  const prodsGrid = document.getElementById('prodLinkedProdsGrid');
+  if(!prodsGrid) return;
+  const currentId = editingProduct;
+  const allOther = data.products.filter(p => p.id !== currentId && p.available !== false);
+  prodsGrid.innerHTML = '';
+  if(!allOther.length) {
+    prodsGrid.innerHTML = '<div style="font-size:12px;color:var(--text-mute);padding:8px">No hay otros productos disponibles.</div>';
+    return;
+  }
+  data.categories.forEach(cat => {
+    const catProds = allOther.filter(p => p.catId === cat.id);
+    if(!catProds.length) return;
+    const catLabel = document.createElement('div');
+    catLabel.style.cssText = 'font-size:9px;font-weight:800;letter-spacing:0.1em;color:var(--text-mute);text-transform:uppercase;padding:6px 4px 6px;border-top:1px solid var(--bg-4);margin-top:4px';
+    catLabel.textContent = (cat.emoji||'')+' '+(cat.name||'');
+    prodsGrid.appendChild(catLabel);
+    catProds.forEach(p => {
+      const isSel = _selectedLinkedProds.includes(p.id);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;border:1.5px solid '+(isSel?'var(--primary)':'var(--bg-4)')+';background:'+(isSel?'rgba(0,180,166,0.08)':'var(--bg-3)')+';transition:all 0.15s;margin-bottom:4px';
+      const imgUrl = p.img ? processDriveUrl(p.img) : '';
+      row.innerHTML =
+        '<div style="width:34px;height:34px;border-radius:8px;background:var(--bg-4);'+(imgUrl?'background-image:url('+imgUrl+');background-size:cover;background-position:center':'font-size:18px;display:flex;align-items:center;justify-content:center')+';flex-shrink:0">'+(imgUrl?'':'🍕')+'</div>'+
+        '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">'+( p.name||'')+'</div><div style="font-size:10px;color:var(--text-mute)">$'+(p.price||0).toLocaleString('es-CL')+'</div></div>'+
+        '<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(isSel?'var(--primary)':'var(--bg-4)')+';background:'+(isSel?'var(--primary)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:11px;color:'+(isSel?'#012e29':'transparent')+';flex-shrink:0;transition:all 0.15s">✓</div>';
+      row.addEventListener('click', () => {
+        if(_selectedLinkedProds.includes(p.id)) {
+          _selectedLinkedProds = _selectedLinkedProds.filter(x => x!==p.id);
+        } else {
+          _selectedLinkedProds.push(p.id);
+        }
+        _renderLinkedProdsGrid();
+      });
+      prodsGrid.appendChild(row);
+    });
+  });
+}
+
 function openProductModal(id=null) {
   if(!data.categories.length) { alert('Primero crea al menos una categoría.'); return; }
   editingProduct = id;
+  _selectedLinkedProds = [];
   const modal = document.getElementById('modalProduct');
   const title = document.getElementById('modalProductTitle');
   const deleteBtn = document.getElementById('modalProductDelete');
-  // populate category select
+
+  // Populate category select
   const catSel = document.getElementById('prodCat');
   catSel.innerHTML = data.categories.map(c => '<option value="'+c.id+'">'+(c.emoji||'')+' '+(c.name||'')+'</option>').join('');
-  // populate linkedCat select
-  const linkedSel = document.getElementById('prodLinkedCat');
-  linkedSel.innerHTML = '<option value="">Sin selección requerida</option>'+
+
+  // Populate linkedCat select
+  const linkedCatSel = document.getElementById('prodLinkedCat');
+  if(linkedCatSel) linkedCatSel.innerHTML = '<option value="">— Elige una categoría —</option>'+
     data.categories.map(c => '<option value="'+c.id+'">'+(c.emoji||'')+' '+(c.name||'')+'</option>').join('');
+
+  // Hook mode buttons
+  document.getElementById('promoModeNone').onclick = () => _setPromoMode('none');
+  document.getElementById('promoModeCat').onclick  = () => _setPromoMode('cat');
+  document.getElementById('promoModeProds').onclick = () => { _setPromoMode('prods'); _renderLinkedProdsGrid(); };
+
   if(id) {
     const p = data.products.find(x => x.id===id);
     if(!p) return;
     title.textContent = '✏️ Editar Producto';
     catSel.value = p.catId || data.categories[0].id;
-    document.getElementById('prodName').value = p.name || '';
-    document.getElementById('prodDesc').value = p.description || '';
-    document.getElementById('prodPrice').value = p.price || '';
-    document.getElementById('prodImg').value = p.img || '';
-    linkedSel.value = p.linkedCatId || '';
-    document.getElementById('prodAvailToggle').classList.toggle('on', p.available !== false);
+    document.getElementById('prodName').value = p.name||'';
+    document.getElementById('prodDesc').value = p.description||'';
+    document.getElementById('prodPrice').value = p.price||'';
+    document.getElementById('prodImg').value = p.img||'';
+    document.getElementById('prodAvailToggle').classList.toggle('on', p.available!==false);
     deleteBtn.style.display = 'inline-flex';
+    // Restore promo mode
+    if(p.linkedProds && p.linkedProds.length) {
+      _selectedLinkedProds = [...p.linkedProds];
+      _setPromoMode('prods');
+      _renderLinkedProdsGrid();
+    } else if(p.linkedCatId) {
+      _setPromoMode('cat');
+      if(linkedCatSel) linkedCatSel.value = p.linkedCatId;
+    } else {
+      _setPromoMode('none');
+    }
   } else {
     title.textContent = '🍕 Nuevo Producto';
     catSel.value = data.categories[0].id;
@@ -1452,9 +1543,9 @@ function openProductModal(id=null) {
     document.getElementById('prodDesc').value = '';
     document.getElementById('prodPrice').value = '';
     document.getElementById('prodImg').value = '';
-    linkedSel.value = '';
     document.getElementById('prodAvailToggle').classList.add('on');
     deleteBtn.style.display = 'none';
+    _setPromoMode('none');
   }
   modal.classList.add('active');
 }
@@ -1467,15 +1558,18 @@ document.getElementById('prodAvailToggle').addEventListener('click', function() 
 document.getElementById('modalProductSave').addEventListener('click', async () => {
   const name = document.getElementById('prodName').value.trim();
   if(!name) { alert('Ingresa el nombre del producto'); return; }
+  const linkedCatSel = document.getElementById('prodLinkedCat');
   const prod = {
     id: editingProduct || 'p_'+Date.now()+'_'+Math.floor(Math.random()*999),
     catId: document.getElementById('prodCat').value,
     name,
     description: document.getElementById('prodDesc').value.trim(),
-    price: parseInt(document.getElementById('prodPrice').value) || 0,
+    price: parseInt(document.getElementById('prodPrice').value)||0,
     img: document.getElementById('prodImg').value.trim(),
     available: document.getElementById('prodAvailToggle').classList.contains('on'),
-    linkedCatId: document.getElementById('prodLinkedCat').value || null,
+    // Promo selectors — solo uno de los dos aplica según modo
+    linkedCatId: _promoMode==='cat' && linkedCatSel ? (linkedCatSel.value||null) : null,
+    linkedProds: _promoMode==='prods' && _selectedLinkedProds.length ? [..._selectedLinkedProds] : null,
   };
   if(editingProduct) {
     const idx = data.products.findIndex(p => p.id===editingProduct);

@@ -2195,8 +2195,8 @@ document.getElementById('prodModal').addEventListener('click', e => {
 function addToCart(prodId) {
   const p = menuData.products.find(x => x.id === prodId);
   if(!p || p.available === false) return;
-  // Si el producto tiene categoría vinculada → abrir modal de selección promo
-  if(p.linkedCatId && typeof openPromoSelectModal === 'function') {
+  // Si el producto tiene selección vinculada → abrir modal de promo
+  if((p.linkedCatId || (p.linkedProds && p.linkedProds.length)) && typeof openPromoSelectModal === 'function') {
     if(openPromoSelectModal(prodId)) return; // modal abierto — esperar confirmación
   }
   const existing = cart.find(c => c.id === prodId && !c.linkedSelection);
@@ -4179,13 +4179,34 @@ let _promoSelectedLinkedProd = null;
 
 function openPromoSelectModal(promoProdId) {
   const promo = menuData.products.find(p => p.id === promoProdId);
-  if(!promo || !promo.linkedCatId) return false;
-  const linkedProds = menuData.products.filter(p =>
-    p.catId === promo.linkedCatId && p.available !== false
-  );
+  if(!promo) return false;
+
+  // Resolver qué productos mostrar según modo
+  let linkedProds = [];
+  let linkedCatName = '';
+  let linkedCatEmoji = '';
+
+  if(promo.linkedProds && promo.linkedProds.length) {
+    // Modo: productos específicos
+    linkedProds = promo.linkedProds
+      .map(pid => menuData.products.find(p => p.id===pid && p.available!==false))
+      .filter(Boolean);
+    linkedCatName = 'la selección';
+  } else if(promo.linkedCatId) {
+    // Modo: categoría completa
+    linkedProds = menuData.products.filter(p =>
+      p.catId === promo.linkedCatId && p.available !== false
+    );
+    const linkedCat = menuData.categories.find(c => c.id === promo.linkedCatId);
+    linkedCatName = linkedCat ? linkedCat.name : '';
+    linkedCatEmoji = linkedCat ? (linkedCat.emoji||'') : '';
+  }
+
   if(!linkedProds.length) return false;
+
   _promoSelectProdId = promoProdId;
   _promoSelectedLinkedProd = null;
+
   // Header
   const promoImg = processDriveUrl(promo.img);
   const iconEl = document.getElementById('promoSelectIcon');
@@ -4193,14 +4214,14 @@ function openPromoSelectModal(promoProdId) {
     iconEl.style.cssText = 'background-image:url('+promoImg+');background-size:cover;background-position:center;border-radius:12px;width:44px;height:44px;flex-shrink:0';
     iconEl.textContent = '';
   } else {
-    iconEl.style.cssText = '';
+    iconEl.style.cssText = 'width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--primary),#00dfd8);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0';
     iconEl.textContent = '🍔';
   }
   document.getElementById('promoSelectTitle').textContent = promo.name||'Promo';
   document.getElementById('promoSelectSubtitle').textContent = formatPrice(promo.price)+' · incluye tu elección';
-  const linkedCat = menuData.categories.find(c => c.id === promo.linkedCatId);
   document.getElementById('promoSelectInstruction').innerHTML =
-    'Selecciona <b>1 opción</b>'+(linkedCat?' de '+(linkedCat.emoji||'')+' <b>'+linkedCat.name+'</b>':'')+' incluida en tu promo:';
+    'Selecciona <b>1 opción</b>'+(linkedCatName ? ' de '+linkedCatEmoji+' <b>'+linkedCatName+'</b>' : '')+' incluida en tu promo:';
+
   // Grid
   const grid = document.getElementById('promoSelectGrid');
   grid.innerHTML = '';
@@ -4226,6 +4247,7 @@ function openPromoSelectModal(promoProdId) {
     });
     grid.appendChild(div);
   });
+
   document.getElementById('promoSelectedText').innerHTML = 'Toca una opción para seleccionar';
   document.getElementById('promoConfirmBtn').disabled = true;
   document.getElementById('promoSelectOverlay').classList.add('active');
