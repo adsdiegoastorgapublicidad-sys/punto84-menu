@@ -4181,19 +4181,15 @@ function openPromoSelectModal(promoProdId) {
   const promo = menuData.products.find(p => p.id === promoProdId);
   if(!promo) return false;
 
-  // Resolver qué productos mostrar según modo
   let linkedProds = [];
   let linkedCatName = '';
   let linkedCatEmoji = '';
 
   if(promo.linkedProds && promo.linkedProds.length) {
-    // Modo: productos específicos
     linkedProds = promo.linkedProds
       .map(pid => menuData.products.find(p => p.id===pid && p.available!==false))
       .filter(Boolean);
-    linkedCatName = 'la selección';
   } else if(promo.linkedCatId) {
-    // Modo: categoría completa
     linkedProds = menuData.products.filter(p =>
       p.catId === promo.linkedCatId && p.available !== false
     );
@@ -4205,7 +4201,10 @@ function openPromoSelectModal(promoProdId) {
   if(!linkedProds.length) return false;
 
   _promoSelectProdId = promoProdId;
-  _promoSelectedLinkedProd = null;
+  _promoSelectedLinkedProd = null; // se usa como array ahora
+
+  const maxSel = promo.maxSelections || 1;
+  let selectedItems = []; // array de productos seleccionados
 
   // Header
   const promoImg = processDriveUrl(promo.img);
@@ -4219,38 +4218,87 @@ function openPromoSelectModal(promoProdId) {
   }
   document.getElementById('promoSelectTitle').textContent = promo.name||'Promo';
   document.getElementById('promoSelectSubtitle').textContent = formatPrice(promo.price)+' · incluye tu elección';
-  document.getElementById('promoSelectInstruction').innerHTML =
-    'Selecciona <b>1 opción</b>'+(linkedCatName ? ' de '+linkedCatEmoji+' <b>'+linkedCatName+'</b>' : '')+' incluida en tu promo:';
+
+  const instrEl = document.getElementById('promoSelectInstruction');
+  function updateInstruction() {
+    const remaining = maxSel - selectedItems.length;
+    const catTxt = linkedCatName ? ' de '+linkedCatEmoji+' <b>'+linkedCatName+'</b>' : '';
+    if(selectedItems.length === 0) {
+      instrEl.innerHTML = 'Selecciona <b>'+maxSel+'</b> opción'+(maxSel>1?'es':'')+catTxt+' incluida'+(maxSel>1?'s':'')+' en tu promo:';
+    } else if(remaining > 0) {
+      instrEl.innerHTML = '✅ <b>'+selectedItems.length+'/'+maxSel+'</b> elegida'+(selectedItems.length>1?'s':'')+' — Elige <b>'+remaining+' más</b>:';
+    } else {
+      instrEl.innerHTML = '✅ <b>¡Listo!</b> Elegiste las '+maxSel+' opciones:';
+    }
+  }
+  updateInstruction();
 
   // Grid
   const grid = document.getElementById('promoSelectGrid');
   grid.innerHTML = '';
+
+  function updatePreviewAndBtn() {
+    const previewEl = document.getElementById('promoSelectedText');
+    const btnEl = document.getElementById('promoConfirmBtn');
+    if(selectedItems.length === 0) {
+      previewEl.innerHTML = 'Toca una opción para seleccionar';
+      btnEl.disabled = true;
+      btnEl.textContent = 'AGREGAR AL PEDIDO';
+    } else if(selectedItems.length < maxSel) {
+      previewEl.innerHTML = selectedItems.map(p=>'<b>'+p.name+'</b>').join(' + ')+
+        ' <span style="color:var(--text-mute)">· Faltan '+(maxSel-selectedItems.length)+'</span>';
+      btnEl.disabled = true;
+      btnEl.textContent = 'AGREGAR AL PEDIDO ('+selectedItems.length+'/'+maxSel+')';
+    } else {
+      previewEl.innerHTML = selectedItems.map(p=>'<b>'+p.name+'</b>').join(' + ');
+      btnEl.disabled = false;
+      btnEl.textContent = '🛒 AGREGAR AL PEDIDO';
+    }
+  }
+
   linkedProds.forEach(p => {
     const img = processDriveUrl(p.img);
     const div = document.createElement('div');
     div.className = 'promo-opt';
     div.dataset.linkedProdId = p.id;
     div.innerHTML =
-      '<div class="promo-opt-img" '+(img?'style="background-image:url('+img+');background-size:cover;background-position:center"':'')+'>'+(img?'':'🍔')+'</div>'+
+      '<div class="promo-opt-img" '+(img?'style="background-image:url('+img+');background-size:cover;background-position:center"':'')+'>'+(img?'':'🍕')+'</div>'+
       '<div class="promo-opt-check">✓</div>'+
       '<div class="promo-opt-info">'+
         '<div class="promo-opt-name">'+(p.name||'')+'</div>'+
         '<div class="promo-opt-price">'+(p.description?p.description.slice(0,38):'Incluida en tu promo')+'</div>'+
       '</div>';
+
     div.addEventListener('click', () => {
-      grid.querySelectorAll('.promo-opt').forEach(el => el.classList.remove('selected'));
-      div.classList.add('selected');
-      _promoSelectedLinkedProd = p;
-      document.getElementById('promoSelectedText').innerHTML = 'Elegiste: <b>'+p.name+'</b>';
-      document.getElementById('promoConfirmBtn').disabled = false;
+      const alreadySel = selectedItems.find(x => x.id===p.id);
+      if(alreadySel) {
+        // Deseleccionar
+        selectedItems = selectedItems.filter(x => x.id!==p.id);
+        div.classList.remove('selected');
+      } else {
+        if(selectedItems.length >= maxSel) {
+          // Si ya llegó al máximo, quitar el primero seleccionado (FIFO)
+          const removed = selectedItems.shift();
+          const removedEl = grid.querySelector('[data-linked-prod-id="'+removed.id+'"]');
+          if(removedEl) removedEl.classList.remove('selected');
+        }
+        selectedItems.push(p);
+        div.classList.add('selected');
+      }
       haptic('add');
+      updateInstruction();
+      updatePreviewAndBtn();
     });
     grid.appendChild(div);
   });
 
-  document.getElementById('promoSelectedText').innerHTML = 'Toca una opción para seleccionar';
-  document.getElementById('promoConfirmBtn').disabled = true;
+  updatePreviewAndBtn();
   document.getElementById('promoSelectOverlay').classList.add('active');
+
+  // Guardar referencia al estado para el botón confirmar
+  document.getElementById('promoConfirmBtn')._selectedItems = () => selectedItems;
+  document.getElementById('promoConfirmBtn')._maxSel = maxSel;
+
   return true;
 }
 
@@ -4266,21 +4314,30 @@ document.getElementById('promoSelectOverlay').addEventListener('click', e => {
 });
 
 document.getElementById('promoConfirmBtn').addEventListener('click', () => {
-  if(!_promoSelectProdId || !_promoSelectedLinkedProd) return;
+  if(!_promoSelectProdId) return;
   const promo = menuData.products.find(p => p.id===_promoSelectProdId);
   if(!promo) return;
-  const existing = cart.find(c => c.id===_promoSelectProdId && c.linkedSelection===_promoSelectedLinkedProd.id);
+
+  const btn = document.getElementById('promoConfirmBtn');
+  const selectedItems = btn._selectedItems ? btn._selectedItems() : [];
+  if(!selectedItems.length) return;
+
+  // Nombre compuesto con todas las selecciones
+  const selectionNames = selectedItems.map(p => p.name).join(' + ');
+  const selectionIds = selectedItems.map(p => p.id).join(',');
+
+  const existing = cart.find(c => c.id===_promoSelectProdId && c.linkedSelection===selectionIds);
   if(existing) {
     existing.qty++;
   } else {
     cart.push({
       id: _promoSelectProdId,
-      name: promo.name+' — '+_promoSelectedLinkedProd.name,
+      name: promo.name+' — '+selectionNames,
       price: promo.price,
       img: promo.img||'',
       qty: 1, note: '',
-      linkedSelection: _promoSelectedLinkedProd.id,
-      linkedSelectionName: _promoSelectedLinkedProd.name,
+      linkedSelection: selectionIds,
+      linkedSelectionName: selectionNames,
     });
   }
   saveCart(); updateCartUI(); refreshProductButtons();
