@@ -109,15 +109,67 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 .ws-badge b { color:var(--primary); }
 
 /* CATEGORY TABS */
-.cat-tabs-wrap { position:sticky; top:0; background:rgba(7,8,13,0.92); padding:10px 0 8px; z-index:10; border-bottom:1px solid var(--bg-4); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
-.cat-tabs-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--primary-dark), var(--primary), var(--accent), var(--accent-dark)); }
-.cat-tabs { display:flex; gap:6px; padding:0 12px; overflow-x:auto; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+/* ── CATEGORY TABS — X1 HOLOCARDS ── */
+.cat-tabs-wrap { position:sticky; top:0; background:rgba(5,5,8,0.97); padding:14px 0 12px; z-index:10; border-bottom:1px solid rgba(255,255,255,0.04); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); overflow:hidden; }
+.cat-tabs-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:1.5px; background:linear-gradient(90deg,transparent,rgba(168,85,247,0.8),rgba(0,180,255,0.6),rgba(255,0,128,0.5),rgba(245,166,35,0.7),transparent); background-size:300% 100%; animation:ctTabLineFlow 5s linear infinite; }
+@keyframes ctTabLineFlow { to { background-position:300% 0; } }
+.cat-tabs { display:flex; gap:8px; padding:0 14px; overflow-x:auto; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
 .cat-tabs::-webkit-scrollbar { display:none; }
-.cat-tab { flex-shrink:0; padding:7px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:20px; font-size:11px; font-weight:700; letter-spacing:0.03em; color:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.2s; white-space:nowrap; display:flex; align-items:center; gap:5px; }
-.cat-tab:hover { border-color:var(--primary-dark); color:var(--text); }
-.cat-tab.active { background:rgba(245,166,35,0.1); border-color:rgba(245,166,35,0.3); color:var(--accent); font-weight:700; box-shadow:0 0 14px rgba(245,166,35,0.1); }
-body.light-mode .cat-tab { background:#f0f0f0; color:#444; border-color:#e0e0e0; }
-body.light-mode .cat-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); box-shadow:none; }
+
+/* Base tab */
+.cat-tab { flex-shrink:0; position:relative; border-radius:16px; cursor:pointer; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); white-space:nowrap; }
+
+/* Holographic iridescent layer */
+.cat-tab-holo { position:absolute; inset:0; border-radius:16px; background:linear-gradient(115deg,rgba(255,0,128,0.06),rgba(255,165,0,0.04),rgba(0,255,180,0.05),rgba(0,120,255,0.06),rgba(180,0,255,0.05)); background-size:300% 300%; animation:ctHolo 6s ease infinite; pointer-events:none; }
+@keyframes ctHolo { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+/* Shine sweep */
+.cat-tab-shine { position:absolute; inset:0; border-radius:16px; background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.07) 50%,transparent 65%); background-size:200% 100%; animation:ctShine 3.5s ease infinite; pointer-events:none; }
+@keyframes ctShine { to { background-position:-200% 0; } }
+
+/* Deep glow shadow behind card */
+.cat-tab-glow { position:absolute; inset:-10px; border-radius:24px; opacity:0; transition:opacity 0.3s; filter:blur(16px); pointer-events:none; }
+
+/* Inner content */
+.cat-tab-inner { position:relative; z-index:1; padding:9px 16px; display:flex; align-items:center; gap:7px; border-radius:16px; border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.03); transition:all 0.25s; }
+.cat-tab-inner span:first-child { font-size:15px; transition:transform 0.3s; display:inline-block; }
+.cat-tab-inner span:last-child { font-size:11px; font-weight:800; letter-spacing:0.04em; color:rgba(255,255,255,0.3); transition:color 0.2s; }
+
+/* Active state */
+.cat-tab.active { transform:translateY(-3px); }
+.cat-tab.active .cat-tab-inner { border-color:rgba(255,255,255,0.18); background:rgba(255,255,255,0.06); }
+.cat-tab.active .cat-tab-glow { opacity:1; }
+.cat-tab.active .cat-tab-inner span:first-child { transform:scale(1.2); }
+.cat-tab.active .cat-tab-inner span:last-child { color:#fff; }
+
+/* Per-color active glow — rotated from CAT_COLOR_PALETTE */
+.cat-tab[data-cidx="0"].active .cat-tab-glow { background:rgba(255,68,0,0.55); }
+.cat-tab[data-cidx="0"].active .cat-tab-inner { box-shadow:0 0 0 1.5px rgba(255,80,0,0.65),0 8px 24px rgba(255,68,0,0.3); }
+.cat-tab[data-cidx="0"].active .cat-tab-inner span:last-child { color:#ff9070; }
+.cat-tab[data-cidx="1"].active .cat-tab-glow { background:rgba(168,85,247,0.55); }
+.cat-tab[data-cidx="1"].active .cat-tab-inner { box-shadow:0 0 0 1.5px rgba(168,85,247,0.65),0 8px 24px rgba(168,85,247,0.28); }
+.cat-tab[data-cidx="1"].active .cat-tab-inner span:last-child { color:#c084fc; }
+.cat-tab[data-cidx="2"].active .cat-tab-glow { background:rgba(0,180,166,0.55); }
+.cat-tab[data-cidx="2"].active .cat-tab-inner { box-shadow:0 0 0 1.5px rgba(0,180,166,0.65),0 8px 24px rgba(0,180,166,0.28); }
+.cat-tab[data-cidx="2"].active .cat-tab-inner span:last-child { color:#5eead4; }
+.cat-tab[data-cidx="3"].active .cat-tab-glow { background:rgba(255,0,128,0.55); }
+.cat-tab[data-cidx="3"].active .cat-tab-inner { box-shadow:0 0 0 1.5px rgba(255,0,128,0.65),0 8px 24px rgba(255,0,128,0.28); }
+.cat-tab[data-cidx="3"].active .cat-tab-inner span:last-child { color:#f9a8d4; }
+.cat-tab[data-cidx="4"].active .cat-tab-glow { background:rgba(34,170,85,0.55); }
+.cat-tab[data-cidx="4"].active .cat-tab-inner { box-shadow:0 0 0 1.5px rgba(34,170,85,0.65),0 8px 24px rgba(34,170,85,0.28); }
+.cat-tab[data-cidx="4"].active .cat-tab-inner span:last-child { color:#86efac; }
+.cat-tab[data-cidx="5"].active .cat-tab-glow { background:rgba(0,112,243,0.55); }
+.cat-tab[data-cidx="5"].active .cat-tab-inner { box-shadow:0 0 0 1.5px rgba(0,112,243,0.65),0 8px 24px rgba(0,112,243,0.28); }
+.cat-tab[data-cidx="5"].active .cat-tab-inner span:last-child { color:#93c5fd; }
+.cat-tab[data-cidx="6"].active .cat-tab-glow { background:rgba(245,166,35,0.55); }
+.cat-tab[data-cidx="6"].active .cat-tab-inner { box-shadow:0 0 0 1.5px rgba(245,166,35,0.65),0 8px 24px rgba(245,166,35,0.28); }
+.cat-tab[data-cidx="6"].active .cat-tab-inner span:last-child { color:#fcd34d; }
+.cat-tab[data-cidx="7"].active .cat-tab-glow { background:rgba(214,51,255,0.55); }
+.cat-tab[data-cidx="7"].active .cat-tab-inner { box-shadow:0 0 0 1.5px rgba(214,51,255,0.65),0 8px 24px rgba(214,51,255,0.28); }
+.cat-tab[data-cidx="7"].active .cat-tab-inner span:last-child { color:#e879f9; }
+
+body.light-mode .cat-tab { filter:brightness(0.85); }
+body.light-mode .cat-tab.active { filter:brightness(1); }
 
 /* PRODUCTS SECTION */
 .cat-section { padding:16px 12px 4px; scroll-margin-top:80px; }
@@ -1655,10 +1707,11 @@ function renderMenu() {
     return;
   }
 
-  // Tabs de categoría
+  // Tabs de categoría — estilo X1 Holocards
   tabsWrap.style.display = 'block';
   tabsEl.innerHTML = '';
   let firstWithProducts = null;
+  let catTabIdx = 0;
   menuData.categories.forEach(cat => {
     const prods = menuData.products.filter(p => p.catId === cat.id);
     if(!prods.length) return;
@@ -1666,7 +1719,15 @@ function renderMenu() {
     const tab = document.createElement('div');
     tab.className = 'cat-tab';
     tab.dataset.cat = cat.id;
-    tab.innerHTML = '<span>'+(cat.emoji||'🍕')+'</span><span>'+(cat.name||'')+'</span>';
+    tab.dataset.cidx = catTabIdx % 8;
+    tab.innerHTML =
+      '<div class="cat-tab-glow"></div>'+
+      '<div class="cat-tab-holo"></div>'+
+      '<div class="cat-tab-shine"></div>'+
+      '<div class="cat-tab-inner">'+
+        '<span>'+(cat.emoji||'🍕')+'</span>'+
+        '<span>'+(cat.name||'')+'</span>'+
+      '</div>';
     tab.addEventListener('click', () => {
       document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
       tab.classList.add('active');
@@ -1674,6 +1735,7 @@ function renderMenu() {
       if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
     });
     tabsEl.appendChild(tab);
+    catTabIdx++;
   });
   if(firstWithProducts) {
     const firstTab = tabsEl.querySelector('[data-cat="'+firstWithProducts+'"]');
