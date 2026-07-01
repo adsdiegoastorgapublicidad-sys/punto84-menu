@@ -1007,6 +1007,13 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <div class="field"><span class="field-label">Descripción</span><textarea class="textarea" id="prodDesc" placeholder="Masa artesanal, mozzarella, pepperoni..."></textarea></div>
       <div class="field"><span class="field-label">Precio ($)</span><input class="input" id="prodPrice" type="number" min="0" step="100" placeholder="9990"></div>
       <div class="field"><span class="field-label">URL de la foto (Google Drive)</span><input class="input" id="prodImg" type="url" placeholder="https://drive.google.com/..."><span class="field-hint">Opcional. Pega el link compartido de Google Drive.</span></div>
+      <div class="field">
+        <span class="field-label">Requiere selección de producto <span style="color:var(--text-mute);font-weight:400">(opcional)</span></span>
+        <select class="input" id="prodLinkedCat">
+          <option value="">Sin selección requerida</option>
+        </select>
+        <span class="field-hint">Si esta es una promo/combo, elige la categoría cuyos productos el cliente debe seleccionar al agregarla. Ej: Promo Burger → Hamburguesas.</span>
+      </div>
       <div class="field"><div style="display:flex;align-items:center;gap:12px"><div class="toggle" id="prodAvailToggle"></div><div><div style="font-weight:600">Producto disponible</div><div class="field-hint" style="margin-top:2px">Desactivar = aparece como agotado</div></div></div></div>
     </div>
     <div class="modal-footer">
@@ -1422,6 +1429,10 @@ function openProductModal(id=null) {
   // populate category select
   const catSel = document.getElementById('prodCat');
   catSel.innerHTML = data.categories.map(c => '<option value="'+c.id+'">'+(c.emoji||'')+' '+(c.name||'')+'</option>').join('');
+  // populate linkedCat select
+  const linkedSel = document.getElementById('prodLinkedCat');
+  linkedSel.innerHTML = '<option value="">Sin selección requerida</option>'+
+    data.categories.map(c => '<option value="'+c.id+'">'+(c.emoji||'')+' '+(c.name||'')+'</option>').join('');
   if(id) {
     const p = data.products.find(x => x.id===id);
     if(!p) return;
@@ -1431,6 +1442,7 @@ function openProductModal(id=null) {
     document.getElementById('prodDesc').value = p.description || '';
     document.getElementById('prodPrice').value = p.price || '';
     document.getElementById('prodImg').value = p.img || '';
+    linkedSel.value = p.linkedCatId || '';
     document.getElementById('prodAvailToggle').classList.toggle('on', p.available !== false);
     deleteBtn.style.display = 'inline-flex';
   } else {
@@ -1440,6 +1452,7 @@ function openProductModal(id=null) {
     document.getElementById('prodDesc').value = '';
     document.getElementById('prodPrice').value = '';
     document.getElementById('prodImg').value = '';
+    linkedSel.value = '';
     document.getElementById('prodAvailToggle').classList.add('on');
     deleteBtn.style.display = 'none';
   }
@@ -1462,6 +1475,7 @@ document.getElementById('modalProductSave').addEventListener('click', async () =
     price: parseInt(document.getElementById('prodPrice').value) || 0,
     img: document.getElementById('prodImg').value.trim(),
     available: document.getElementById('prodAvailToggle').classList.contains('on'),
+    linkedCatId: document.getElementById('prodLinkedCat').value || null,
   };
   if(editingProduct) {
     const idx = data.products.findIndex(p => p.id===editingProduct);
