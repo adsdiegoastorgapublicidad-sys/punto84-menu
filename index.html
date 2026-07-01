@@ -2517,9 +2517,9 @@ function openConfirmModal({ name, addr, notes }) {
   }
 
   // Botón WhatsApp — como <a> nativo para evitar bloqueo de popups en iOS Safari
-  html += '<a class="btn-whatsapp" id="btnConfirmSend" href="#" target="_blank" rel="noopener noreferrer" style="text-decoration:none">'+
+  html += '<button class="btn-whatsapp" id="btnConfirmSend" type="button">'+
     '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'+
-    'ENVIAR PEDIDO POR WHATSAPP</a>';
+    'ENVIAR PEDIDO POR WHATSAPP</button>';
 
   cc.innerHTML = html;
 
@@ -2636,19 +2636,19 @@ function openConfirmModal({ name, addr, notes }) {
   }
 
   if(waLink) {
-    waLink.href = buildWAUrl();
+    waLink.href = buildWAUrl(); // por compatibilidad, aunque es button
 
     var _pC = document.getElementById('payOptCash');
     var _pT = document.getElementById('payOptTransfer');
     if(_pC) _pC.addEventListener('click', function(){ setTimeout(function(){ waLink.href = buildWAUrl(); }, 80); });
     if(_pT) _pT.addEventListener('click', function(){ setTimeout(function(){ waLink.href = buildWAUrl(); }, 80); });
 
-    waLink.addEventListener('click', function(e) {
-      e.preventDefault();
+    waLink.addEventListener('click', function() {
       var finalUrl = buildWAUrl();
       var cartSnap = cart.slice();
       var totalSnap = cartTotal();
 
+      // Limpiar UI
       setTimeout(function() {
         cart = []; saveCart(); updateCartUI();
         document.getElementById('cartModal').classList.remove('active');
@@ -2657,6 +2657,7 @@ function openConfirmModal({ name, addr, notes }) {
         launchConfetti(); haptic('confirm');
       }, 200);
 
+      // Firebase en background
       push(ref(db, 'menu/orders'), {
         customer: { name: name, address: addr, zone: selectedZone ? selectedZone.name : 'Sin zona' },
         items: cartSnap.map(function(i){ return { name:i.name, qty:i.qty, price:i.price, note:i.note||'' }; }),
@@ -2671,6 +2672,7 @@ function openConfirmModal({ name, addr, notes }) {
         ts: Date.now()
       }).catch(function(e){ console.error('Order save:', e); });
 
+      // Navegar a WhatsApp — directo, sin preventDefault, sin async antes
       window.location.href = finalUrl;
     });
   }
@@ -4276,46 +4278,7 @@ updateSoundBtn();
     });
   }
 
-  // PATCH WhatsApp link dentro del IAB:
-  // En IAB de Instagram, wa.me no abre — usamos whatsapp:// scheme como fallback
-  document.addEventListener('click', e => {
-    const waLink = e.target.closest('#btnConfirmSend');
-    if(!waLink) return;
-
-    const href = waLink.href;
-    if(!href || href === '#' || href === window.location.href) return;
-
-    // Dejar que el click handler normal del waLink se ejecute primero (limpia carrito, etc.)
-    // Solo interceptamos la NAVEGACIÓN
-    e.preventDefault();
-
-    // Construir scheme nativo whatsapp:// que funciona en iOS/Android dentro de IAB
-    // wa.me/56912345678?text=... → whatsapp://send?phone=56912345678&text=...
-    const waScheme = href
-      .replace('https://wa.me/', 'whatsapp://send?phone=')
-      .replace('?text=', '&text=');
-
-    // En iOS: intentar scheme nativo → si falla, fallback a wa.me con location.href
-    // En Android: intentar intent URI → si falla, location.href
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-    if(isIOS) {
-      // iOS: window.location.href con scheme abre WhatsApp directamente sin popup blocker
-      window.location.href = waScheme;
-      // Si WhatsApp no está instalado, redirigir al link web después de 1.5s
-      setTimeout(() => {
-        window.location.href = href;
-      }, 1500);
-    } else {
-      // Android: intent URI es lo más confiable
-      const intentURI = 'intent://send?text=' + encodeURIComponent(decodeURIComponent(href.split('?text=')[1]||'')) +
-        '#Intent;scheme=whatsapp;package=com.whatsapp;end';
-      window.location.href = intentURI;
-      setTimeout(() => {
-        window.location.href = href;
-      }, 1500);
-    }
-  }, false); // false = bubble phase, después del handler del waLink
+  // (El botón de envío WhatsApp usa location.href directamente — no necesita patch IAB)
 
 
 })();
