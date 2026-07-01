@@ -1052,7 +1052,7 @@ async function initData() {
     data.payment = d.payment || {};
     data.badges = d.badges ? Object.values(d.badges) : [];
     data.upcoming = d.upcoming ? Object.values(d.upcoming) : [];
-    data.announcements = d.announcements || [];
+    data.announcements = d.announcements ? (Array.isArray(d.announcements) ? d.announcements : Object.values(d.announcements)) : [];
     data.announcement = d.announcement || {active:false,icon:'📣',text:'',sub:'',color:'#f5a623',style:'flash',countdown:false,countdownHour:22,countdownMin:0};
     data.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix'};
     data.combos = d.combos ? Object.values(d.combos) : [];
@@ -2270,19 +2270,21 @@ function renderAnnList() {
   list.innerHTML = '';
   anns.forEach((ann, idx) => {
     const card = document.createElement('div');
-    card.style.cssText = 'background:var(--bg-2);border:1px solid var(--bg-4);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px';
+    card.style.cssText = 'background:var(--bg-2);border:1px solid var(--bg-4);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap';
     const statusDot = ann.active
-      ? '<span style="width:8px;height:8px;border-radius:50%;background:#22aa55;display:inline-block;box-shadow:0 0 6px #22aa55;flex-shrink:0"></span>'
-      : '<span style="width:8px;height:8px;border-radius:50%;background:#555;display:inline-block;flex-shrink:0"></span>';
-    const styleTag = {flash:'A',promo:'B',wave:'D'}[ann.style||'flash'];
+      ? '<span style="width:9px;height:9px;border-radius:50%;background:#22aa55;display:inline-block;box-shadow:0 0 6px #22aa55;flex-shrink:0"></span>'
+      : '<span style="width:9px;height:9px;border-radius:50%;background:#555;display:inline-block;flex-shrink:0"></span>';
+    const styleTag = {flash:'A — Flash',promo:'B — Promo',wave:'D — Wave'}[ann.style||'flash'];
     card.innerHTML =
       statusDot+
       '<div style="flex:1;min-width:0">'+
-        '<div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ann.icon||'📣')+' '+(ann.text||'Sin mensaje')+'</div>'+
-        '<div style="font-size:10px;color:var(--text-mute);margin-top:2px">Estilo '+styleTag+' · '+(ann.active?'<span style="color:#22aa55">Activo</span>':'Desactivado')+'</div>'+
+        '<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(ann.icon||'📣')+' '+(ann.text||'Sin mensaje')+'</div>'+
+        '<div style="font-size:10px;color:var(--text-mute);margin-top:2px">'+styleTag+' · '+(ann.active?'<span style="color:#22aa55;font-weight:700">● Activo</span>':'<span style="color:#555">● Desactivado</span>')+'</div>'+
       '</div>'+
-      '<button class="btn btn-sm btn-ghost" data-ann-edit="'+idx+'" style="flex-shrink:0">✏️</button>'+
-      '<button class="btn btn-sm btn-ghost" data-ann-del="'+idx+'" style="flex-shrink:0;color:var(--red)">🗑️</button>';
+      '<div style="display:flex;gap:6px;flex-shrink:0">'+
+        '<button class="btn btn-sm btn-ghost" data-ann-edit="'+idx+'" style="padding:6px 12px">✏️ Editar</button>'+
+        '<button class="btn btn-sm" data-ann-del="'+idx+'" style="padding:6px 12px;background:rgba(220,38,38,0.12);color:#f87171;border:1px solid rgba(220,38,38,0.25);border-radius:8px">🗑️ Eliminar</button>'+
+      '</div>';
     card.querySelector('[data-ann-edit]').addEventListener('click', () => editAnn(idx));
     card.querySelector('[data-ann-del]').addEventListener('click', () => deleteAnn(idx));
     list.appendChild(card);
@@ -2290,7 +2292,7 @@ function renderAnnList() {
   // Botón nuevo
   const addBtn = document.createElement('button');
   addBtn.className = 'btn btn-ghost';
-  addBtn.style.cssText = 'width:100%;border:2px dashed var(--bg-4);border-radius:12px;padding:12px;color:var(--text-mute);font-size:13px';
+  addBtn.style.cssText = 'width:100%;border:2px dashed var(--bg-4);border-radius:12px;padding:12px;color:var(--text-mute);font-size:13px;margin-top:4px';
   addBtn.textContent = '➕ Nuevo Anuncio';
   addBtn.addEventListener('click', resetAnnForm);
   list.appendChild(addBtn);
@@ -2316,21 +2318,34 @@ function editAnn(idx) {
 
 function resetAnnForm() {
   annEditingId = null;
-  annActive = false; annIcon = '📣'; annColor = '#f5a623';
-  annStyle = 'flash'; annCountdown = false;
-  annCountdownHour = 22; annCountdownMin = 0;
+  // Reset vars para nuevo anuncio — NO toca data.announcements
+  annActive = false;
+  annIcon = '📣';
+  annColor = '#f5a623';
+  annStyle = 'flash';
+  annCountdown = false;
+  annCountdownHour = 22;
+  annCountdownMin = 0;
   document.getElementById('annFormTitle').textContent = '➕ Nuevo Anuncio';
   document.getElementById('btnAnnFormCancel').style.display = 'none';
-  document.getElementById('announcementText').value = '';
-  document.getElementById('announcementSub').value = '';
+  const textEl = document.getElementById('announcementText');
+  const subEl = document.getElementById('announcementSub');
+  if(textEl) textEl.value = '';
+  if(subEl) subEl.value = '';
   refreshAnnFormUI();
 }
 
 async function deleteAnn(idx) {
   if(!confirm('¿Eliminar este anuncio?')) return;
   data.announcements.splice(idx, 1);
-  await saveData('announcements', data.announcements);
+  // Guardar el array actualizado en Firebase
+  // Si quedó vacío, guardamos array vacío explícitamente para limpiar
+  const toSave = data.announcements.length ? data.announcements : [];
+  await saveData('announcements', toSave);
+  // También limpiar el anuncio legacy si existía
+  if(!toSave.length) await saveData('announcement', {active:false,icon:'📣',text:'',sub:'',color:'#f5a623',style:'flash'});
   renderAnnList();
+  resetAnnForm();
   toast('✓ Anuncio eliminado');
 }
 

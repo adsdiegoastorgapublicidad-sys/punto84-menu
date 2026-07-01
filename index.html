@@ -1412,7 +1412,7 @@ async function loadMenu() {
       menuData.badges = d.badges ? Object.values(d.badges) : [];
       menuData.upcoming = d.upcoming ? Object.values(d.upcoming).filter(u=>u.active!==false) : [];
       menuData.announcement = d.announcement || {};
-      menuData.announcements = d.announcements || [];
+      menuData.announcements = d.announcements ? (Array.isArray(d.announcements) ? d.announcements : Object.values(d.announcements)) : [];
       menuData.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix',cardVisual:'b4'};
       menuData.combos = d.combos ? Object.values(d.combos) : [];
     }
@@ -1440,7 +1440,7 @@ async function loadMenu() {
       menuData.badges = d.badges ? Object.values(d.badges) : [];
       menuData.upcoming = d.upcoming ? Object.values(d.upcoming).filter(u=>u.active!==false) : [];
       menuData.announcement = d.announcement || {};
-      menuData.announcements = d.announcements || [];
+      menuData.announcements = d.announcements ? (Array.isArray(d.announcements) ? d.announcements : Object.values(d.announcements)) : [];
       menuData.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix',cardVisual:'b4'};
       menuData.combos = d.combos ? Object.values(d.combos) : [];
       applyDesign();
