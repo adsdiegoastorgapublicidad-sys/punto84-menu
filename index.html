@@ -663,7 +663,19 @@ body::before {
 .pizza-topping-group { transition: opacity 0.3s; }
 @keyframes ingPop { from{transform-origin:center;transform:scale(0) rotate(-20deg);opacity:0} to{transform-origin:center;transform:scale(1) rotate(0deg);opacity:1} }
 .ing-animate { animation: ingPop 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
-/* ── MODAL SELECCIÓN PROMO (Estilo B) ── */
+/* ── INSTAGRAM IN-APP BROWSER BANNER ── */
+.iab-banner { display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.92); backdrop-filter:blur(8px); flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+.iab-banner.show { display:flex; }
+.iab-box { background:#111; border:1px solid #222; border-radius:20px; padding:28px 24px; max-width:340px; width:100%; text-align:center; }
+.iab-icon { font-size:48px; margin-bottom:16px; }
+.iab-title { font-family:var(--font-title); font-size:22px; letter-spacing:0.04em; color:#fff; margin-bottom:8px; }
+.iab-desc { font-size:13px; color:var(--text-dim); line-height:1.6; margin-bottom:20px; }
+.iab-step { display:flex; align-items:center; gap:12px; background:var(--bg-3); border:1px solid var(--bg-4); border-radius:12px; padding:12px 14px; margin-bottom:8px; text-align:left; }
+.iab-step-num { width:26px; height:26px; border-radius:50%; background:var(--primary); color:#012e29; font-size:12px; font-weight:900; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.iab-step-txt { font-size:12px; color:var(--text); line-height:1.4; }
+.iab-step-txt b { color:var(--primary); }
+.iab-copy-btn { width:100%; background:var(--primary); color:#012e29; border:none; border-radius:12px; padding:14px; font-family:var(--font-title); font-size:16px; letter-spacing:0.06em; cursor:pointer; margin-top:12px; display:flex; align-items:center; justify-content:center; gap:8px; }
+.iab-skip { margin-top:12px; font-size:11px; color:var(--text-mute); cursor:pointer; text-decoration:underline; }
 .promo-select-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:4000; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.25s; backdrop-filter:blur(6px); }
 .promo-select-overlay.active { opacity:1; pointer-events:all; }
 .promo-select-box { background:var(--bg-2); border:1px solid var(--bg-4); border-radius:20px; overflow:hidden; width:100%; max-width:380px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(30px); transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
@@ -1239,6 +1251,31 @@ body.light-mode .search-input::placeholder { color:rgba(0,0,0,0.25); }
 </footer>
 
 <!-- CART FAB -->
+  <!-- INSTAGRAM IN-APP BROWSER BANNER -->
+  <div class="iab-banner" id="iabBanner">
+    <div class="iab-box">
+      <div class="iab-icon">📲</div>
+      <div class="iab-title">ABRE EN TU BROWSER</div>
+      <div class="iab-desc">Estás viendo esto desde Instagram. Para hacer tu pedido por WhatsApp necesitas abrirlo en Safari o Chrome.</div>
+      <div class="iab-step">
+        <div class="iab-step-num">1</div>
+        <div class="iab-step-txt">Toca los <b>3 puntos ···</b> o el ícono de menú arriba a la derecha</div>
+      </div>
+      <div class="iab-step">
+        <div class="iab-step-num">2</div>
+        <div class="iab-step-txt">Selecciona <b>"Abrir en Safari"</b> o <b>"Abrir en Chrome"</b></div>
+      </div>
+      <div class="iab-step">
+        <div class="iab-step-num">3</div>
+        <div class="iab-step-txt">¡Listo! Podrás hacer tu pedido sin problemas 🙌</div>
+      </div>
+      <button class="iab-copy-btn" id="iabCopyBtn">
+        <span>📋</span> COPIAR LINK DEL MENÚ
+      </button>
+      <div class="iab-skip" id="iabSkip">Continuar de todas formas</div>
+    </div>
+  </div>
+
   <!-- MODAL SELECCIÓN PROMO B -->
   <div class="promo-select-overlay" id="promoSelectOverlay">
     <div class="promo-select-box">
@@ -2599,10 +2636,23 @@ function openConfirmModal({ name, addr, notes }) {
       return m;
     };
 
-    // Setear href inmediatamente cuando se renderiza el modal
+    // Setear href inicial
     waLink.href = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(buildWAMsg());
 
-    waLink.addEventListener('click', () => {
+    // Reconstruir href en cada cambio de pago/zona para que esté siempre actualizado
+    function refreshWAHref() {
+      if(waLink) waLink.href = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(buildWAMsg());
+    }
+    const payOptCash = document.getElementById('payOptCash');
+    const payOptTransfer = document.getElementById('payOptTransfer');
+    if(payOptCash) payOptCash.addEventListener('click', () => setTimeout(refreshWAHref, 50));
+    if(payOptTransfer) payOptTransfer.addEventListener('click', () => setTimeout(refreshWAHref, 50));
+
+    waLink.addEventListener('click', (e) => {
+      // Reconstruir href en el momento exacto del click — captura estado actual de pago/zona
+      const finalUrl = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent(buildWAMsg());
+      waLink.href = finalUrl;
+
       // Guardar snapshot ANTES de limpiar carrito
       const cartSnapshot = [...cart];
       const totalSnapshot = cartTotal();
@@ -2673,92 +2723,6 @@ function copyText(text, btn) {
   }
 }
 
-
-async function sendOrder({ name, addr, notes }) {
-
-  // Build receipt
-  const brandName = menuData.local.name || 'PUNTO84';
-  let msg = '*📋 NUEVO PEDIDO — ' + brandName.toUpperCase() + '*\n';
-  msg += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-  msg += '👤 *Cliente:* ' + name + '\n';
-  msg += '📍 *Dirección:* ' + addr + '\n';
-  if(selectedZone) msg += '🛵 *Zona:* ' + selectedZone.name + '\n';
-  msg += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-  msg += '🛒 *DETALLE DEL PEDIDO:*\n\n';
-
-  cart.forEach(item => {
-    const lineTotal = item.price * item.qty;
-    msg += '• ' + item.qty + 'x ' + item.name + '\n';
-    msg += '   ' + formatPrice(item.price) + ' c/u → *' + formatPrice(lineTotal) + '*\n';
-    if(item.note && item.note.trim()) msg += '   📝 _' + item.note.trim() + '_\n';
-    msg += '\n';
-  });
-
-  msg += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-  msg += 'Subtotal: ' + formatPrice(cartSubtotal()) + '\n';
-  if(selectedZone) {
-    msg += 'Delivery (' + selectedZone.name + '): ' + formatPrice(selectedZone.price) + '\n';
-    msg += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-    msg += '💰 *TOTAL: ' + formatPrice(cartTotal()) + '*\n';
-  } else {
-    msg += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-    msg += '💰 *TOTAL: ' + formatPrice(cartSubtotal()) + '*\n';
-  }
-
-  if(notes) {
-    msg += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-    msg += '📝 *Notas adicionales:*\n' + notes + '\n';
-  }
-
-  msg += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-  const now = getSantiagoNow();
-  msg += '⏰ Enviado: ' + now.toLocaleString('es-CL', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
-
-  // MÉTODO DE PAGO
-  msg += '\n━━━━━━━━━━━━━━━━━━━━━━━\n';
-  if(selectedPayment === 'transfer') {
-    msg += '🏦 *💳 PAGO: EL CLIENTE REALIZARÁ TRANSFERENCIA BANCARIA 💳*\n';
-    msg += '*⚠️ VERIFICAR TRANSFERENCIA ANTES DE PREPARAR ⚠️*\n';
-  } else {
-    msg += '💵 *PAGO: El cliente pagará en EFECTIVO*\n';
-  }
-
-  const phone = (menuData.config.whatsapp || '+56938902407').replace(/[^0-9]/g,'');
-  const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
-
-  // Abrir WhatsApp PRIMERO — directo sin await para que el browser no lo bloquee
-  window.open(url, '_blank');
-
-  // Clear cart y UI inmediatamente
-  const cartSnapshot = [...cart];
-  const totalSnapshot = cartTotal();
-  cart = [];
-  saveCart();
-  updateCartUI();
-  document.getElementById('cartModal').classList.remove('active');
-  document.getElementById('confirmModal').classList.remove('active');
-  saveToHistory(cartSnapshot, totalSnapshot, selectedPayment);
-  launchConfetti();
-  haptic('confirm');
-
-  // Save order to Firebase EN BACKGROUND (no bloquea ni pospone el open)
-  try {
-    const orderData = {
-      customer: { name, address: addr, zone: selectedZone ? selectedZone.name : 'Sin zona' },
-      items: cartSnapshot.map(i => ({ name:i.name, qty:i.qty, price:i.price, note:i.note||'' })),
-      subtotal: cartSubtotal(),
-      delivery: selectedZone ? { zone:selectedZone.name, price:selectedZone.price } : null,
-      total: totalSnapshot,
-      notes: notes || '',
-      status: 'pending',
-      timestamp: Date.now(),
-      date: getSantiagoNow().toISOString().split('T')[0],
-      time: getSantiagoNow().toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'}),
-      ts: Date.now(),
-    };
-    push(ref(db, 'menu/orders'), orderData).catch(e => console.error('Order save error:', e));
-  } catch(e) { console.error('Order save error:', e); }
-}
 
 // CONFIRM MODAL
 document.getElementById('confirmClose').addEventListener('click', () => document.getElementById('confirmModal').classList.remove('active'));
@@ -3145,7 +3109,8 @@ function renderUpcomingSection() {
     card.querySelector('[data-up-notify]').addEventListener('click', () => {
       const phone = (menuData.config.whatsapp||'+56938902407').replace(/[^0-9]/g,'');
       const msg = encodeURIComponent('¡Hola! Quiero que me avisen cuando esté disponible: *'+(item.name||'')+'* 🔜');
-      window.open('https://wa.me/'+phone+'?text='+msg, '_blank');
+      const url = 'https://wa.me/'+phone+'?text='+msg;
+      window.location.href = url;
     });
 
     grid.appendChild(card);
@@ -4252,7 +4217,119 @@ updateSoundBtn();
 
 // ══════════════════════════════════════════════
 // ══════════════════════════════════════
-// MODAL SELECCIÓN PROMO — ESTILO B
+// INSTAGRAM IN-APP BROWSER DETECTION + FIX
+// ══════════════════════════════════════
+(function detectIAB() {
+  const ua = navigator.userAgent || '';
+  // Instagram IAB se identifica por 'Instagram' en el UA
+  // También TikTok, Facebook tienen sus propios IAB
+  const isInstagramIAB = /Instagram/i.test(ua);
+  const isFacebookIAB = /FBAN|FBAV|FB_IAB|FB4A|FBIOS/i.test(ua);
+  const isTikTokIAB = /musical_ly|TikTok/i.test(ua);
+  const isIAB = isInstagramIAB || isFacebookIAB || isTikTokIAB;
+
+  if(!isIAB) return;
+
+  // Mostrar banner de aviso al cargar
+  const banner = document.getElementById('iabBanner');
+  if(banner) {
+    // Solo mostrarlo si el usuario no lo ignoró antes en esta sesión
+    if(!sessionStorage.getItem('p84_iab_skip')) {
+      banner.classList.add('show');
+    }
+  }
+
+  // Botón copiar link
+  const copyBtn = document.getElementById('iabCopyBtn');
+  if(copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      const url = window.location.href;
+      // Intentar clipboard API
+      if(navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          copyBtn.innerHTML = '<span>✅</span> ¡LINK COPIADO!';
+          copyBtn.style.background = '#22aa55';
+          setTimeout(() => {
+            copyBtn.innerHTML = '<span>📋</span> COPIAR LINK DEL MENÚ';
+            copyBtn.style.background = '';
+          }, 2500);
+        }).catch(() => fallbackCopy(url, copyBtn));
+      } else {
+        fallbackCopy(url, copyBtn);
+      }
+    });
+  }
+
+  function fallbackCopy(text, btn) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try {
+      document.execCommand('copy');
+      btn.innerHTML = '<span>✅</span> ¡LINK COPIADO!';
+      btn.style.background = '#22aa55';
+      setTimeout(() => {
+        btn.innerHTML = '<span>📋</span> COPIAR LINK DEL MENÚ';
+        btn.style.background = '';
+      }, 2500);
+    } catch(e) {}
+    document.body.removeChild(ta);
+  }
+
+  // Botón ignorar
+  const skipBtn = document.getElementById('iabSkip');
+  if(skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      sessionStorage.setItem('p84_iab_skip', '1');
+      banner.classList.remove('show');
+    });
+  }
+
+  // PATCH WhatsApp link dentro del IAB:
+  // En IAB de Instagram, wa.me no abre — usamos whatsapp:// scheme como fallback
+  document.addEventListener('click', e => {
+    const waLink = e.target.closest('#btnConfirmSend');
+    if(!waLink) return;
+
+    const href = waLink.href;
+    if(!href || href === '#' || href === window.location.href) return;
+
+    // Dejar que el click handler normal del waLink se ejecute primero (limpia carrito, etc.)
+    // Solo interceptamos la NAVEGACIÓN
+    e.preventDefault();
+
+    // Construir scheme nativo whatsapp:// que funciona en iOS/Android dentro de IAB
+    // wa.me/56912345678?text=... → whatsapp://send?phone=56912345678&text=...
+    const waScheme = href
+      .replace('https://wa.me/', 'whatsapp://send?phone=')
+      .replace('?text=', '&text=');
+
+    // En iOS: intentar scheme nativo → si falla, fallback a wa.me con location.href
+    // En Android: intentar intent URI → si falla, location.href
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if(isIOS) {
+      // iOS: window.location.href con scheme abre WhatsApp directamente sin popup blocker
+      window.location.href = waScheme;
+      // Si WhatsApp no está instalado, redirigir al link web después de 1.5s
+      setTimeout(() => {
+        window.location.href = href;
+      }, 1500);
+    } else {
+      // Android: intent URI es lo más confiable
+      const intentURI = 'intent://send?text=' + encodeURIComponent(decodeURIComponent(href.split('?text=')[1]||'')) +
+        '#Intent;scheme=whatsapp;package=com.whatsapp;end';
+      window.location.href = intentURI;
+      setTimeout(() => {
+        window.location.href = href;
+      }, 1500);
+    }
+  }, false); // false = bubble phase, después del handler del waLink
+
+
+})();
 // ══════════════════════════════════════
 let _promoSelectProdId = null;
 let _promoSelectedLinkedProd = null;
