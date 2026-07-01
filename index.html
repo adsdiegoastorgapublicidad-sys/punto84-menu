@@ -718,7 +718,7 @@ body::before {
 /* ── INSTAGRAM IN-APP BROWSER BANNER ── */
 .promo-select-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:4000; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.25s; backdrop-filter:blur(6px); }
 .promo-select-overlay.active { opacity:1; pointer-events:all; }
-.promo-select-box { background:var(--bg-2); border:1px solid var(--bg-4); border-radius:20px; overflow:hidden; width:100%; max-width:380px; max-height:88vh; display:flex; flex-direction:column; transform:translateY(30px); transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.promo-select-box { background:var(--bg-2); border:1px solid var(--bg-4); border-radius:20px; overflow:hidden; width:100%; max-width:400px; max-height:92vh; display:flex; flex-direction:column; transform:translateY(30px); transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
 .promo-select-overlay.active .promo-select-box { transform:translateY(0); }
 .promo-select-header { padding:18px 20px 14px; border-bottom:1px solid var(--bg-4); display:flex; align-items:center; gap:12px; flex-shrink:0; }
 .promo-select-header-icon { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,var(--primary),#00dfd8); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; box-shadow:0 0 20px rgba(0,180,166,0.3); }
@@ -727,18 +727,38 @@ body::before {
 .promo-select-close { margin-left:auto; background:var(--bg-3); border:1px solid var(--bg-4); color:var(--text-mute); width:30px; height:30px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .promo-select-instruction { padding:12px 20px 8px; font-size:12px; color:var(--text-dim); flex-shrink:0; }
 .promo-select-instruction b { color:var(--primary); }
-.promo-select-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; padding:4px 20px 16px; overflow-y:auto; flex:1; }
-.promo-opt { background:var(--bg-3); border:1.5px solid var(--bg-4); border-radius:12px; overflow:hidden; cursor:pointer; transition:all 0.15s; position:relative; }
-.promo-opt.selected { border-color:var(--primary); background:rgba(0,180,166,0.1); box-shadow:0 0 0 2px var(--primary); }
-.promo-opt-img { width:100%; aspect-ratio:1; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:28px; color:var(--text-mute); }
-.promo-opt-check { position:absolute; top:7px; right:7px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,0.5); border:1.5px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:10px; color:transparent; z-index:2; transition:all 0.15s; }
+/* Grid ahora es 1 columna para dar espacio a los extras debajo de cada card */
+.promo-select-grid { display:flex; flex-direction:column; gap:8px; padding:6px 14px 14px; overflow-y:auto; flex:1; min-height:0; -webkit-overflow-scrolling:touch; }
+.promo-opt-wrap { display:flex; flex-direction:column; border-radius:12px; border:1.5px solid var(--bg-4); transition:border-color 0.15s; }
+.promo-opt-wrap.selected-wrap { border-color:var(--primary); box-shadow:0 0 0 1px var(--primary); }
+.promo-opt { background:var(--bg-3); border-radius:12px 12px 0 0; cursor:pointer; transition:background 0.15s; position:relative; display:flex; align-items:center; min-height:76px; width:100%; }
+.promo-opt.selected { background:rgba(0,180,166,0.08); }
+.promo-opt-img { width:76px; min-width:76px; height:76px; background:var(--bg-4); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:26px; color:var(--text-mute); flex-shrink:0; }
+.promo-opt-check { position:absolute; top:8px; right:10px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,0.5); border:1.5px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:11px; color:transparent; z-index:2; transition:all 0.15s; }
 .promo-opt.selected .promo-opt-check { background:var(--primary); border-color:var(--primary); color:#fff; }
-.promo-opt-counter { position:absolute; top:7px; left:7px; width:22px; height:22px; border-radius:50%; background:var(--primary); color:#012e29; font-size:12px; font-weight:900; display:none; align-items:center; justify-content:center; z-index:3; box-shadow:0 0 8px rgba(0,180,166,0.5); }
-.promo-opt-info { padding:8px 9px 9px; }
-.promo-opt-name { font-size:11px; font-weight:700; color:var(--text); line-height:1.3; }
+.promo-opt-counter { position:absolute; top:8px; left:8px; width:22px; height:22px; border-radius:50%; background:var(--primary); color:#012e29; font-size:12px; font-weight:900; display:none; align-items:center; justify-content:center; z-index:3; box-shadow:0 0 8px rgba(0,180,166,0.4); }
+.promo-opt-info { padding:10px 38px 10px 12px; flex:1; min-width:0; }
+.promo-opt-name { font-size:13px; font-weight:700; color:var(--text); line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .promo-opt.selected .promo-opt-name { color:var(--primary); }
-.promo-opt-price { font-size:10px; color:var(--text-mute); margin-top:2px; }
-.promo-select-footer { padding:12px 20px 16px; border-top:1px solid var(--bg-4); flex-shrink:0; display:flex; flex-direction:column; gap:8px; }
+.promo-opt-price { font-size:10px; color:var(--text-mute); margin-top:3px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.promo-extras-accordion { border-top:1px solid var(--bg-4); background:var(--bg-2); }
+.promo-extras-header { display:flex; align-items:center; justify-content:space-between; padding:8px 14px; cursor:pointer; font-size:11px; color:var(--text-mute); user-select:none; -webkit-tap-highlight-color:transparent; }
+.promo-extras-header:active { background:rgba(255,255,255,0.03); }
+.promo-extras-label { display:flex; align-items:center; gap:6px; font-weight:700; }
+.promo-extras-badge { background:rgba(0,180,166,0.12); color:var(--primary); border:1px solid rgba(0,180,166,0.25); border-radius:20px; font-size:9px; padding:1px 8px; font-weight:700; }
+.promo-extras-arrow { font-size:10px; transition:transform 0.2s; flex-shrink:0; }
+.promo-extras-arrow.open { transform:rotate(180deg); }
+.promo-extras-body { display:none; padding:6px 10px 10px; max-height:220px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.promo-extras-body.show { display:block; }
+.promo-extra-item { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:8px; border:1.5px solid var(--bg-4); background:var(--bg-3); margin-bottom:5px; cursor:pointer; transition:all 0.15s; }
+.promo-extra-item:last-child { margin-bottom:0; }
+.promo-extra-item.sel { border-color:var(--primary); background:rgba(0,180,166,0.1); }
+.promo-extra-img { width:30px; height:30px; border-radius:6px; background:var(--bg-4); background-size:cover; background-position:center; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:14px; }
+.promo-extra-name { flex:1; font-size:11px; font-weight:600; color:var(--text); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.promo-extra-item.sel .promo-extra-name { color:var(--primary); }
+.promo-extra-price { font-size:10px; color:var(--accent); font-weight:700; flex-shrink:0; }
+.promo-extra-chk { width:17px; height:17px; border-radius:4px; border:1.5px solid var(--bg-4); background:transparent; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; color:transparent; transition:all 0.15s; }
+.promo-extra-item.sel .promo-extra-chk { background:var(--primary); border-color:var(--primary); color:#fff; }
 .promo-selected-preview { background:var(--bg-3); border:1px solid var(--bg-4); border-radius:10px; padding:9px 13px; font-size:12px; color:var(--text-dim); display:flex; align-items:center; gap:8px; min-height:36px; }
 .promo-selected-preview b { color:var(--primary); }
 .promo-confirm-btn { width:100%; background:var(--primary); color:#012e29; border:none; border-radius:11px; padding:13px; font-family:var(--font-title); font-size:15px; letter-spacing:0.08em; cursor:pointer; transition:opacity 0.2s; }
@@ -4297,10 +4317,15 @@ function openPromoSelectModal(promoProdId) {
   if(!linkedProds.length) return false;
 
   _promoSelectProdId = promoProdId;
-  _promoSelectedLinkedProd = null; // se usa como array ahora
+  _promoSelectedLinkedProd = null;
 
-  const maxSel = promo.maxSelections || 1;
-  let selectedItems = []; // array de productos seleccionados
+  // maxSelections > 0 → modo combo fijo (ej: 2 pizzas exactas, 1 sola promo)
+  // maxSelections null/0 → modo libre (cada selección = promo separada)
+  const maxSel = promo.maxSelections || 0;
+  // Combo fijo = exactamente N items en UNA promo (ej: 2 pizzas)
+  // Solo aplica cuando maxSelections >= 2
+  // maxSelections null/0/1 = modo libre (cada selección = promo separada)
+  const isComboFijo = maxSel >= 2;
 
   // Header
   const promoImg = processDriveUrl(promo.img);
@@ -4316,61 +4341,187 @@ function openPromoSelectModal(promoProdId) {
   document.getElementById('promoSelectSubtitle').textContent = formatPrice(promo.price)+' · incluye tu elección';
 
   const instrEl = document.getElementById('promoSelectInstruction');
-  function updateInstruction() {
-    const remaining = maxSel - selectedItems.length;
-    const catTxt = linkedCatName ? ' de '+linkedCatEmoji+' <b>'+linkedCatName+'</b>' : '';
-    if(selectedItems.length === 0) {
-      instrEl.innerHTML = 'Selecciona <b>'+maxSel+'</b> opción'+(maxSel>1?'es':'')+catTxt+' incluida'+(maxSel>1?'s':'')+' en tu promo:';
-    } else if(remaining > 0) {
-      instrEl.innerHTML = '✅ <b>'+selectedItems.length+'/'+maxSel+'</b> elegida'+(selectedItems.length>1?'s':'')+' — Elige <b>'+remaining+' más</b>:';
-    } else {
-      instrEl.innerHTML = '✅ <b>¡Listo!</b> Elegiste las '+maxSel+' opciones:';
-    }
-  }
-  updateInstruction();
 
-  // Grid
+  // ── MODO COMBO FIJO (pizzas: exactamente maxSel opciones = 1 promo) ──
+  if(isComboFijo) {
+    let selectedFixed = []; // array de productos — máximo maxSel
+
+    function updateInstrFixed() {
+      const rem = maxSel - selectedFixed.length;
+      if(selectedFixed.length === 0)
+        instrEl.innerHTML = 'Elige <b>'+maxSel+' opciones</b> para completar tu promo:';
+      else if(rem > 0)
+        instrEl.innerHTML = '✅ <b>'+selectedFixed.length+'/'+maxSel+'</b> elegida'+(selectedFixed.length>1?'s':'')+' — Elige <b>'+rem+' más</b>:';
+      else
+        instrEl.innerHTML = '✅ <b>¡Listo!</b> Tu promo está completa:';
+    }
+    updateInstrFixed();
+
+    const grid = document.getElementById('promoSelectGrid');
+    grid.innerHTML = '';
+    // Grid 2 columnas para pizzas — modo fijo
+    grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:4px 14px 16px;overflow-y:auto;flex:1';
+
+    function updateFixedUI() {
+      const previewEl = document.getElementById('promoSelectedText');
+      const btnEl = document.getElementById('promoConfirmBtn');
+      // Redibujar estados de cards
+      grid.querySelectorAll('.promo-opt').forEach(div => {
+        const pid = div.dataset.linkedProdId;
+        const idx = selectedFixed.findIndex(x => x.id === pid);
+        const count = selectedFixed.filter(x => x.id === pid).length;
+        const counterEl = div.querySelector('.promo-opt-counter');
+        const checkEl = div.querySelector('.promo-opt-check');
+        if(count > 0) {
+          div.classList.add('selected');
+          if(count > 1 && counterEl) { counterEl.textContent = count; counterEl.style.display = 'flex'; if(checkEl) checkEl.style.display = 'none'; }
+          else { if(counterEl) counterEl.style.display = 'none'; if(checkEl) { checkEl.style.display = 'flex'; checkEl.style.color = '#fff'; } }
+        } else {
+          div.classList.remove('selected');
+          if(counterEl) counterEl.style.display = 'none';
+          if(checkEl) { checkEl.style.display = 'flex'; checkEl.style.color = 'transparent'; }
+        }
+      });
+      if(selectedFixed.length === 0) {
+        previewEl.innerHTML = 'Toca una opción para seleccionar';
+        btnEl.disabled = true;
+        btnEl.textContent = 'AGREGAR AL PEDIDO';
+      } else if(selectedFixed.length < maxSel) {
+        previewEl.innerHTML = selectedFixed.map(p=>'<b>'+p.name+'</b>').join(' + ')+
+          ' <span style="color:var(--text-mute)">· Falta'+(maxSel-selectedFixed.length>1?'n':'')+' '+(maxSel-selectedFixed.length)+'</span>';
+        btnEl.disabled = true;
+        btnEl.textContent = 'AGREGAR AL PEDIDO ('+selectedFixed.length+'/'+maxSel+')';
+      } else {
+        previewEl.innerHTML = selectedFixed.map(p=>'<b>'+p.name+'</b>').join(' + ');
+        btnEl.disabled = false;
+        btnEl.textContent = '🛒 AGREGAR PROMO — '+formatPrice(promo.price);
+      }
+    }
+
+    linkedProds.forEach(p => {
+      const img = processDriveUrl(p.img);
+      const div = document.createElement('div');
+      div.className = 'promo-opt';
+      div.style.cssText = 'cursor:pointer;position:relative;border-radius:12px;overflow:hidden;background:var(--bg-3);border:1.5px solid var(--bg-4);transition:all 0.15s;display:block';
+      div.dataset.linkedProdId = p.id;
+      div.innerHTML =
+        '<div class="promo-opt-img" style="width:100%;aspect-ratio:1;'+(img?'background-image:url('+img+');background-size:cover;background-position:center':'')+'display:flex;align-items:center;justify-content:center;font-size:28px">'+(img?'':'🍕')+'</div>'+
+        '<div class="promo-opt-counter" style="display:none;position:absolute;top:7px;left:7px;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#012e29;font-size:12px;font-weight:900;align-items:center;justify-content:center;z-index:3;box-shadow:0 0 8px rgba(0,180,166,0.5)"></div>'+
+        '<div class="promo-opt-check" style="position:absolute;top:7px;right:7px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.5);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;z-index:2;transition:all 0.15s">✓</div>'+
+        '<div style="padding:7px 9px 9px"><div style="font-size:11px;font-weight:700;color:var(--text);line-height:1.3">'+(p.name||'')+'</div>'+
+        '<div style="font-size:10px;color:var(--text-mute);margin-top:2px">'+(p.description?p.description.slice(0,38):'Incluida en tu promo')+'</div></div>';
+
+      div.addEventListener('click', () => {
+        if(selectedFixed.length >= maxSel) {
+          // Límite alcanzado — vibrar para indicar que no se puede agregar más
+          haptic('error');
+          div.style.transform = 'scale(0.97)';
+          setTimeout(() => div.style.transform = '', 150);
+          // Mostrar feedback visual breve
+          instrEl.innerHTML = '⚠️ Ya elegiste <b>'+maxSel+'</b> pizzas — completa tu pedido o quita una';
+          return;
+        }
+        selectedFixed.push(p);
+        haptic('add');
+        updateInstrFixed();
+        updateFixedUI();
+      });
+
+      div.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        const idx = selectedFixed.findIndex(x => x.id === p.id);
+        if(idx !== -1) { selectedFixed.splice(idx, 1); haptic('add'); updateInstrFixed(); updateFixedUI(); }
+      });
+
+      grid.appendChild(div);
+    });
+
+    updateFixedUI();
+    document.getElementById('promoSelectOverlay').classList.add('active');
+
+    // Exponer estado
+    document.getElementById('promoConfirmBtn')._getItemCounts = null;
+    document.getElementById('promoConfirmBtn')._getItemExtras = null;
+    document.getElementById('promoConfirmBtn')._linkedProds = linkedProds;
+    document.getElementById('promoConfirmBtn')._isComboFijo = true;
+    document.getElementById('promoConfirmBtn')._getFixedSelected = () => selectedFixed;
+
+    return true;
+  }
+
+  // ── MODO LIBRE (burgers: sin límite, cada selección = promo separada) ──
+  const instrInicial = 'Toca para elegir · <span style="color:var(--primary)">toca varias veces</span> para pedir más de una'+(linkedCatName?' de '+linkedCatEmoji+' <b>'+linkedCatName+'</b>':'');
+  instrEl.innerHTML = instrInicial;
+
+  // Resetear grid al modo lista (flex columna)
   const grid = document.getElementById('promoSelectGrid');
   grid.innerHTML = '';
+  grid.style.cssText = 'display:flex;flex-direction:column;gap:10px;padding:4px 14px 16px;overflow-y:auto;flex:1';
 
-  // Contador por producto — permite seleccionar la misma hamburguesa varias veces
-  const itemCounts = {}; // { prodId: count }
+  // Grid
+  // Obtener ingredientes extra de la categoría vinculada (hamburguesas)
+  // Busca la catId de los productos vinculados o del linkedCatId
+  let extrasCatId = promo.linkedCatId;
+  if(!extrasCatId && promo.linkedProds && promo.linkedProds.length) {
+    const firstLinked = menuData.products.find(p => p.id === promo.linkedProds[0]);
+    if(firstLinked) extrasCatId = firstLinked.catId;
+  }
+  const availableExtras = extrasCatId
+    ? menuData.ingredients.filter(i => i.catId === extrasCatId && i.type === 'agregado' && i.available !== false)
+    : [];
+
+  // Contador por producto + extras por producto
+  const itemCounts = {};
+  const itemExtras = {}; // { prodId: { ingId: price } }
+
   function totalSelected() { return Object.values(itemCounts).reduce((s,n)=>s+n,0); }
+
+  function getExtrasTotal(prodId) {
+    const exts = itemExtras[prodId] || {};
+    return Object.values(exts).reduce((s,p)=>s+p,0);
+  }
+
+  function getTotalConExtras() {
+    return Object.entries(itemCounts).reduce((s,[id,qty]) => {
+      return s + (promo.price + getExtrasTotal(id)) * qty;
+    }, 0);
+  }
 
   function updatePreviewAndBtn() {
     const previewEl = document.getElementById('promoSelectedText');
     const btnEl = document.getElementById('promoConfirmBtn');
     const total = totalSelected();
     if(total === 0) {
-      previewEl.innerHTML = 'Toca una opción para seleccionar';
+      previewEl.innerHTML = 'Toca una hamburguesa para seleccionar';
       btnEl.disabled = true;
       btnEl.textContent = 'AGREGAR AL PEDIDO';
     } else {
-      // Mostrar resumen: "Clásica x2 + Mexicana x1"
-      const parts = Object.entries(itemCounts)
-        .filter(([,n])=>n>0)
-        .map(([id,n])=>{
-          const prod = linkedProds.find(p=>p.id===id);
-          return '<b>'+(prod?prod.name:id)+'</b>'+(n>1?' x'+n:'');
-        });
-      previewEl.innerHTML = parts.join(' + ')+
-        ' <span style="color:var(--primary);font-size:10px;font-weight:700">('+total+' promo'+(total>1?'s':'')+' · '+formatPrice(promo.price * total)+')</span>';
+      const parts = Object.entries(itemCounts).filter(([,n])=>n>0).map(([id,n])=>{
+        const prod = linkedProds.find(p=>p.id===id);
+        const extCount = Object.keys(itemExtras[id]||{}).length;
+        return '<b>'+(prod?prod.name:id)+'</b>'+(n>1?' x'+n:'')+(extCount?' +'+extCount+' extras':'');
+      });
+      previewEl.innerHTML = parts.join(' · ')+
+        ' <span style="color:var(--primary);font-size:10px;font-weight:700">('+formatPrice(getTotalConExtras())+')</span>';
       btnEl.disabled = false;
-      btnEl.textContent = '🛒 AGREGAR '+total+' AL PEDIDO — '+formatPrice(promo.price * total);
+      btnEl.textContent = '🛒 AGREGAR — '+formatPrice(getTotalConExtras());
     }
-    // Actualizar contadores en el grid
-    grid.querySelectorAll('.promo-opt').forEach(div => {
+    // Actualizar contadores en cards
+    grid.querySelectorAll('.promo-opt-wrap').forEach(wrap => {
+      const div = wrap.querySelector('.promo-opt');
+      if(!div) return;
       const pid = div.dataset.linkedProdId;
       const count = itemCounts[pid] || 0;
       const counterEl = div.querySelector('.promo-opt-counter');
       const checkEl = div.querySelector('.promo-opt-check');
       if(count > 0) {
         div.classList.add('selected');
-        if(counterEl) counterEl.textContent = count;
-        if(counterEl) counterEl.style.display = 'flex';
+        wrap.classList.add('selected-wrap');
+        if(counterEl) { counterEl.textContent = count; counterEl.style.display = 'flex'; }
         if(checkEl) checkEl.style.display = 'none';
       } else {
         div.classList.remove('selected');
+        wrap.classList.remove('selected-wrap');
         if(counterEl) counterEl.style.display = 'none';
         if(checkEl) checkEl.style.display = 'flex';
       }
@@ -4379,45 +4530,126 @@ function openPromoSelectModal(promoProdId) {
 
   linkedProds.forEach(p => {
     const img = processDriveUrl(p.img);
+
+    // Wrapper que contiene la card + el acordeón de extras
+    const wrap = document.createElement('div');
+    wrap.className = 'promo-opt-wrap';
+
+    // Card principal
     const div = document.createElement('div');
     div.className = 'promo-opt';
     div.dataset.linkedProdId = p.id;
     div.innerHTML =
-      '<div class="promo-opt-img" '+(img?'style="background-image:url('+img+');background-size:cover;background-position:center"':'')+'>'+(img?'':'🍕')+'</div>'+
-      // Burbuja contador (número de veces seleccionado)
-      '<div class="promo-opt-counter" style="display:none;position:absolute;top:7px;left:7px;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#012e29;font-size:12px;font-weight:900;align-items:center;justify-content:center;z-index:3">1</div>'+
-      '<div class="promo-opt-check" style="position:absolute;top:7px;right:7px">✓</div>'+
+      '<div class="promo-opt-img" '+(img?'style="background-image:url('+img+');background-size:cover;background-position:center"':'')+'>'+(img?'':'🍔')+'</div>'+
+      '<div class="promo-opt-counter" style="display:none">1</div>'+
+      '<div class="promo-opt-check">✓</div>'+
       '<div class="promo-opt-info">'+
         '<div class="promo-opt-name">'+(p.name||'')+'</div>'+
-        '<div class="promo-opt-price">'+(p.description?p.description.slice(0,35):'Incluida en tu promo')+'</div>'+
+        '<div class="promo-opt-price">'+(p.description?p.description.slice(0,40):'Incluida en tu promo')+'</div>'+
       '</div>';
 
+    // Acordeón de extras — declarado ANTES del click handler para evitar TDZ
+    const extrasAccordion = document.createElement('div');
+    extrasAccordion.className = 'promo-extras-accordion';
+    extrasAccordion.style.display = 'none';
+
+    if(availableExtras.length) {
+      const extHeader = document.createElement('div');
+      extHeader.className = 'promo-extras-header';
+      extHeader.innerHTML =
+        '<div class="promo-extras-label">➕ Ingredientes Extra <span class="promo-extras-badge">'+availableExtras.length+' opciones</span></div>'+
+        '<span class="promo-extras-arrow">▼</span>';
+
+      const extBody = document.createElement('div');
+      extBody.className = 'promo-extras-body';
+
+      extHeader.addEventListener('click', e => {
+        e.stopPropagation();
+        const arrow = extHeader.querySelector('.promo-extras-arrow');
+        extBody.classList.toggle('show');
+        arrow.classList.toggle('open');
+      });
+
+      availableExtras.forEach(ing => {
+        const ingImg = processDriveUrl(ing.img);
+        const row = document.createElement('div');
+        row.className = 'promo-extra-item';
+        row.innerHTML =
+          '<div class="promo-extra-img" '+(ingImg?'style="background-image:url('+ingImg+');background-size:cover;background-position:center"':'')+'>'+(ingImg?'':'🧀')+'</div>'+
+          '<span class="promo-extra-name">'+(ing.name||'')+'</span>'+
+          '<span class="promo-extra-price">'+(ing.price?'+'+formatPrice(ing.price):'Gratis')+'</span>'+
+          '<div class="promo-extra-chk">✓</div>';
+        row.addEventListener('click', e => {
+          e.stopPropagation();
+          if(!itemExtras[p.id]) itemExtras[p.id] = {};
+          if(itemExtras[p.id][ing.id] !== undefined) {
+            delete itemExtras[p.id][ing.id];
+            row.classList.remove('sel');
+          } else {
+            itemExtras[p.id][ing.id] = ing.price || 0;
+            row.classList.add('sel');
+          }
+          updatePreviewAndBtn();
+        });
+        extBody.appendChild(row);
+      });
+
+      extrasAccordion.appendChild(extHeader);
+      extrasAccordion.appendChild(extBody);
+    }
+
+    // Click: sumar 1 y mostrar extras
     div.addEventListener('click', () => {
-      // Cada toque suma 1. Toque largo o doble toque en selected resta 1
       itemCounts[p.id] = (itemCounts[p.id] || 0) + 1;
+      if(!itemExtras[p.id]) itemExtras[p.id] = {};
+      if(availableExtras.length) {
+        extrasAccordion.style.display = '';
+        wrap.classList.add('selected-wrap');
+        // Abrir automáticamente al primer toque
+        if(itemCounts[p.id] === 1) {
+          const body = extrasAccordion.querySelector('.promo-extras-body');
+          const arrow = extrasAccordion.querySelector('.promo-extras-arrow');
+          if(body) body.classList.add('show');
+          if(arrow) arrow.classList.add('open');
+        }
+      }
       haptic('add');
       updatePreviewAndBtn();
     });
 
-    // Botón quitar (- ) al mantener presionado o con botón dedicado
+    // Click derecho: restar 1
     div.addEventListener('contextmenu', e => {
       e.preventDefault();
-      if(itemCounts[p.id] > 0) { itemCounts[p.id]--; if(itemCounts[p.id]===0) delete itemCounts[p.id]; }
-      haptic('add'); updatePreviewAndBtn();
+      if((itemCounts[p.id]||0) > 0) {
+        itemCounts[p.id]--;
+        if(itemCounts[p.id] === 0) {
+          delete itemCounts[p.id];
+          delete itemExtras[p.id];
+          extrasAccordion.style.display = 'none';
+          wrap.classList.remove('selected-wrap');
+          const body = extrasAccordion.querySelector('.promo-extras-body');
+          const arrow = extrasAccordion.querySelector('.promo-extras-arrow');
+          if(body) body.classList.remove('show');
+          if(arrow) arrow.classList.remove('open');
+        }
+      }
+      haptic('add');
+      updatePreviewAndBtn();
     });
 
-    grid.appendChild(div);
+    wrap.appendChild(div);
+    wrap.appendChild(extrasAccordion);
+    grid.appendChild(wrap);
   });
 
-  // Instrucción actualizada
   document.getElementById('promoSelectInstruction').innerHTML =
-    'Toca para agregar · <span style="color:var(--primary)">toca varias veces</span> para pedir más de una'+(linkedCatName?' de '+linkedCatEmoji+' <b>'+linkedCatName+'</b>':'');
+    'Toca para elegir · <span style="color:var(--primary)">toca varias veces</span> para pedir más de una'+(linkedCatName?' de '+linkedCatEmoji+' <b>'+linkedCatName+'</b>':'');
 
   updatePreviewAndBtn();
   document.getElementById('promoSelectOverlay').classList.add('active');
 
-  // Exponer estado al botón confirmar
   document.getElementById('promoConfirmBtn')._getItemCounts = () => itemCounts;
+  document.getElementById('promoConfirmBtn')._getItemExtras = () => itemExtras;
   document.getElementById('promoConfirmBtn')._linkedProds = linkedProds;
 
   return true;
@@ -4440,31 +4672,75 @@ document.getElementById('promoConfirmBtn').addEventListener('click', () => {
   if(!promo) return;
 
   const btn = document.getElementById('promoConfirmBtn');
+
+  // ── MODO COMBO FIJO (pizzas) ──
+  if(btn._isComboFijo) {
+    const selectedFixed = btn._getFixedSelected ? btn._getFixedSelected() : [];
+    if(!selectedFixed.length) return;
+    const selNames = selectedFixed.map(p=>p.name).join(' + ');
+    const selIds = selectedFixed.map(p=>p.id).join(',');
+    const existing = cart.find(c => c.id===_promoSelectProdId && c.linkedSelection===selIds);
+    if(existing) {
+      existing.qty++;
+    } else {
+      cart.push({
+        id: _promoSelectProdId,
+        name: promo.name+' — '+selNames,
+        price: promo.price,
+        img: promo.img||'',
+        qty: 1, note: '',
+        linkedSelection: selIds,
+        linkedSelectionName: selNames,
+      });
+    }
+    saveCart(); updateCartUI(); refreshProductButtons();
+    haptic('add');
+    if(typeof playPopSound==='function') playPopSound();
+    closePromoSelectModal();
+    // Limpiar estado combo
+    btn._isComboFijo = false;
+    btn._getFixedSelected = null;
+    return;
+  }
+
+  // ── MODO LIBRE (burgers) ──
   const itemCounts = btn._getItemCounts ? btn._getItemCounts() : {};
+  const itemExtras = btn._getItemExtras ? btn._getItemExtras() : {};
   const linkedProds = btn._linkedProds || [];
   const total = Object.values(itemCounts).reduce((s,n)=>s+n,0);
   if(!total) return;
 
-  // Agregar cada hamburguesa como promo separada
   Object.entries(itemCounts).forEach(([prodId, count]) => {
     if(!count) return;
     const selectedProd = linkedProds.find(p => p.id === prodId);
     if(!selectedProd) return;
+    const exts = itemExtras[prodId] || {};
+    const extrasTotal = Object.values(exts).reduce((s,p)=>s+p,0);
+    const extrasNames = Object.keys(exts).map(ingId => {
+      const ing = menuData.ingredients.find(i => i.id === ingId);
+      return ing ? ing.name : ingId;
+    }).filter(Boolean);
+    const finalPrice = promo.price + extrasTotal;
     const cartName = promo.name + ' — ' + selectedProd.name;
     const selectionKey = _promoSelectProdId + '_' + prodId;
-    const existing = cart.find(c => c.id === _promoSelectProdId && c.linkedSelection === selectionKey);
+    const existing = cart.find(c =>
+      c.id === _promoSelectProdId &&
+      c.linkedSelection === selectionKey &&
+      JSON.stringify(c.agregados||[]) === JSON.stringify(extrasNames)
+    );
     if(existing) {
       existing.qty += count;
     } else {
       cart.push({
         id: _promoSelectProdId,
         name: cartName,
-        price: promo.price,
+        price: finalPrice,
         img: promo.img || '',
         qty: count,
         note: '',
         linkedSelection: selectionKey,
         linkedSelectionName: selectedProd.name,
+        agregados: extrasNames.length ? extrasNames : undefined,
       });
     }
   });
