@@ -266,9 +266,7 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
 .order-total-badge { font-family:'Bebas Neue',sans-serif; font-size:16px; color:var(--accent); letter-spacing:0.04em; }
 .order-time { font-size:11px; color:var(--text-mute); }
 .order-status-badge { font-size:10px; letter-spacing:0.1em; padding:3px 10px; border-radius:10px; font-weight:600; text-transform:uppercase; }
-.order-status-badge.pending { background:rgba(241,196,15,0.12); color:var(--yellow); border:1px solid rgba(241,196,15,0.3); }
-.order-status-badge.preparing { background:rgba(245,166,35,0.12); color:var(--accent); border:1px solid rgba(245,166,35,0.3); }
-.order-status-badge.delivered { background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); }
+.order-status-badge.confirmed { background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); }
 .order-status-badge.cancelled { background:rgba(231,76,60,0.12); color:var(--red); border:1px solid rgba(231,76,60,0.3); }
 .order-detail { display:none; padding:16px; border-top:1px solid var(--bg-4); background:var(--bg-3); animation:fadeIn 0.2s ease; }
 .order-detail.open { display:block; }
@@ -894,8 +892,7 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <!-- ORDERS -->
       <div class="section-view" data-view="orders" style="display:none">
         <div class="page-header">
-          <div><div class="page-title">PEDI<span>DOS</span></div><div class="page-subtitle">Historial completo de ventas</div></div>
-          <button class="archived-toggle-btn" id="btnToggleArchived">📦 VER ARCHIVADOS</button>
+          <div><div class="page-title">PEDI<span>DOS</span></div><div class="page-subtitle">Confirma o cancela los pedidos de tus clientes</div></div>
         </div>
 
         <!-- ORDER STATS -->
@@ -930,16 +927,14 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
         <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
           <button class="btn btn-accent btn-sm" id="btnExportExcel">📊 EXPORTAR EXCEL</button>
           <button class="btn btn-ghost btn-sm" id="btnExportPDF" style="border-color:var(--red);color:var(--red)">📄 EXPORTAR PDF</button>
+          <button class="btn btn-sm" id="btnDeleteAllOrders" style="background:rgba(220,38,38,0.12);color:#f87171;border:1px solid rgba(220,38,38,0.35);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">🗑️ ELIMINAR TODOS LOS PEDIDOS</button>
         </div>
 
         <!-- FILTER STATUS TABS -->
         <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap" id="statusFilterTabs">
           <button class="btn btn-ghost btn-sm status-filter active" data-status="all">Todos</button>
-          <button class="btn btn-ghost btn-sm status-filter" data-status="pending" style="border-color:var(--yellow);color:var(--yellow)">⏳ Pendientes</button>
-          <button class="btn btn-ghost btn-sm status-filter" data-status="preparing" style="border-color:var(--accent);color:var(--accent)">🔥 En Preparación</button>
-          <button class="btn btn-ghost btn-sm status-filter" data-status="delivered" style="border-color:var(--green);color:var(--green)">✓ Entregados</button>
+          <button class="btn btn-ghost btn-sm status-filter" data-status="confirmed" style="border-color:var(--green);color:var(--green)">✓ Confirmados</button>
           <button class="btn btn-ghost btn-sm status-filter" data-status="cancelled" style="border-color:var(--red);color:var(--red)">✕ Cancelados</button>
-          <button class="btn btn-ghost btn-sm status-filter" data-status="archived" style="border-color:var(--purple);color:var(--purple);display:none" id="filterTabArchived">📦 Archivados</button>
         </div>
 
         <!-- ORDERS LIST -->
@@ -2690,8 +2685,8 @@ let filteredOrders = [];
 let activeStatusFilter = 'all';
 let showArchived = false;
 
-const STATUS_LABELS = { pending:'Pendiente', preparing:'En Preparación', delivered:'Entregado', cancelled:'Cancelado', archived:'Archivado' };
-const STATUS_EMOJI  = { pending:'⏳', preparing:'🔥', delivered:'✓', cancelled:'✕', archived:'📦' };
+const STATUS_LABELS = { pending:'Confirmado', preparing:'Confirmado', delivered:'Confirmado', confirmed:'Confirmado', cancelled:'Cancelado', archived:'Confirmado' };
+const STATUS_EMOJI  = { pending:'✓', preparing:'✓', delivered:'✓', confirmed:'✓', cancelled:'✕', archived:'✓' };
 
 function getSantiagoToday() {
   return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santiago'})).toISOString().split('T')[0];
@@ -2718,9 +2713,8 @@ function applyOrderFilters() {
   entries.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
   if(from) entries = entries.filter(o => o.date >= from);
   if(to)   entries = entries.filter(o => o.date <= to);
-  // Ocultar archivados salvo que showArchived esté activo
-  if(!showArchived) entries = entries.filter(o => (o.status||'pending') !== 'archived');
-  if(activeStatusFilter !== 'all') entries = entries.filter(o => (o.status||'pending') === activeStatusFilter);
+  if(activeStatusFilter === 'confirmed') entries = entries.filter(o => (o.status||'confirmed') !== 'cancelled');
+  else if(activeStatusFilter === 'cancelled') entries = entries.filter(o => o.status === 'cancelled');
   filteredOrders = entries;
   renderOrders();
   renderOrderStats();
@@ -2733,8 +2727,8 @@ function renderOrderStats() {
   let scoped = base;
   if(from) scoped = scoped.filter(o=>o.date>=from);
   if(to)   scoped = scoped.filter(o=>o.date<=to);
-  // Para stats: incluimos delivered y archived como ventas realizadas (no cancelados)
-  const delivered = scoped.filter(o=>o.status==='delivered'||o.status==='pending'||o.status==='preparing'||o.status==='archived');
+  // Para stats: todo lo que no esté cancelado cuenta como venta confirmada
+  const delivered = scoped.filter(o=>o.status!=='cancelled');
   const revenue = delivered.reduce((s,o)=>s+(o.subtotal||0),0);
   const deliveryTotal = delivered.reduce((s,o)=>s+(o.delivery?o.delivery.price:0),0);
   const avg = delivered.length ? Math.round(revenue/delivered.length) : 0;
@@ -2746,7 +2740,7 @@ function renderOrderStats() {
 
 function renderTopProducts() {
   const counts = {};
-  filteredOrders.forEach(o => {
+  filteredOrders.filter(o => o.status !== 'cancelled').forEach(o => {
     (o.items||[]).forEach(it => {
       counts[it.name] = (counts[it.name]||0) + (it.qty||1);
     });
@@ -2775,7 +2769,7 @@ function renderOrders() {
   }
   list.innerHTML='';
   filteredOrders.forEach((order,idx) => {
-    const status = order.status || 'pending';
+    const status = order.status === 'cancelled' ? 'cancelled' : 'confirmed';
     const card = document.createElement('div');
     card.className = 'order-card ' + status;
     const orderNum = String(filteredOrders.length - idx).padStart(3,'0');
@@ -2787,7 +2781,7 @@ function renderOrders() {
           <div class="order-time">${order.date||''} ${order.time||''} · ${order.customer?.zone||''}</div>
         </div>
         <div class="order-total-badge">${formatCLP(order.total)}</div>
-        <div class="order-status-badge ${status}">${STATUS_EMOJI[status]||''} ${STATUS_LABELS[status]||status}</div>
+        <div class="order-status-badge ${status}">${status==='cancelled'?'✕ Cancelado':'✓ Confirmado'}</div>
         <div style="color:var(--text-mute);font-size:14px">›</div>
       </div>
       <div class="order-detail" id="detail-${order.id}">
@@ -2812,16 +2806,8 @@ function renderOrders() {
         </div>
         ${order.notes ? `<div class="tip-box" style="margin-bottom:14px"><span class="tip-icon">📝</span><div>${order.notes}</div></div>` : ''}
         <div class="order-status-actions">
-          <span style="font-size:11px;color:var(--text-mute);letter-spacing:0.1em;text-transform:uppercase;align-self:center">Estado:</span>
-          ${status!=='archived'?`
-          <button class="order-status-btn s-pending ${status==='pending'?'active':''}" data-sid="${order.id}" data-s="pending">⏳ Pendiente</button>
-          <button class="order-status-btn s-preparing ${status==='preparing'?'active':''}" data-sid="${order.id}" data-s="preparing">🔥 Preparando</button>
-          <button class="order-status-btn s-delivered ${status==='delivered'?'active':''}" data-sid="${order.id}" data-s="delivered">✓ Entregado</button>
-          ${status==='delivered'?`<button class="order-status-btn s-archived" data-sid="${order.id}" data-s="archived" title="Archivar — desaparece de la vista activa">📦 Archivar</button>`:''}
-          <button class="order-status-btn s-cancelled ${status==='cancelled'?'active':''}" data-sid="${order.id}" data-s="cancelled">✕ Cancelar</button>
-          `:`<span style="color:var(--purple);font-size:11px;letter-spacing:0.05em;align-self:center">📦 Archivado — vive en Firebase</span>
-          <button class="order-status-btn s-delivered" data-sid="${order.id}" data-s="delivered" title="Desarchivar">↩ Desarchivar</button>
-          `}
+          <button class="order-status-btn s-delivered ${status==='confirmed'?'active':''}" data-sid="${order.id}" data-s="confirmed">✓ Confirmar Pedido</button>
+          <button class="order-status-btn s-cancelled ${status==='cancelled'?'active':''}" data-sid="${order.id}" data-s="cancelled">✕ Cancelar Pedido</button>
         </div>
       </div>`;
     list.appendChild(card);
@@ -2844,29 +2830,6 @@ function renderOrders() {
     });
   });
 }
-
-// Toggle archivados
-document.getElementById('btnToggleArchived').addEventListener('click', () => {
-  showArchived = !showArchived;
-  const btn = document.getElementById('btnToggleArchived');
-  const tabArchived = document.getElementById('filterTabArchived');
-  if(showArchived) {
-    btn.classList.add('active');
-    btn.textContent = '📦 OCULTAR ARCHIVADOS';
-    tabArchived.style.display = '';
-  } else {
-    btn.classList.remove('active');
-    btn.textContent = '📦 VER ARCHIVADOS';
-    tabArchived.style.display = 'none';
-    // Si el filtro activo era archived, volver a todos
-    if(activeStatusFilter === 'archived') {
-      activeStatusFilter = 'all';
-      document.querySelectorAll('.status-filter').forEach(t=>t.classList.remove('active'));
-      document.querySelector('.status-filter[data-status="all"]').classList.add('active');
-    }
-  }
-  applyOrderFilters();
-});
 
 // Date range quick filters
 document.querySelectorAll('.btn-quick-date').forEach(btn => {
@@ -2906,8 +2869,28 @@ document.querySelectorAll('.status-filter').forEach(tab => {
 
 // ── EXCEL EXPORT ─────────────────────────────────────────────────
 document.getElementById('btnExportExcel').addEventListener('click', () => {
-  if(!filteredOrders.length) { toast('No hay pedidos para exportar','error'); return; }
   exportExcel();
+});
+
+// ── ELIMINAR TODOS LOS PEDIDOS ────────────────────────────────────
+document.getElementById('btnDeleteAllOrders').addEventListener('click', async () => {
+  if(!confirm('⚠️ ¿Eliminar TODOS los pedidos?\n\nEsta acción no se puede deshacer. Se eliminarán todos los pedidos de prueba antes del lanzamiento.')) return;
+  if(!confirm('¿Estás seguro? Se borrarán TODOS los registros de pedidos permanentemente.')) return;
+  try {
+    const res = await fetch('https://punto84-raspadito-default-rtdb.firebaseio.com/menu/orders.json', {
+      method: 'DELETE'
+    });
+    if(res.ok) {
+      data.orders = {};
+      toast('✅ Todos los pedidos eliminados correctamente');
+      // Recargar la sección de pedidos
+      if(typeof loadOrders === 'function') loadOrders();
+    } else {
+      toast('❌ Error al eliminar: ' + res.status);
+    }
+  } catch(e) {
+    toast('❌ Error de conexión: ' + e.message);
+  }
 });
 
 function exportExcel() {
@@ -3054,7 +3037,7 @@ function exportExcel() {
   // ══════════════════════════════════════
   // SHEET 2 — PEDIDOS DETALLE
   // ══════════════════════════════════════
-  const STATUS_ST = { pending:ST.stPend, preparing:ST.stPrep, delivered:ST.stDel, cancelled:ST.stCan };
+  const STATUS_ST = { pending:ST.stDel, preparing:ST.stDel, delivered:ST.stDel, confirmed:ST.stDel, archived:ST.stDel, cancelled:ST.stCan };
   const NCOLS2 = 11;
   const titleRow2 = cBlank(NCOLS2);
   titleRow2[0] = c(local.toUpperCase()+' — DETALLE DE PEDIDOS', ST.subtitle);
@@ -3078,7 +3061,7 @@ function exportExcel() {
         c(o.delivery?.price||0,    e?ST.dat0r:ST.dat1r),
         c(o.subtotal||0,           e?ST.dat0r:ST.dat1r),
         c(o.total||0,              e?ST.dat0bold:ST.dat1bold),
-        c(STATUS_LABELS[o.status||'pending']||'', STATUS_ST[o.status||'pending']||(e?ST.dat0c:ST.dat1c)),
+        c(o.status==='cancelled'?'Cancelado':'Confirmado', STATUS_ST[o.status||'confirmed']||(e?ST.dat0c:ST.dat1c)),
         c(o.notes||'',             e?ST.dat0:ST.dat1),
       ];
     })
@@ -3467,8 +3450,8 @@ function exportPDF() {
   doc.addPage(); drawFrame(); y = 8;
   y = sectionHdr('Detalle completo de pedidos — '+period, y, AM, '📋');
 
-  const SLABELS = {pending:'Pendiente', preparing:'Preparando', delivered:'Entregado', cancelled:'Cancelado', archived:'Archivado'};
-  const SCOLS   = {pending:YE, preparing:AM, delivered:GR, cancelled:RE, archived:PU};
+  const SLABELS = {pending:'Confirmado', preparing:'Confirmado', delivered:'Confirmado', confirmed:'Confirmado', archived:'Confirmado', cancelled:'Cancelado'};
+  const SCOLS   = {pending:GR, preparing:GR, delivered:GR, confirmed:GR, archived:GR, cancelled:RE};
 
   doc.autoTable({
     startY: y,
