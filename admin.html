@@ -253,46 +253,59 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
 ::-webkit-scrollbar-thumb:hover { background:var(--primary-dark); }
 
 /* ORDER ITEMS */
-.order-card { background:var(--bg-2); border:1px solid var(--bg-4); border-radius:12px; overflow:hidden; margin-bottom:12px; transition:border-color 0.2s; }
-.order-card:hover { border-color:var(--primary-dark); }
-.order-card.pending { border-left:3px solid var(--yellow); }
-.order-card.preparing { border-left:3px solid var(--accent); }
-.order-card.delivered { border-left:3px solid var(--green); }
-.order-card.cancelled { border-left:3px solid var(--red); opacity:0.6; }
-.order-header { padding:14px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; cursor:pointer; transition:background 0.15s; }
-.order-header:hover { background:var(--bg-3); }
-.order-num { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:0.1em; color:var(--primary); min-width:60px; }
-.order-customer { font-weight:600; font-size:13px; color:var(--text); flex:1; min-width:100px; }
-.order-total-badge { font-family:'Bebas Neue',sans-serif; font-size:16px; color:var(--accent); letter-spacing:0.04em; }
-.order-time { font-size:11px; color:var(--text-mute); }
-.order-status-badge { font-size:10px; letter-spacing:0.1em; padding:3px 10px; border-radius:10px; font-weight:600; text-transform:uppercase; }
-.order-status-badge.confirmed { background:rgba(46,204,113,0.12); color:var(--green); border:1px solid rgba(46,204,113,0.3); }
-.order-status-badge.cancelled { background:rgba(231,76,60,0.12); color:var(--red); border:1px solid rgba(231,76,60,0.3); }
-.order-detail { display:none; padding:16px; border-top:1px solid var(--bg-4); background:var(--bg-3); animation:fadeIn 0.2s ease; }
+/* ── ORDER CARDS — ESTILO C1 ── */
+.order-card { background:#0d1015; border:1px solid #1c2028; border-radius:16px; overflow:hidden; margin-bottom:10px; position:relative; transition:border-color 0.2s, box-shadow 0.2s; }
+.order-card:hover { border-color:#252d38; box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+.order-card.confirmed { border-left:3px solid #22aa55; }
+.order-card.cancelled { border-left:3px solid #dc2626; opacity:0.65; }
+.order-card-glow { position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
+.order-card.confirmed .order-card-glow { background:linear-gradient(180deg,#22aa55,#00dfd8); }
+.order-card.cancelled .order-card-glow { background:linear-gradient(180deg,#dc2626,#991b1b); }
+
+/* Header — info principal */
+.order-header { padding:16px 18px 14px 20px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:background 0.15s; }
+.order-header:hover { background:rgba(255,255,255,0.02); }
+.order-num { font-family:monospace; font-size:11px; font-weight:700; color:#374151; min-width:36px; }
+.order-info { flex:1; min-width:0; }
+.order-customer { font-weight:800; font-size:14px; color:#fff; }
+.order-time { font-size:10px; color:#4b5563; margin-top:2px; letter-spacing:0.03em; }
+.order-total-badge { font-family:'Bebas Neue',sans-serif; font-size:18px; color:#fff; letter-spacing:0.04em; flex-shrink:0; }
+.order-status-badge { font-size:9px; letter-spacing:0.1em; padding:4px 10px; border-radius:20px; font-weight:800; text-transform:uppercase; flex-shrink:0; }
+.order-status-badge.confirmed { background:rgba(34,170,85,0.12); color:#4ade80; border:1px solid rgba(34,170,85,0.25); }
+.order-status-badge.cancelled { background:rgba(220,38,38,0.1); color:#f87171; border:1px solid rgba(220,38,38,0.2); }
+.order-chevron { color:#374151; font-size:14px; transition:transform 0.2s; flex-shrink:0; }
+.order-detail.open ~ .order-header .order-chevron,
+.order-header.open .order-chevron { transform:rotate(90deg); }
+
+/* Detail expanded */
+.order-detail { display:none; padding:0 18px 18px 20px; animation:fadeIn 0.2s ease; }
 .order-detail.open { display:block; }
-.order-items-table { width:100%; margin-bottom:14px; }
-.order-items-table td { padding:6px 8px; font-size:13px; border-bottom:1px solid var(--bg-4); }
-.order-items-table .item-name { color:var(--text); }
-.order-items-table .item-note { font-style:italic; color:var(--text-mute); font-size:11px; }
-.order-items-table .item-qty { color:var(--text-dim); text-align:center; width:40px; }
-.order-items-table .item-price { color:var(--accent); text-align:right; font-family:'Bebas Neue',sans-serif; font-size:14px; }
-.order-summary { background:var(--bg-4); border-radius:8px; padding:12px; margin-bottom:14px; }
-.order-summary-row { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; }
-.order-summary-row.total { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--accent); border-top:1px solid var(--bg-5); padding-top:8px; margin-top:4px; }
-.order-meta { display:flex; gap:8px; flex-wrap:wrap; font-size:11px; color:var(--text-mute); margin-bottom:14px; }
-.order-meta span { background:var(--bg-4); padding:3px 10px; border-radius:4px; }
-.order-status-actions { display:flex; gap:6px; flex-wrap:wrap; }
-.order-status-btn { padding:7px 14px; border-radius:6px; font-size:11px; letter-spacing:0.08em; font-weight:600; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
-.order-status-btn.s-pending { background:transparent; border:1px solid var(--yellow); color:var(--yellow); }
-.order-status-btn.s-preparing { background:transparent; border:1px solid var(--accent); color:var(--accent); }
-.order-status-btn.s-delivered { background:transparent; border:1px solid var(--green); color:var(--green); }
-.order-status-btn.s-cancelled { background:transparent; border:1px solid var(--red); color:var(--red); }
-.order-status-btn.active { font-weight:700; }
-.order-status-btn.s-pending.active { background:rgba(241,196,15,0.15); }
-.order-status-btn.s-preparing.active { background:rgba(245,166,35,0.15); }
-.order-status-btn.s-delivered.active { background:rgba(46,204,113,0.15); }
-.order-status-btn.s-cancelled.active { background:rgba(231,76,60,0.15); }
-.order-status-btn.s-delivered { background:transparent; border:1px solid var(--green); color:var(--green); }
+.order-divider { height:1px; background:#161a20; margin:0 0 16px; }
+.order-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.order-meta span { background:#161a20; border:1px solid #1c2028; padding:4px 10px; border-radius:6px; font-size:10px; color:#6b7280; letter-spacing:0.03em; }
+
+/* Items table */
+.order-items-table { width:100%; margin-bottom:14px; border-collapse:collapse; }
+.order-items-table td { padding:8px 6px; font-size:12px; border-bottom:1px solid #161a20; }
+.order-items-table .item-name { color:#e2e8f0; font-weight:600; }
+.order-items-table .item-note { font-style:italic; color:#4b5563; font-size:10px; margin-top:2px; }
+.order-items-table .item-qty { color:#6b7280; text-align:center; width:32px; font-weight:700; }
+.order-items-table .item-price { color:#f5a623; text-align:right; font-family:'Bebas Neue',sans-serif; font-size:14px; }
+
+/* Summary */
+.order-summary { background:#161a20; border-radius:10px; padding:12px 14px; margin-bottom:16px; }
+.order-summary-row { display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:#6b7280; }
+.order-summary-row.total { font-family:'Bebas Neue',sans-serif; font-size:19px; color:#fff; border-top:1px solid #1c2028; padding-top:10px; margin-top:6px; }
+
+/* Action buttons C1 */
+.order-status-actions { display:flex; gap:8px; }
+.order-status-btn { flex:1; padding:14px; border-radius:10px; font-size:12px; font-weight:800; letter-spacing:0.04em; cursor:pointer; text-align:center; transition:all 0.15s; border:none; }
+.order-status-btn.s-delivered { background:linear-gradient(135deg,#16a34a,#15803d); color:#fff; box-shadow:0 4px 14px rgba(22,163,74,0.3); }
+.order-status-btn.s-delivered.active { box-shadow:0 0 0 2px #4ade80, 0 4px 14px rgba(22,163,74,0.4); }
+.order-status-btn.s-delivered:hover { opacity:0.9; transform:translateY(-1px); }
+.order-status-btn.s-cancelled { background:#161a20; color:#6b7280; border:1px solid #1c2028; }
+.order-status-btn.s-cancelled.active { background:rgba(220,38,38,0.1); color:#f87171; border-color:rgba(220,38,38,0.3); }
+.order-status-btn.s-cancelled:hover { border-color:#374151; color:#9ca3af; }
 .order-status-btn.s-delivered.active { background:rgba(46,204,113,0.15); }
 .order-status-btn.s-archived { background:transparent; border:1px solid var(--text-mute); color:var(--text-mute); }
 .order-status-btn.s-archived:hover { border-color:var(--purple); color:var(--purple); }
@@ -301,9 +314,26 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
 .status-filter.active { font-weight:700 !important; }
 .order-card.archived { border-left:3px solid var(--purple); opacity:0.5; }
 .order-status-badge.archived { background:rgba(155,89,182,0.12); color:var(--purple); border:1px solid rgba(155,89,182,0.3); }
-.archived-toggle-btn { padding:8px 16px; border-radius:8px; font-size:12px; letter-spacing:0.08em; font-weight:600; text-transform:uppercase; cursor:pointer; transition:all 0.2s; background:transparent; border:1px solid var(--purple); color:var(--purple); }
-.archived-toggle-btn.active { background:rgba(155,89,182,0.15); }
-.archived-toggle-btn:hover { background:rgba(155,89,182,0.2); }
+/* ── TOOLBAR T3 — Export cards + filtros ── */
+.order-toolbar { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+.order-export-row { display:flex; gap:8px; align-items:stretch; }
+.order-export-card { flex:1; background:#0d1015; border:1px solid #1c2028; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:12px; transition:border-color 0.15s, background 0.15s; cursor:pointer; }
+.order-export-card:hover { background:#11161e; border-color:#252d38; }
+.order-export-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.order-export-icon.excel { background:rgba(34,197,94,0.1); }
+.order-export-icon.pdf { background:rgba(248,113,113,0.08); }
+.order-export-label { flex:1; }
+.order-export-label span { display:block; font-size:11px; font-weight:700; color:#94a3b8; }
+.order-export-label small { display:block; font-size:9px; color:#374151; margin-top:1px; letter-spacing:0.04em; }
+.order-export-cta { background:#1c2028; border:none; border-radius:8px; padding:7px 12px; color:#e2e8f0; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.order-delete-card { background:transparent; border:1px dashed rgba(220,38,38,0.2); border-radius:14px; padding:14px 16px; color:rgba(220,38,38,0.35); font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap; transition:all 0.15s; }
+.order-delete-card:hover { border-color:rgba(220,38,38,0.4); color:rgba(248,113,113,0.7); background:rgba(220,38,38,0.04); }
+.order-filter-row { display:flex; gap:0; border:1px solid #1c2028; border-radius:12px; overflow:hidden; }
+.order-filter-btn { flex:1; padding:11px; background:#0d1015; border:none; border-right:1px solid #1c2028; color:#374151; font-size:11px; font-weight:700; cursor:pointer; text-align:center; letter-spacing:0.04em; transition:all 0.15s; }
+.order-filter-btn:last-child { border-right:none; }
+.order-filter-btn.active { background:#161a20; color:#fff; }
+.order-filter-btn.active-confirmed { background:rgba(34,170,85,0.06); color:#4ade80; border-color:#1c2028; }
+.order-filter-btn.active-cancelled { background:rgba(220,38,38,0.06); color:#f87171; border-color:#1c2028; }
 .top-product-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--bg-4); }
 .top-product-row:last-child { border:none; }
 .top-rank { font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--bg-5); width:36px; text-align:center; }
@@ -923,18 +953,32 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
           </div>
         </div>
 
-        <!-- EXPORT BUTTONS -->
-        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
-          <button class="btn btn-accent btn-sm" id="btnExportExcel">📊 EXPORTAR EXCEL</button>
-          <button class="btn btn-ghost btn-sm" id="btnExportPDF" style="border-color:var(--red);color:var(--red)">📄 EXPORTAR PDF</button>
-          <button class="btn btn-sm" id="btnDeleteAllOrders" style="background:rgba(220,38,38,0.12);color:#f87171;border:1px solid rgba(220,38,38,0.35);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">🗑️ ELIMINAR TODOS LOS PEDIDOS</button>
-        </div>
-
-        <!-- FILTER STATUS TABS -->
-        <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap" id="statusFilterTabs">
-          <button class="btn btn-ghost btn-sm status-filter active" data-status="all">Todos</button>
-          <button class="btn btn-ghost btn-sm status-filter" data-status="confirmed" style="border-color:var(--green);color:var(--green)">✓ Confirmados</button>
-          <button class="btn btn-ghost btn-sm status-filter" data-status="cancelled" style="border-color:var(--red);color:var(--red)">✕ Cancelados</button>
+        <!-- TOOLBAR T3 -->
+        <div class="order-toolbar">
+          <div class="order-export-row">
+            <div class="order-export-card" id="btnExportExcel">
+              <div class="order-export-icon excel">📊</div>
+              <div class="order-export-label">
+                <span>Exportar a Excel</span>
+                <small>PEDIDOS · PRODUCTOS · ESTADÍSTICAS</small>
+              </div>
+              <button class="order-export-cta">Descargar</button>
+            </div>
+            <div class="order-export-card" id="btnExportPDF">
+              <div class="order-export-icon pdf">📄</div>
+              <div class="order-export-label">
+                <span>Exportar a PDF</span>
+                <small>REPORTE COMPLETO</small>
+              </div>
+              <button class="order-export-cta">Descargar</button>
+            </div>
+            <button class="order-delete-card" id="btnDeleteAllOrders">🗑️ Eliminar todos</button>
+          </div>
+          <div class="order-filter-row" id="statusFilterTabs">
+            <button class="order-filter-btn active" data-status="all">Todos</button>
+            <button class="order-filter-btn" data-status="confirmed">✓ Confirmados</button>
+            <button class="order-filter-btn" data-status="cancelled">✕ Cancelados</button>
+          </div>
         </div>
 
         <!-- ORDERS LIST -->
@@ -2774,17 +2818,19 @@ function renderOrders() {
     card.className = 'order-card ' + status;
     const orderNum = String(filteredOrders.length - idx).padStart(3,'0');
     card.innerHTML = `
+      <div class="order-card-glow"></div>
       <div class="order-header" data-oid="${order.id}">
-        <div class="order-num">#${orderNum}</div>
-        <div>
+        <span class="order-num">#${orderNum}</span>
+        <div class="order-info">
           <div class="order-customer">${order.customer?.name||'Sin nombre'}</div>
           <div class="order-time">${order.date||''} ${order.time||''} · ${order.customer?.zone||''}</div>
         </div>
         <div class="order-total-badge">${formatCLP(order.total)}</div>
         <div class="order-status-badge ${status}">${status==='cancelled'?'✕ Cancelado':'✓ Confirmado'}</div>
-        <div style="color:var(--text-mute);font-size:14px">›</div>
+        <span class="order-chevron">›</span>
       </div>
       <div class="order-detail" id="detail-${order.id}">
+        <div class="order-divider"></div>
         <div class="order-meta">
           <span>📍 ${order.customer?.address||'Sin dirección'}</span>
           ${order.delivery ? '<span>🛵 '+order.delivery.zone+'</span>' : ''}
@@ -2858,11 +2904,16 @@ document.querySelectorAll('.btn-quick-date').forEach(btn => {
 document.getElementById('btnFilterOrders').addEventListener('click', applyOrderFilters);
 
 // Status filter tabs
-document.querySelectorAll('.status-filter').forEach(tab => {
+document.querySelectorAll('.order-filter-btn').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.status-filter').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    activeStatusFilter = tab.dataset.status;
+    document.querySelectorAll('.order-filter-btn').forEach(t => {
+      t.classList.remove('active','active-confirmed','active-cancelled');
+    });
+    const s = tab.dataset.status;
+    if(s === 'confirmed') tab.classList.add('active-confirmed');
+    else if(s === 'cancelled') tab.classList.add('active-cancelled');
+    else tab.classList.add('active');
+    activeStatusFilter = s;
     applyOrderFilters();
   });
 });
@@ -2870,6 +2921,11 @@ document.querySelectorAll('.status-filter').forEach(tab => {
 // ── EXCEL EXPORT ─────────────────────────────────────────────────
 document.getElementById('btnExportExcel').addEventListener('click', () => {
   exportExcel();
+});
+
+// PDF button
+document.getElementById('btnExportPDF').addEventListener('click', () => {
+  try { exportPDF(); } catch(e) { toast('Error PDF: '+e.message,'error'); console.error('[PDF]',e); }
 });
 
 // ── ELIMINAR TODOS LOS PEDIDOS ────────────────────────────────────
@@ -3143,11 +3199,6 @@ function exportExcel() {
 }
 
 // ── PDF EXPORT ───────────────────────────────────────────────────
-document.getElementById('btnExportPDF').addEventListener('click', () => {
-  if(!filteredOrders.length) { toast('Sin pedidos para exportar','error'); return; }
-  try { exportPDF(); } catch(e) { toast('Error PDF: '+e.message,'error'); console.error('[PDF]',e); }
-});
-
 function exportPDF() {
   if(!window.jspdf) throw new Error('jsPDF no cargado. Recarga la página.');
   const { jsPDF } = window.jspdf;
