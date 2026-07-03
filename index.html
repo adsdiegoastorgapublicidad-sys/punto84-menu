@@ -109,7 +109,10 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 .ws-badge b { color:var(--primary); }
 
 /* CATEGORY TABS */
-/* ── CATEGORY TABS — X1 HOLOCARDS ── */
+/* Delivery mode selector */
+.delivery-mode-selector { display:flex; gap:8px; margin-top:8px; }
+.delivery-mode-btn { flex:1; padding:12px; border-radius:10px; border:1.5px solid var(--bg-4); background:var(--bg-3); color:var(--text-dim); font-size:13px; font-weight:700; cursor:pointer; transition:all 0.15s; text-align:center; }
+.delivery-mode-btn.active { border-color:var(--primary); background:rgba(0,180,166,0.1); color:var(--primary); }
 .cat-tabs-wrap { position:sticky; top:0; background:rgba(5,5,8,0.97); padding:14px 0 12px; z-index:10; border-bottom:1px solid rgba(255,255,255,0.04); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); overflow:hidden; }
 .cat-tabs-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:1.5px; background:linear-gradient(90deg,transparent,rgba(168,85,247,0.8),rgba(0,180,255,0.6),rgba(255,0,128,0.5),rgba(245,166,35,0.7),transparent); background-size:300% 100%; animation:ctTabLineFlow 5s linear infinite; }
 @keyframes ctTabLineFlow { to { background-position:300% 0; } }
@@ -792,6 +795,10 @@ body::before {
 .ann-wave-msg { font-size:12px; color:#fff; font-weight:600; flex:1; line-height:1.4; }
 .ann-wave-chip { border-radius:20px; font-size:9px; font-weight:800; padding:3px 9px; flex-shrink:0; white-space:nowrap; letter-spacing:0.06em; }
 .ann-close-btn { position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.5); width:22px; height:22px; border-radius:50%; cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; z-index:10; }
+/* Botón CTA de oferta rápida */
+.ann-cta-btn { display:inline-flex; align-items:center; gap:7px; margin-top:12px; background:var(--c); color:#fff; border:none; border-radius:10px; padding:10px 18px; font-family:var(--font-title); font-size:14px; letter-spacing:0.06em; cursor:pointer; box-shadow:0 0 16px var(--cg); transition:transform 0.15s, opacity 0.15s; }
+.ann-cta-btn:active { transform:scale(0.97); opacity:0.85; }
+.ann-cta-btn.added { background:rgba(34,170,85,0.2); color:#4ade80; box-shadow:0 0 12px rgba(34,170,85,0.3); }
 
 .empty-menu-icon { font-size:48px; margin-bottom:14px; opacity:0.5; }
 .empty-menu-title { font-family:var(--font-title); font-size:18px; letter-spacing:0.1em; color:var(--text-dim); margin-bottom:6px; }
@@ -1445,6 +1452,7 @@ const DAYS_NAMES = {mon:'Lunes',tue:'Martes',wed:'Miércoles',thu:'Jueves',fri:'
 let menuData = { local:{}, design:{primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix',cardVisual:'b4'}, categories:[], products:[], zones:[], hours:{}, config:{whatsapp:'+56938902407',isOpen:false}, ingredients:[], payment:{}, badges:[], upcoming:[], announcement:{}, combos:[] };
 let cart = [];
 let selectedZone = null;
+let selectedDeliveryMode = 'delivery'; // 'delivery' | 'pickup'
 let selectedPayment = 'cash';
 let builderSelections = {};
 let agregadosSelections = {};
@@ -1479,7 +1487,10 @@ async function loadMenu() {
       menuData.products = d.products ? Object.values(d.products) : [];
       menuData.zones = d.zones ? Object.values(d.zones) : [];
       menuData.hours = d.hours || {};
-      menuData.config = d.config || {whatsapp:'+56938902407', isOpen:false};
+      menuData.config = d.config || {whatsapp:'+56938902407', isOpen:false, deliveryEnabled:true, pickupEnabled:true};
+      // Set default delivery mode based on config
+      if(menuData.config.deliveryEnabled !== false) selectedDeliveryMode = 'delivery';
+      else if(menuData.config.pickupEnabled !== false) selectedDeliveryMode = 'pickup';
       menuData.ingredients = d.ingredients ? Object.values(d.ingredients) : [];
       menuData.payment = d.payment || {};
       menuData.badges = d.badges ? Object.values(d.badges) : [];
@@ -1507,7 +1518,10 @@ async function loadMenu() {
       menuData.products = d.products ? Object.values(d.products) : [];
       menuData.zones = d.zones ? Object.values(d.zones) : [];
       menuData.hours = d.hours || {};
-      menuData.config = d.config || {whatsapp:'+56938902407', isOpen:false};
+      menuData.config = d.config || {whatsapp:'+56938902407', isOpen:false, deliveryEnabled:true, pickupEnabled:true};
+      // Set default delivery mode based on config
+      if(menuData.config.deliveryEnabled !== false) selectedDeliveryMode = 'delivery';
+      else if(menuData.config.pickupEnabled !== false) selectedDeliveryMode = 'pickup';
       menuData.ingredients = d.ingredients ? Object.values(d.ingredients) : [];
       menuData.payment = d.payment || {};
       menuData.badges = d.badges ? Object.values(d.badges) : [];
@@ -2368,7 +2382,7 @@ function cartSubtotal() {
 }
 
 function cartTotal() {
-  return cartSubtotal() + (selectedZone ? selectedZone.price : 0);
+  return cartSubtotal() + (selectedDeliveryMode !== 'pickup' && selectedZone ? selectedZone.price : 0);
 }
 
 function updateCartUI() {
@@ -2425,14 +2439,43 @@ function renderCart() {
   // Form
   html += '<div class="cart-section-title">📍 Datos de Entrega</div>';
   html += '<div class="field-pub"><label>Tu Nombre</label><input id="custName" type="text" placeholder="Ej: María González" value="'+(localStorage.getItem('p84_name')||'')+'"><div class="err">Ingresa tu nombre</div></div>';
-  html += '<div class="field-pub"><label>Dirección</label><input id="custAddr" type="text" placeholder="Ej: Los Pinos 423" value="'+(localStorage.getItem('p84_addr')||'')+'"><div class="err">Ingresa tu dirección</div></div>';
 
-  if(menuData.zones.length) {
-    html += '<div class="field-pub"><label>Zona de Delivery</label><select id="custZone"><option value="">-- Selecciona tu zona --</option>';
-    menuData.zones.forEach((z,i) => {
-      html += '<option value="'+i+'" '+(selectedZone===z?'selected':'')+'>'+(z.name||'Zona sin nombre')+' — '+formatPrice(z.price)+'</option>';
-    });
-    html += '</select><div class="err">Selecciona tu zona</div></div>';
+  // Delivery vs Retiro en local
+  const deliveryEnabled = menuData.config.deliveryEnabled !== false;
+  const pickupEnabled = menuData.config.pickupEnabled !== false;
+  const bothAvailable = deliveryEnabled && pickupEnabled;
+
+  if(bothAvailable) {
+    // Ambos disponibles — el cliente elige
+    html += '<div class="field-pub" id="deliveryModeField"><label>¿Cómo quieres recibir tu pedido?</label>'+
+      '<div class="delivery-mode-selector">'+
+        '<button type="button" class="delivery-mode-btn'+(selectedDeliveryMode==='delivery'?' active':'')+'" id="modeDelivery">🛵 Delivery</button>'+
+        '<button type="button" class="delivery-mode-btn'+(selectedDeliveryMode==='pickup'?' active':'')+'" id="modePickup">🏠 Retiro en Local</button>'+
+      '</div></div>';
+  } else if(deliveryEnabled) {
+    html += '<input type="hidden" id="modeDelivery" value="delivery">';
+    selectedDeliveryMode = 'delivery';
+  } else {
+    html += '<input type="hidden" id="modePickup" value="pickup">';
+    selectedDeliveryMode = 'pickup';
+  }
+
+  // Dirección y zona — solo si es delivery
+  if(selectedDeliveryMode !== 'pickup') {
+    html += '<div id="deliveryFields">'+
+      '<div class="field-pub"><label>Dirección</label><input id="custAddr" type="text" placeholder="Ej: Los Pinos 423" value="'+(localStorage.getItem('p84_addr')||'')+'"><div class="err">Ingresa tu dirección</div></div>';
+    if(menuData.zones.length) {
+      html += '<div class="field-pub"><label>Zona de Delivery</label><select id="custZone"><option value="">-- Selecciona tu zona --</option>';
+      menuData.zones.forEach((z,i) => {
+        html += '<option value="'+i+'" '+(selectedZone===z?'selected':'')+'>'+(z.name||'Zona sin nombre')+' — '+formatPrice(z.price)+'</option>';
+      });
+      html += '</select><div class="err">Selecciona tu zona</div></div>';
+    }
+    html += '</div>';
+  } else {
+    // Retiro — sin dirección ni zona, reset zona
+    selectedZone = null;
+    html += '<div id="deliveryFields"></div>';
   }
 
   html += '<div class="field-pub"><label>Notas Adicionales (opcional)</label><textarea id="custNotes" placeholder="Indicaciones especiales, referencias del lugar..."></textarea></div>';
@@ -2504,10 +2547,41 @@ function renderCart() {
   if(zoneSel) zoneSel.addEventListener('change', () => {
     const idx = zoneSel.value;
     selectedZone = idx === '' ? null : menuData.zones[+idx];
-    // Solo actualizar el resumen de precios — NO re-renderizar el carrito completo
-    // para no borrar los inputs que el cliente ya rellenó
     updateCartTotalsUI();
   });
+
+  // Delivery mode selector
+  const modeDeliveryBtn = document.getElementById('modeDelivery');
+  const modePickupBtn = document.getElementById('modePickup');
+  function setDeliveryMode(mode) {
+    selectedDeliveryMode = mode;
+    if(modeDeliveryBtn) modeDeliveryBtn.classList.toggle('active', mode==='delivery');
+    if(modePickupBtn) modePickupBtn.classList.toggle('active', mode==='pickup');
+    // Rebuild delivery fields without full re-render
+    const fields = document.getElementById('deliveryFields');
+    if(!fields) return;
+    if(mode === 'pickup') {
+      selectedZone = null;
+      fields.innerHTML = '';
+      updateCartTotalsUI();
+    } else {
+      let h = '<div class="field-pub"><label>Dirección</label><input id="custAddr" type="text" placeholder="Ej: Los Pinos 423" value="'+(localStorage.getItem('p84_addr')||'')+'"><div class="err">Ingresa tu dirección</div></div>';
+      if(menuData.zones.length) {
+        h += '<div class="field-pub"><label>Zona de Delivery</label><select id="custZone"><option value="">-- Selecciona tu zona --</option>';
+        menuData.zones.forEach((z,i) => { h += '<option value="'+i+'">'+(z.name||'Zona')+' — '+formatPrice(z.price)+'</option>'; });
+        h += '</select><div class="err">Selecciona tu zona</div></div>';
+      }
+      fields.innerHTML = h;
+      const zs = document.getElementById('custZone');
+      if(zs) zs.addEventListener('change', () => {
+        selectedZone = zs.value === '' ? null : menuData.zones[+zs.value];
+        updateCartTotalsUI();
+      });
+      updateCartTotalsUI();
+    }
+  }
+  if(modeDeliveryBtn) modeDeliveryBtn.addEventListener('click', () => setDeliveryMode('delivery'));
+  if(modePickupBtn) modePickupBtn.addEventListener('click', () => setDeliveryMode('pickup'));
 
   document.getElementById('btnSend').addEventListener('click', validateAndOpenConfirm);
 }
@@ -2526,32 +2600,34 @@ function updateCartTotalsUI() {
 }
 
 function validateAndOpenConfirm() {
-  let valid = true;
-  const name = document.getElementById('custName').value.trim();
-  const addr = document.getElementById('custAddr').value.trim();
+  const nameEl = document.getElementById('custName');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if(!name) { nameEl?.closest('.field-pub')?.classList.add('error'); return; }
+  nameEl?.closest('.field-pub')?.classList.remove('error');
 
-  if(!name) { document.querySelector('#custName').closest('.field-pub').classList.add('error'); valid = false; }
-  else document.querySelector('#custName').closest('.field-pub').classList.remove('error');
+  let addr = '';
+  if(selectedDeliveryMode !== 'pickup') {
+    const addrEl = document.getElementById('custAddr');
+    addr = addrEl ? addrEl.value.trim() : '';
+    if(!addr) { addrEl?.closest('.field-pub')?.classList.add('error'); return; }
+    addrEl?.closest('.field-pub')?.classList.remove('error');
+    if(menuData.zones.length && !selectedZone) {
+      document.querySelector('#custZone')?.closest('.field-pub')?.classList.add('error');
+      return;
+    }
+    if(menuData.zones.length) document.querySelector('#custZone')?.closest('.field-pub')?.classList.remove('error');
+  } else {
+    addr = 'Retiro en local';
+    selectedZone = null;
+  }
 
-  if(!addr) { document.querySelector('#custAddr').closest('.field-pub').classList.add('error'); valid = false; }
-  else document.querySelector('#custAddr').closest('.field-pub').classList.remove('error');
-
-  if(menuData.zones.length && !selectedZone) {
-    document.querySelector('#custZone').closest('.field-pub').classList.add('error');
-    valid = false;
-  } else if(menuData.zones.length) document.querySelector('#custZone').closest('.field-pub').classList.remove('error');
-
-  if(!valid) return;
-
-  // Guardar datos del cliente
+  const notesEl = document.getElementById('custNotes');
+  const notes = notesEl ? notesEl.value.trim() : '';
   localStorage.setItem('p84_name', name);
-  localStorage.setItem('p84_addr', addr);
-
-  // Leer notas
-  const notes = document.getElementById('custNotes') ? document.getElementById('custNotes').value.trim() : '';
-
+  if(selectedDeliveryMode !== 'pickup') localStorage.setItem('p84_addr', addr);
   openConfirmModal({ name, addr, notes });
 }
+
 
 function openConfirmModal({ name, addr, notes }) {
   const pay = menuData.payment || {};
@@ -2570,8 +2646,12 @@ function openConfirmModal({ name, addr, notes }) {
 
   html += '<div class="confirm-section-title">📍 DATOS DE ENTREGA</div>';
   html += '<div class="confirm-item-row"><span>Cliente</span><strong>'+name+'</strong></div>';
-  html += '<div class="confirm-item-row"><span>Dirección</span><strong>'+addr+'</strong></div>';
-  if(selectedZone) html += '<div class="confirm-item-row"><span>Zona delivery</span><strong>'+selectedZone.name+'</strong></div>';
+  if(selectedDeliveryMode === 'pickup') {
+    html += '<div class="confirm-item-row"><span>Método</span><strong>🏠 Retiro en Local</strong></div>';
+  } else {
+    html += '<div class="confirm-item-row"><span>Dirección</span><strong>'+addr+'</strong></div>';
+    if(selectedZone) html += '<div class="confirm-item-row"><span>Zona delivery</span><strong>'+selectedZone.name+'</strong></div>';
+  }
   if(notes) html += '<div class="confirm-item-row"><span>Notas</span><strong>'+notes+'</strong></div>';
 
   // Totales
@@ -2684,8 +2764,12 @@ function openConfirmModal({ name, addr, notes }) {
     let m = '*📋 NUEVO PEDIDO — ' + brandName.toUpperCase() + '*\n';
     m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
     m += '👤 *Cliente:* ' + name + '\n';
-    m += '📍 *Dirección:* ' + addr + '\n';
-    if(selectedZone) m += '🛵 *Zona:* ' + selectedZone.name + '\n';
+    if(selectedDeliveryMode === 'pickup') {
+      m += '🏠 *Método:* RETIRO EN LOCAL\n';
+    } else {
+      m += '📍 *Dirección:* ' + addr + '\n';
+      if(selectedZone) m += '🛵 *Zona:* ' + selectedZone.name + '\n';
+    }
     m += '━━━━━━━━━━━━━━━━━━━━━━━\n';
     m += '🛒 *DETALLE DEL PEDIDO:*\n\n';
     cart.forEach(function(item) {
@@ -3073,6 +3157,11 @@ function renderAnnouncement() {
     const wrapper = document.createElement('div');
     wrapper.style.position = 'relative';
 
+    // CTA button helper
+    const ctaHTML = (ann.linkedProductId)
+      ? '<button class="ann-cta-btn" data-ann-cta="'+annId+'" style="--c:'+c+';--cg:'+color.glow+'">⚡ '+(ann.linkedProductBtnText||'¡QUIERO ESTA OFERTA!')+'</button>'
+      : '';
+
     if(style === 'flash') {
       wrapper.innerHTML =
         '<div class="ann-flash">'+
@@ -3082,6 +3171,7 @@ function renderAnnouncement() {
           '<div class="ann-flash-title">'+text+'</div>'+
           (sub ? '<div class="ann-flash-sub">'+sub+'</div>' : '')+
           (ann.countdown ? '<div class="ann-flash-timer" id="annTimer_'+annId+'"></div>' : '')+
+          ctaHTML+
         '</div>';
       if(ann.countdown) {
         function updateTimer() {
@@ -3111,6 +3201,7 @@ function renderAnnouncement() {
             '<div class="ann-promo-eyebrow" style="color:'+c+'">✦ oferta del día</div>'+
             '<div class="ann-promo-title">'+text+'</div>'+
             (sub ? '<div class="ann-promo-sub">'+sub+'</div>' : '')+
+            ctaHTML+
           '</div>'+
         '</div>';
     } else { // wave
@@ -3120,7 +3211,7 @@ function renderAnnouncement() {
           '<div class="ann-wave-body">'+
             '<span class="ann-wave-icon">'+icon+'</span>'+
             '<span class="ann-wave-msg">'+text+'</span>'+
-            '<span class="ann-wave-chip" style="background:rgba(0,180,166,0.12);border:1px solid rgba(0,180,166,0.25);color:#00b4a6">HOY</span>'+
+            (ctaHTML ? ctaHTML : '<span class="ann-wave-chip" style="background:rgba(0,180,166,0.12);border:1px solid rgba(0,180,166,0.25);color:#00b4a6">HOY</span>')+
             '<button class="ann-close-btn" data-ann-close="'+annId+'" style="position:relative;top:auto;right:auto;flex-shrink:0">✕</button>'+
           '</div>'+
         '</div>';
@@ -3132,6 +3223,35 @@ function renderAnnouncement() {
       wrapper.remove();
       if(!wrap.children.length) wrap.style.display = 'none';
     });
+
+    // CTA — agregar producto vinculado al carrito con N unidades
+    const ctaBtn = wrapper.querySelector('[data-ann-cta]');
+    if(ctaBtn && ann.linkedProductId) {
+      ctaBtn.addEventListener('click', () => {
+        const prod = menuData.products.find(p => p.id === ann.linkedProductId);
+        if(!prod || prod.available === false) {
+          ctaBtn.textContent = '❌ Producto no disponible';
+          return;
+        }
+        const qty = ann.linkedProductQty || 2;
+        const existing = cart.find(c => c.id === prod.id && !c.linkedSelection);
+        if(existing) {
+          existing.qty += qty;
+        } else {
+          cart.push({ id:prod.id, name:prod.name, price:prod.price, img:prod.img||'', qty:qty, note:'' });
+        }
+        saveCart(); updateCartUI(); refreshProductButtons();
+        haptic('add');
+        if(typeof playPopSound==='function') playPopSound();
+        // Feedback visual
+        ctaBtn.classList.add('added');
+        ctaBtn.textContent = '✅ ¡Agregado al carrito!';
+        setTimeout(() => {
+          ctaBtn.classList.remove('added');
+          ctaBtn.innerHTML = '⚡ '+(ann.linkedProductBtnText||'¡QUIERO ESTA OFERTA!');
+        }, 2000);
+      });
+    }
 
     wrap.appendChild(wrapper);
   });

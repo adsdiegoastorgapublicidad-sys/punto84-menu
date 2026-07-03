@@ -748,6 +748,35 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
           </div>
         </div>
         <div class="card">
+          <div class="card-header"><div class="card-title">🛵 Métodos de Entrega</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">💡</span><div>Activa los métodos disponibles hoy. Si desactivas Delivery, los clientes solo verán Retiro en Local y no tendrán que elegir zona.</div></div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-3);border:1px solid var(--bg-4);border-radius:12px;padding:14px 16px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span style="font-size:22px">🛵</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text)">Delivery</div>
+                    <div style="font-size:11px;color:var(--text-mute);margin-top:2px">El cliente elige zona y paga costo de envío</div>
+                  </div>
+                </div>
+                <div class="toggle" id="toggleDelivery"></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-3);border:1px solid var(--bg-4);border-radius:12px;padding:14px 16px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span style="font-size:22px">🏠</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text)">Retiro en Local</div>
+                    <div style="font-size:11px;color:var(--text-mute);margin-top:2px">El cliente retira en el local, sin costo de envío</div>
+                  </div>
+                </div>
+                <div class="toggle" id="togglePickup"></div>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnSaveDeliveryModes" style="margin-top:16px;width:100%">💾 GUARDAR MÉTODOS DE ENTREGA</button>
+          </div>
+        </div>
+        <div class="card">
           <div class="card-header"><div class="card-title">🔐 Cambiar Contraseña</div></div>
           <div class="card-body">
             <div class="field"><span class="field-label">Nueva contraseña</span><input class="input" id="inpNewPass" type="password" placeholder="Mínimo 6 caracteres"></div>
@@ -906,6 +935,32 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
                   <span style="color:var(--text-dim);font-size:18px;font-weight:700">:</span>
                   <input type="number" class="input" id="countdownMin" min="0" max="59" value="0" style="width:70px;text-align:center">
                   <span style="font-size:12px;color:var(--text-mute)">hrs de hoy</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PRODUCTO VINCULADO A LA OFERTA -->
+            <div class="field" id="annProductField">
+              <span class="field-label">Botón de acción rápida <span style="color:var(--text-mute);font-weight:400">(opcional)</span></span>
+              <div class="tip-box" style="margin:8px 0"><span class="tip-icon">⚡</span><div>Si activas esto, el anuncio mostrará un botón "¡QUIERO ESTA OFERTA!" que agrega el producto automáticamente al carrito del cliente.</div></div>
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <div class="toggle" id="annProductToggle"></div>
+                <span id="annProductToggleLabel" style="font-size:13px;color:var(--text-dim)">Sin botón de acción</span>
+              </div>
+              <div id="annProductInputs" style="display:none">
+                <div class="field"><span class="field-label">Producto de la oferta</span>
+                  <select class="input" id="annProductId">
+                    <option value="">— Elige un producto —</option>
+                  </select>
+                </div>
+                <div class="field"><span class="field-label">Cantidad a agregar al carrito</span>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                    <input type="number" class="input" id="annProductQty" min="1" max="20" value="2" style="width:70px;text-align:center;font-size:18px;font-weight:700">
+                    <span style="font-size:12px;color:var(--text-dim)">Ej: 2 para una promo 2x1</span>
+                  </div>
+                </div>
+                <div class="field"><span class="field-label">Texto del botón</span>
+                  <input type="text" class="input" id="annProductBtnText" value="¡QUIERO ESTA OFERTA!" placeholder="¡QUIERO ESTA OFERTA!">
                 </div>
               </div>
             </div>
@@ -1212,6 +1267,22 @@ async function loadAllData() {
   // HOURS
   renderHours();
   // CONFIG
+  // Delivery modes
+  const cfgDelivery = data.config.deliveryEnabled !== false; // default true
+  const cfgPickup = data.config.pickupEnabled !== false;     // default true
+  document.getElementById('toggleDelivery').className = 'toggle'+(cfgDelivery?' on':'');
+  document.getElementById('togglePickup').className = 'toggle'+(cfgPickup?' on':'');
+  document.getElementById('toggleDelivery').addEventListener('click', function(){ this.classList.toggle('on'); });
+  document.getElementById('togglePickup').addEventListener('click', function(){ this.classList.toggle('on'); });
+  document.getElementById('btnSaveDeliveryModes').addEventListener('click', async () => {
+    data.config.deliveryEnabled = document.getElementById('toggleDelivery').classList.contains('on');
+    data.config.pickupEnabled = document.getElementById('togglePickup').classList.contains('on');
+    if(!data.config.deliveryEnabled && !data.config.pickupEnabled) {
+      toast('⚠️ Debes tener al menos un método activo','error'); return;
+    }
+    await saveData('config', data.config);
+    toast('✓ Métodos de entrega guardados');
+  });
   document.getElementById('inpWhatsapp').value = data.config.whatsapp || '+56938902407';
   // DASHBOARD
   updateDashboard();
@@ -2479,11 +2550,40 @@ function refreshAnnFormUI() {
       colorGrid.appendChild(btn);
     });
   }
+  // Product linked toggle
+  const prodToggle = document.getElementById('annProductToggle');
+  const prodLabel = document.getElementById('annProductToggleLabel');
+  const prodInputs = document.getElementById('annProductInputs');
+  const prodSel = document.getElementById('annProductId');
+  if(prodToggle && prodSel) {
+    // Populate product selector
+    prodSel.innerHTML = '<option value="">— Elige un producto —</option>'+
+      data.products.filter(p=>p.available!==false).map(p=>
+        '<option value="'+p.id+'">'+(p.name||'')+'</option>'
+      ).join('');
+    const hasProduct = !!(annEditingId !== null && data.announcements[annEditingId]?.linkedProductId);
+    let _annHasProduct = hasProduct;
+    if(hasProduct) {
+      const ann = data.announcements[annEditingId];
+      prodSel.value = ann.linkedProductId || '';
+      document.getElementById('annProductQty').value = ann.linkedProductQty || 2;
+      document.getElementById('annProductBtnText').value = ann.linkedProductBtnText || '¡QUIERO ESTA OFERTA!';
+    }
+    prodToggle.className = 'toggle'+(_annHasProduct?' on':'');
+    prodLabel.textContent = _annHasProduct ? 'Con botón de acción rápida' : 'Sin botón de acción';
+    prodInputs.style.display = _annHasProduct ? '' : 'none';
+    prodToggle.onclick = () => {
+      _annHasProduct = !_annHasProduct;
+      prodToggle.className = 'toggle'+(_annHasProduct?' on':'');
+      prodLabel.textContent = _annHasProduct ? 'Con botón de acción rápida' : 'Sin botón de acción';
+      prodInputs.style.display = _annHasProduct ? '' : 'none';
+    };
+  }
   // Text listeners
   const textEl = document.getElementById('announcementText');
   if(textEl) textEl.oninput = updateAnnouncementPreview;
-  const subEl = document.getElementById('announcementSub');
-  if(subEl) subEl.oninput = updateAnnouncementPreview;
+  const subEl2 = document.getElementById('announcementSub');
+  if(subEl2) subEl2.oninput = updateAnnouncementPreview;
   // Cancel btn
   const cancelBtn = document.getElementById('btnAnnFormCancel');
   if(cancelBtn) cancelBtn.onclick = resetAnnForm;
@@ -2497,11 +2597,16 @@ if(_btnSaveAnn) _btnSaveAnn.addEventListener('click', async () => {
   const sub = (document.getElementById('announcementSub').value||'').trim();
   const cdHour = parseInt((document.getElementById('countdownHour')||{}).value)||0;
   const cdMin = parseInt((document.getElementById('countdownMin')||{}).value)||0;
+  const prodToggleEl = document.getElementById('annProductToggle');
+  const hasLinkedProduct = prodToggleEl && prodToggleEl.classList.contains('on');
   const ann = {
     id: annEditingId !== null ? (data.announcements[annEditingId].id||'ann_'+Date.now()) : 'ann_'+Date.now(),
     active: annActive, icon: annIcon, text, sub, color: annColor,
     style: annStyle, countdown: annCountdown,
-    countdownHour: cdHour, countdownMin: cdMin
+    countdownHour: cdHour, countdownMin: cdMin,
+    linkedProductId: hasLinkedProduct ? (document.getElementById('annProductId').value||null) : null,
+    linkedProductQty: hasLinkedProduct ? (parseInt(document.getElementById('annProductQty').value)||2) : null,
+    linkedProductBtnText: hasLinkedProduct ? (document.getElementById('annProductBtnText').value||'¡QUIERO ESTA OFERTA!') : null,
   };
   if(annEditingId !== null) {
     data.announcements[annEditingId] = ann;
