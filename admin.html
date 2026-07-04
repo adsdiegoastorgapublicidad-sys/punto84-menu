@@ -791,6 +791,15 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
           <div><div class="page-title">INGRE<span>DIENTES</span></div><div class="page-subtitle">Builder de pizzas y agregados</div></div>
           <button class="btn btn-primary btn-sm" id="btnAddIngredient">+ NUEVO INGREDIENTE</button>
         </div>
+
+        <!-- CONTROL ARMA TU PIZZA -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">✨ Control "Arma tu Pizza"</div></div>
+          <div class="card-body">
+            <div class="tip-box" style="margin-bottom:14px"><span class="tip-icon">💡</span><div>Activa o desactiva la sección "Arma tu Pizza" por categoría. Útil cuando no hay pizzas disponibles sin afectar el resto del menú.</div></div>
+            <div id="builderControlList" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+        </div>
         <div class="card">
           <div class="card-header">
             <div class="card-title">🧂 Ingredientes</div>
@@ -1194,7 +1203,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if(window.innerWidth < 900) document.getElementById('sidebar').classList.remove('open');
     if(sec==='dashboard') updateDashboard();
     if(sec==='products') renderProducts();
-    if(sec==='ingredients') renderIngredients();
+    if(sec==='ingredients') { renderIngredients(); renderBuilderControls(); }
     if(sec==='payment') loadPaymentForm();
     if(sec==='badges') renderBadges();
     if(sec==='combos') renderCombos();
@@ -1754,6 +1763,56 @@ document.getElementById('btnSavePass').addEventListener('click', async () => {
 });
 
 // INGREDIENTS SECTION
+function renderBuilderControls() {
+  const list = document.getElementById('builderControlList');
+  if(!list) return;
+
+  // Categorías que tienen al menos 1 ingrediente builder
+  const builderCats = data.categories.filter(cat =>
+    data.ingredients.some(i => i.catId === cat.id && i.type === 'builder')
+  );
+
+  if(!builderCats.length) {
+    list.innerHTML = '<div style="color:var(--text-mute);font-size:13px">No hay categorías con ingredientes de tipo "Arma tu Pizza" aún.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  builderCats.forEach(cat => {
+    const isActive = cat.builderActive !== false; // default true
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:var(--bg-3);border:1px solid var(--bg-4);border-radius:12px;padding:14px 16px';
+    row.innerHTML =
+      '<div style="display:flex;align-items:center;gap:12px">'+
+        '<span style="font-size:22px">'+(cat.emoji||'🍕')+'</span>'+
+        '<div>'+
+          '<div style="font-size:13px;font-weight:700;color:var(--text)">'+(cat.name||'Sin nombre')+'</div>'+
+          '<div style="font-size:11px;color:var(--text-mute);margin-top:2px">Tab "Arma tu Pizza" en el menú del cliente</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<span style="font-size:11px;font-weight:700;color:'+(isActive?'var(--green)':'var(--red)')+'" id="builderLbl-'+cat.id+'">'+(isActive?'✅ Activo':'❌ Desactivado')+'</span>'+
+        '<div class="toggle'+(isActive?' on':'')+'" id="builderToggle-'+cat.id+'"></div>'+
+      '</div>';
+
+    const toggle = row.querySelector('#builderToggle-'+cat.id);
+    const lbl = row.querySelector('#builderLbl-'+cat.id);
+    toggle.addEventListener('click', async () => {
+      const nowActive = !toggle.classList.contains('on');
+      toggle.className = 'toggle'+(nowActive?' on':'');
+      lbl.textContent = nowActive ? '✅ Activo' : '❌ Desactivado';
+      lbl.style.color = nowActive ? 'var(--green)' : 'var(--red)';
+      // Actualizar en data y guardar
+      const catIdx = data.categories.findIndex(c => c.id === cat.id);
+      if(catIdx >= 0) data.categories[catIdx].builderActive = nowActive;
+      await saveData('categories', data.categories);
+      toast((nowActive ? '✅ "Arma tu Pizza" activado' : '❌ "Arma tu Pizza" desactivado')+' para '+cat.name);
+    });
+
+    list.appendChild(row);
+  });
+}
+
 function renderIngredients() {
   const container = document.getElementById('ingredientsContainer');
   if(!container) return;

@@ -1789,7 +1789,8 @@ function renderMenu() {
     // Ingredientes para esta categoría
     const builderIngs = menuData.ingredients.filter(i => i.catId === cat.id && i.type === 'builder' && i.available !== false);
     const agregadosIngs = menuData.ingredients.filter(i => i.catId === cat.id && i.type === 'agregado' && i.available !== false);
-    const hasBuilder = builderIngs.length > 0;
+    // builderActive: respeta el toggle del admin (default true si no está definido)
+    const hasBuilder = builderIngs.length > 0 && cat.builderActive !== false;
     const hasAgregados = agregadosIngs.length > 0;
 
     const sec = document.createElement('div');
@@ -2117,13 +2118,25 @@ function addBuilderToCart(catId) {
   });
   const total = ids.reduce((s,id) => s + (selMap[id]||0), 0);
   const cartName = '🍕 Pizza Personalizada ('+(cat?cat.name:'')+'): '+ingNames.join(', ');
-  const existing = cart.find(c => c.isBuilder && c.catId === catId);
+
+  // Buscar una pizza builder existente con los MISMOS ingredientes
+  const sameIngKey = ids.slice().sort().join(',');
+  const existing = cart.find(c => {
+    if(!c.isBuilder || c.catId !== catId) return false;
+    // Comparar ingredientes
+    const existingIds = Object.keys(builderSelections[catId] || {}).sort().join(',');
+    // Comparar por nombre (más confiable ya que builderSelections se reinicia)
+    return c.name === cartName;
+  });
+
   if(existing) {
-    existing.name = cartName;
-    existing.price = total;
+    // Mismos ingredientes — sumar cantidad
+    existing.qty++;
   } else {
+    // Ingredientes diferentes o primera pizza — agregar nuevo ítem
     cart.push({id:'builder-'+catId+'-'+Date.now(), name:cartName, price:total, img:'', qty:1, note:'', isBuilder:true, catId});
   }
+
   builderSelections[catId] = {};
   saveCart(); updateCartUI();
   updateBuilderUI(catId);
