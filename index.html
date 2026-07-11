@@ -109,7 +109,15 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 .ws-badge b { color:var(--primary); }
 
 /* CATEGORY TABS */
-/* Delivery mode selector */
+/* Descuentos en cards */
+.product-price-disc { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.price-original { font-size:11px; text-decoration:line-through; color:var(--text-mute); }
+.price-badge { background:rgba(255,68,0,0.15); color:#ff6030; border:1px solid rgba(255,68,0,0.3); border-radius:20px; font-size:9px; font-weight:800; padding:2px 6px; white-space:nowrap; }
+.price-final { font-family:var(--font-title); font-size:16px; color:#4ade80; letter-spacing:0.02em; }
+/* Ingrediente no disponible */
+.ing-unavail-badge { position:absolute; top:7px; left:7px; background:rgba(255,68,0,0.85); color:#fff; font-size:9px; font-weight:800; padding:3px 7px; border-radius:6px; z-index:2; backdrop-filter:blur(4px); }
+.ing-replace-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--bg-4); background:var(--bg-3); cursor:pointer; transition:all 0.15s; }
+.ing-replace-check { width:18px; height:18px; border-radius:5px; border:1.5px solid var(--bg-4); background:var(--bg-4); display:flex; align-items:center; justify-content:center; font-size:10px; color:transparent; flex-shrink:0; margin-left:auto; transition:all 0.15s; }
 .delivery-mode-selector { display:flex; gap:8px; margin-top:8px; }
 .delivery-mode-btn { flex:1; padding:12px; border-radius:10px; border:1.5px solid var(--bg-4); background:var(--bg-3); color:var(--text-dim); font-size:13px; font-weight:700; cursor:pointer; transition:all 0.15s; text-align:center; }
 .delivery-mode-btn.active { border-color:var(--primary); background:rgba(0,180,166,0.1); color:var(--primary); }
@@ -1495,6 +1503,7 @@ async function loadMenu() {
       menuData.payment = d.payment || {};
       menuData.badges = d.badges ? Object.values(d.badges) : [];
       menuData.upcoming = d.upcoming ? Object.values(d.upcoming).filter(u=>u.active!==false) : [];
+      menuData.discounts = d.discounts ? (Array.isArray(d.discounts)?d.discounts:Object.values(d.discounts)).filter(disc=>disc.active!==false) : [];
       menuData.announcement = d.announcement || {};
       menuData.announcements = d.announcements ? (Array.isArray(d.announcements) ? d.announcements : Object.values(d.announcements)) : [];
       menuData.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix',cardVisual:'b4'};
@@ -1526,6 +1535,7 @@ async function loadMenu() {
       menuData.payment = d.payment || {};
       menuData.badges = d.badges ? Object.values(d.badges) : [];
       menuData.upcoming = d.upcoming ? Object.values(d.upcoming).filter(u=>u.active!==false) : [];
+      menuData.discounts = d.discounts ? (Array.isArray(d.discounts)?d.discounts:Object.values(d.discounts)).filter(disc=>disc.active!==false) : [];
       menuData.announcement = d.announcement || {};
       menuData.announcements = d.announcements ? (Array.isArray(d.announcements) ? d.announcements : Object.values(d.announcements)) : [];
       menuData.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix',cardVisual:'b4'};
@@ -1730,6 +1740,131 @@ function renderStatus() {
   }
 }
 
+// Detecta ingredientes no disponibles en un producto desde p.prodIngs
+function getUnavailableIngs(prod) {
+  if(!prod || !prod.prodIngs || !prod.prodIngs.length) return [];
+  return prod.prodIngs.filter(i => i.unavailable === true);
+}
+
+// Obtiene los ingredientes del catálogo permitidos como reemplazo
+function getAllowedReplacements(prod) {
+  if(!prod || !prod.allowedRepls || !prod.allowedRepls.length) return [];
+  return prod.allowedRepls.map(id => menuData.ingredients.find(i => i.id === id)).filter(Boolean);
+}
+
+// Modal de reemplazo de ingrediente no disponible
+function openIngReplacementModal(prod, unavailIngs, qty, onAfterAdd) {
+  const availReplacements = getAllowedReplacements(prod);
+  const unavailNames = unavailIngs.map(i=>i.name).join(', ');
+  let modal = document.getElementById('ingReplacementModal');
+  if(!modal) {
+    modal = document.createElement('div');
+    modal.id = 'ingReplacementModal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)';
+    document.body.appendChild(modal);
+  }
+
+  const replacementsHTML = availReplacements.length
+    ? availReplacements.map(r =>
+        `<div class="ing-replace-item" data-replace-id="${r.id}" data-replace-name="${r.name}" data-replace-price="0">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">${r.name}</span>
+          <span style="font-size:11px;color:var(--primary)">Incluido</span>
+          <div class="ing-replace-check">✓</div>
+        </div>`
+      ).join('')
+    : '<div style="color:var(--text-mute);font-size:13px;padding:8px 0">El local no tiene reemplazos disponibles por ahora. Puedes agregar la pizza sin ese ingrediente.</div>';
+
+  modal.innerHTML = `
+    <div style="background:var(--bg-2);border-radius:20px 20px 0 0;width:100%;max-width:440px;max-height:85vh;overflow-y:auto;padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <div>
+          <div style="font-size:16px;font-weight:800;color:var(--text)">⚠️ Ingrediente no disponible</div>
+          <div style="font-size:12px;color:var(--text-mute);margin-top:4px">Para: <b style="color:var(--text)">${prod.name}</b></div>
+        </div>
+        <button id="ingReplCloseBtn" style="background:var(--bg-4);border:none;color:var(--text-mute);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px">✕</button>
+      </div>
+
+      <div style="background:rgba(255,68,0,0.08);border:1px solid rgba(255,68,0,0.2);border-radius:10px;padding:12px;margin-bottom:18px">
+        <div style="font-size:12px;color:#ff8060;font-weight:700">⚠️ ${unavailNames} — no disponible hoy</div>
+        <div style="font-size:11px;color:var(--text-mute);margin-top:4px">Puedes agregar esta pizza y elegir un reemplazo opcional:</div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--text-mute);letter-spacing:0.1em;margin-bottom:10px">ELEGIR REEMPLAZO (OPCIONAL)</div>
+      <div id="ingReplList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">${replacementsHTML}</div>
+
+      <div style="display:flex;gap:8px">
+        <button id="ingReplSkipBtn" style="flex:1;padding:13px;border-radius:10px;border:1px solid var(--bg-4);background:var(--bg-3);color:var(--text-dim);font-size:12px;font-weight:700;cursor:pointer">Agregar sin reemplazo</button>
+        <button id="ingReplAddBtn" style="flex:1;padding:13px;border-radius:10px;border:none;background:var(--primary);color:#012e29;font-size:12px;font-weight:800;cursor:pointer">🛒 AGREGAR AL PEDIDO</button>
+      </div>
+    </div>`;
+
+  let selectedReplacement = null;
+
+  // Replacement selection
+  modal.querySelectorAll('.ing-replace-item').forEach(item => {
+    item.addEventListener('click', () => {
+      modal.querySelectorAll('.ing-replace-item').forEach(i => {
+        i.style.background = 'var(--bg-3)';
+        i.style.borderColor = 'var(--bg-4)';
+        i.querySelector('.ing-replace-check').style.background = 'var(--bg-4)';
+        i.querySelector('.ing-replace-check').style.color = 'transparent';
+      });
+      item.style.background = 'rgba(0,180,166,0.08)';
+      item.style.borderColor = 'var(--primary)';
+      item.querySelector('.ing-replace-check').style.background = 'var(--primary)';
+      item.querySelector('.ing-replace-check').style.color = '#fff';
+      selectedReplacement = { id: item.dataset.replaceId, name: item.dataset.replaceName, price: parseInt(item.dataset.replacePrice)||0 };
+    });
+  });
+
+  function addWithReplacement() {
+    const disc = getProductDiscount(prod.id);
+    const basePrice = disc ? disc.finalPrice : prod.price;
+    const totalPrice = basePrice;
+    const noteTxt = selectedReplacement
+      ? 'Reemplazo: '+selectedReplacement.name+' (en lugar de '+unavailNames+')'
+      : 'Sin reemplazo para: '+unavailNames;
+    const addQty = qty || 1;
+    const existing = cart.find(c => c.id === prod.id && !c.linkedSelection);
+    if(existing) {
+      existing.qty = (qty !== undefined) ? addQty : existing.qty + 1;
+      if(selectedReplacement) existing.note = noteTxt;
+    } else {
+      cart.push({ id:prod.id, name:prod.name, price:totalPrice, img:prod.img||'', qty:addQty, note:noteTxt,
+        ...(disc?{originalPrice:prod.price, discountBadge:disc.badge}:{}) });
+    }
+    saveCart(); updateCartUI(); refreshProductButtons();
+    haptic('add');
+    if(typeof playPopSound==='function') playPopSound();
+    modal.remove();
+    if(typeof onAfterAdd === 'function') onAfterAdd();
+  }
+
+  modal.querySelector('#ingReplCloseBtn').addEventListener('click', () => modal.remove());
+  modal.querySelector('#ingReplSkipBtn').addEventListener('click', addWithReplacement);
+  modal.querySelector('#ingReplAddBtn').addEventListener('click', addWithReplacement);
+}
+
+function getProductDiscount(prodId) {
+  const discs = menuData.discounts || [];
+  const disc = discs.find(d => d.productId === prodId && d.active !== false);
+  if(!disc) return null;
+  const prod = menuData.products.find(p => p.id === prodId);
+  if(!prod) return null;
+  const orig = prod.price || 0;
+  let final = orig;
+  let badge = '';
+  if(disc.type === 'percent' && disc.percent > 0) {
+    final = Math.round(orig * (1 - disc.percent/100));
+    badge = '-'+disc.percent+'%';
+  } else if(disc.type === 'fixed' && disc.fixedPrice > 0) {
+    final = disc.fixedPrice;
+    const saving = Math.round((1 - disc.fixedPrice/orig)*100);
+    badge = '-'+saving+'%';
+  }
+  return final < orig ? { finalPrice:final, originalPrice:orig, badge } : null;
+}
+
 function renderMenu() {
   const content = document.getElementById('menuContent');
   const tabsWrap = document.getElementById('catTabsWrap');
@@ -1787,7 +1922,9 @@ function renderMenu() {
     if(!prods.length) return;
 
     // Ingredientes para esta categoría
-    const builderIngs = menuData.ingredients.filter(i => i.catId === cat.id && i.type === 'builder' && i.available !== false);
+    const allBuilderIngs = menuData.ingredients.filter(i => i.catId === cat.id && i.type === 'builder');
+    const builderIngs = allBuilderIngs.filter(i => i.available !== false);
+    const unavailBuilderIngs = allBuilderIngs.filter(i => i.available === false);
     const agregadosIngs = menuData.ingredients.filter(i => i.catId === cat.id && i.type === 'agregado' && i.available !== false);
     // builderActive: respeta el toggle del admin (default true si no está definido)
     const hasBuilder = builderIngs.length > 0 && cat.builderActive !== false;
@@ -1983,6 +2120,13 @@ function renderMenu() {
       const badgesHTML = prodBadges.length ? `<div class="prod-badges">${prodBadges.map(b=>`<span class="prod-badge" style="background:${b.color}22;color:${b.color};border:1px solid ${b.color}44">${b.emoji} ${b.label}</span>`).join('')}</div>` : '';
       const prodName = _origGetName(p);
       const prodDesc = _origGetDesc(p);
+      // Detectar ingredientes no disponibles en este producto
+      const unavailIngs = getUnavailableIngs(p);
+      const hasUnavail = unavailIngs.length > 0 && p.available !== false;
+      const unavailBadgeText = hasUnavail
+        ? '⚠️ '+unavailIngs.map(i=>i.name).join(' + ')+' no disponible'+(unavailIngs.length>1?'s':'')
+        : '';
+
       item.innerHTML =
         // Wrapper 3D flip
         `<div class="product-item-inner">`+
@@ -1991,6 +2135,7 @@ function renderMenu() {
         // Imagen full-bleed con gradiente + botón fav flotante
         `<div class="product-img${img?'':' no-img'}${img?' product-img-clickable':''}" ${img?`style="background-image:url(${img})" data-lightbox-id="${p.id}"`:''}>${img?'':'📷'}`+
         `<div class="cv-hot-badge">🔥 HOT</div>`+
+        (hasUnavail?`<div class="ing-unavail-badge">${unavailBadgeText}</div>`:'')+
         `<button class="fav-btn" data-fav="${p.id}">${isFav?'❤️':'🤍'}</button>`+
         (p.available===false?'':`<button class="product-add${inCart?' in-cart':''}" data-add="${p.id}">${inCart?'✓':'+'}</button>`)+
         `</div>`+
@@ -1998,7 +2143,11 @@ function renderMenu() {
         // Info debajo
         `<div class="product-info">`+
           `<div class="product-top">${badgesHTML}<div class="product-name-pub">${prodName}${p.available===false?`<span class="unavailable-badge">${translateText('Agotado',currentLang)}</span>`:''}</div></div>`+
-          `<div class="product-bot"><div class="product-price-pub">${formatPrice(p.price)}</div></div>`+
+          `<div class="product-bot">${(()=>{
+            const disc = getProductDiscount(p.id);
+            if(disc) return '<div class="product-price-disc"><span class="price-original">'+formatPrice(disc.originalPrice)+'</span><span class="price-badge">'+disc.badge+'</span><span class="price-final">'+formatPrice(disc.finalPrice)+'</span></div>';
+            return '<div class="product-price-pub">'+formatPrice(p.price)+'</div>';
+          })()}</div>`+
         `</div>`+
         `</div>`+ // end product-face-front
         // CARA TRASERA (flip)
@@ -2042,13 +2191,12 @@ function renderMenu() {
   });
   content.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
-    addToCart(b.dataset.add);
+    safeAddToCart(b.dataset.add);
   }));
   content.querySelectorAll('[data-flip-add]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
-    addToCart(b.dataset.flipAdd);
-    // Voltear de vuelta
     const item = b.closest('.product-item');
+    safeAddToCart(b.dataset.flipAdd, undefined, () => { if(item) item.classList.remove('flipped'); });
     if(item) item.classList.remove('flipped');
   }));
   content.querySelectorAll('[data-fav]').forEach(b => b.addEventListener('click', e => {
@@ -2266,17 +2414,7 @@ function openProductDetail(prodId) {
       if(navigator.vibrate) navigator.vibrate(20);
     });
     document.getElementById('pmAddCart').addEventListener('click', () => {
-      const existing = cart.find(c => c.id === prodId);
-      if(existing) {
-        existing.qty = currentQty;
-      } else {
-        cart.push({id:prodId, name:p.name, price:p.price, img:p.img, qty:currentQty, note:''});
-      }
-      saveCart();
-      updateCartUI();
-      refreshProductButtons();
-      closeProductDetail();
-      if(navigator.vibrate) navigator.vibrate(40);
+      safeAddToCart(prodId, currentQty, closeProductDetail);
     });
   }
 
@@ -2297,24 +2435,43 @@ document.getElementById('prodModal').addEventListener('click', e => {
 });
 
 // CART
-function addToCart(prodId) {
+// Función central para agregar al carrito — verifica ingredientes no disponibles
+function safeAddToCart(prodId, qty, onAfterAdd) {
+  const prod = menuData.products.find(p => p.id === prodId);
+  if(!prod) return;
+  const unavailIngs = getUnavailableIngs(prod);
+  if(unavailIngs.length > 0) {
+    openIngReplacementModal(prod, unavailIngs, qty, onAfterAdd);
+  } else {
+    addToCart(prodId, qty);
+    if(typeof onAfterAdd === 'function') onAfterAdd();
+  }
+}
+
+function addToCart(prodId, forcedQty) {
   const p = menuData.products.find(x => x.id === prodId);
   if(!p || p.available === false) return;
   // Si el producto tiene selección vinculada → abrir modal de promo
   if((p.linkedCatId || (p.linkedProds && p.linkedProds.length)) && typeof openPromoSelectModal === 'function') {
-    if(openPromoSelectModal(prodId)) return; // modal abierto — esperar confirmación
+    if(openPromoSelectModal(prodId)) return;
   }
+  const disc = getProductDiscount(prodId);
+  const price = disc ? disc.finalPrice : p.price;
   const existing = cart.find(c => c.id === prodId && !c.linkedSelection);
-  if(existing) existing.qty++;
-  else cart.push({id:prodId, name:p.name, price:p.price, img:p.img, qty:1, note:''});
+  if(forcedQty !== undefined) {
+    // Qty explícita (desde modal de detalle)
+    if(existing) { existing.qty = forcedQty; }
+    else { cart.push({id:prodId, name:p.name, price, img:p.img, qty:forcedQty, note:'', ...(disc?{originalPrice:p.price, discountBadge:disc.badge}:{})}); }
+  } else {
+    if(existing) existing.qty++;
+    else cart.push({id:prodId, name:p.name, price, img:p.img, qty:1, note:'', ...(disc?{originalPrice:p.price, discountBadge:disc.badge}:{})});
+  }
   saveCart();
   updateCartUI();
-  // Fly to cart + haptic
   const btn = document.querySelector(`[data-add="${prodId}"]`);
   if(btn) flyToCart(btn, p.img ? processDriveUrl(p.img) : null);
   haptic('add');
   if(typeof playPopSound === 'function') playPopSound();
-  // Actualizar solo botones + sin destruir el DOM del builder
   refreshProductButtons();
   triggerComboSuggestion(p);
 }
@@ -2788,7 +2945,11 @@ function openConfirmModal({ name, addr, notes }) {
     cart.forEach(function(item) {
       var lt = item.price * item.qty;
       m += '• ' + item.qty + 'x ' + item.name + '\n';
-      m += '   ' + formatPrice(item.price) + ' c/u → *' + formatPrice(lt) + '*\n';
+      if(item.originalPrice) {
+        m += '   ~~' + formatPrice(item.originalPrice) + '~~ → *' + formatPrice(item.price) + '* c/u ' + (item.discountBadge?'('+item.discountBadge+')':'') + ' → *' + formatPrice(lt) + '*\n';
+      } else {
+        m += '   ' + formatPrice(item.price) + ' c/u → *' + formatPrice(lt) + '*\n';
+      }
       if(item.agregados && item.agregados.length) m += '   ➕ _Extras: ' + item.agregados.join(', ') + '_\n';
       if(item.note && item.note.trim()) m += '   📝 _' + item.note.trim() + '_\n';
       m += '\n';
@@ -3037,7 +3198,7 @@ function renderFavPanel() {
         (p.available===false?'':`<button class="product-add${inCart?' in-cart':''}" data-add="${p.id}">${inCart?'✓':'+'}</button>`)+
         `</div>`+
         `<div class="product-info"><div class="product-top">${badgesHTML}<div class="product-name-pub">${p.name||'Sin nombre'}</div></div>`+
-        `<div class="product-bot"><div class="product-price-pub">${formatPrice(p.price)}</div></div></div>`;
+        `<div class="product-bot">${(()=>{const disc=getProductDiscount(p.id);if(disc)return '<div class="product-price-disc"><span class="price-original">'+formatPrice(disc.originalPrice)+'</span><span class="price-badge">'+disc.badge+'</span><span class="price-final">'+formatPrice(disc.finalPrice)+'</span></div>';return '<div class="product-price-pub">'+formatPrice(p.price)+'</div>';})()}</div></div>`;
       item.querySelector('[data-fav]').addEventListener('click', e => { e.stopPropagation(); toggleFavorite(p.id); renderFavPanel(); wrap.remove(); document.getElementById('menuContent').style.display=''; document.getElementById('catTabsWrap').style.display=''; activeQuickTab=null; document.getElementById('qtFavs').classList.remove('active'); });
       if(item.querySelector('[data-add]')) item.querySelector('[data-add]').addEventListener('click', e => { e.stopPropagation(); addToCart(p.id); });
       item.addEventListener('click', e => { if(!e.target.closest('[data-add],[data-fav]')) openProductDetail(p.id); });
@@ -3637,8 +3798,7 @@ function openLightbox(prodId) {
   const addBtn = document.getElementById('lightboxAddBtn');
   addBtn.textContent = currentLang === 'en' ? '🛒 ADD TO CART' : '🛒 AGREGAR AL CARRITO';
   addBtn.onclick = () => {
-    addToCart(prodId);
-    closeLightbox();
+    safeAddToCart(prodId, undefined, closeLightbox);
   };
   document.getElementById('lightbox').classList.add('active');
   document.body.style.overflow = 'hidden';

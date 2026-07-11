@@ -394,6 +394,7 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       <div class="nav-item" data-section="badges"><span class="nav-icon">🏷️</span><span>Badges</span></div>
       <div class="nav-item" data-section="combos"><span class="nav-icon">🎁</span><span>Combos</span></div>
       <div class="nav-item" data-section="upcoming"><span class="nav-icon">🔜</span><span>Próximamente</span></div>
+      <div class="nav-item" data-section="discounts"><span class="nav-icon">🔖</span><span>Descuentos</span></div>
       <div class="nav-section-title">Operación</div>
       <div class="nav-item" data-section="hours"><span class="nav-icon">⏰</span><span>Horarios</span></div>
       <div class="nav-item" data-section="delivery"><span class="nav-icon">🛵</span><span>Delivery</span></div>
@@ -878,6 +879,86 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
       </div>
 
       <!-- UPCOMING / PRÓXIMAMENTE -->
+      <!-- ── DESCUENTOS ─────────────────────────────────── -->
+      <div class="section-view" data-view="discounts" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">DESCUEN<span>TOS</span></div><div class="page-subtitle">Ofertas especiales por producto</div></div>
+          <button class="btn btn-primary btn-sm" id="btnAddDiscount">+ NUEVO DESCUENTO</button>
+        </div>
+
+        <div class="tip-box" style="margin-bottom:16px"><span class="tip-icon">💡</span><div>Los descuentos se aplican sobre el precio original del producto sin modificarlo. Al desactivar un descuento, el precio vuelve automáticamente al original.</div></div>
+
+        <!-- LISTA DE DESCUENTOS ACTIVOS -->
+        <div id="discountList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px"></div>
+
+        <!-- FORMULARIO CREAR/EDITAR -->
+        <div class="card" id="discountFormCard">
+          <div class="card-header">
+            <div class="card-title" id="discountFormTitle">➕ Nuevo Descuento</div>
+            <button class="btn btn-ghost btn-sm" id="btnCancelDiscount" style="display:none">Cancelar</button>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
+
+            <!-- Producto -->
+            <div class="field">
+              <span class="field-label">Producto</span>
+              <select class="input" id="discProdId">
+                <option value="">— Elige un producto —</option>
+              </select>
+            </div>
+
+            <!-- Tipo de descuento -->
+            <div class="field">
+              <span class="field-label">Tipo de Descuento</span>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button type="button" class="btn btn-sm disc-type-btn active" id="discTypePercent" data-type="percent" style="flex:1">🏷️ Porcentaje (%)</button>
+                <button type="button" class="btn btn-sm disc-type-btn" id="discTypeFixed" data-type="fixed" style="flex:1">💰 Precio de Oferta</button>
+              </div>
+            </div>
+
+            <!-- Input porcentaje -->
+            <div class="field" id="discPercentField">
+              <span class="field-label">Porcentaje de Descuento</span>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                <input type="number" class="input" id="discPercent" min="1" max="99" value="20" style="width:90px;text-align:center;font-size:20px;font-weight:700">
+                <span style="font-size:20px;font-weight:700;color:var(--primary)">%</span>
+                <span style="font-size:12px;color:var(--text-mute)">de descuento</span>
+              </div>
+            </div>
+
+            <!-- Input precio fijo -->
+            <div class="field" id="discFixedField" style="display:none">
+              <span class="field-label">Precio de Oferta</span>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                <span style="font-size:16px;font-weight:700;color:var(--text-dim)">$</span>
+                <input type="number" class="input" id="discFixedPrice" min="0" step="100" placeholder="Ej: 5500" style="width:150px;font-size:18px;font-weight:700">
+              </div>
+            </div>
+
+            <!-- Preview dinámico -->
+            <div id="discPreview" style="background:var(--bg-3);border:1px solid var(--bg-4);border-radius:12px;padding:16px;display:none">
+              <div style="font-size:11px;font-weight:700;color:var(--text-mute);letter-spacing:0.1em;margin-bottom:10px">PREVIEW EN EL MENÚ</div>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span id="discPreviewOriginal" style="font-size:14px;text-decoration:line-through;color:var(--text-mute)"></span>
+                <span id="discPreviewBadge" style="background:rgba(255,68,0,0.15);color:#ff6030;border:1px solid rgba(255,68,0,0.3);border-radius:20px;font-size:11px;font-weight:800;padding:3px 10px"></span>
+                <span id="discPreviewFinal" style="font-size:22px;font-weight:900;color:var(--primary)"></span>
+              </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="field">
+              <span class="field-label">Estado</span>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+                <div class="toggle on" id="discActiveToggle"></div>
+                <span id="discActiveLabel" style="font-size:13px;color:var(--text-dim)">Activo</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" id="btnSaveDiscount" style="width:100%" disabled>💾 GUARDAR DESCUENTO</button>
+          </div>
+        </div>
+      </div>
+
       <div class="section-view" data-view="upcoming" style="display:none">
         <div class="page-header">
           <div><div class="page-title">PRÓXI<span>MAMENTE</span></div><div class="page-subtitle">Productos en pre-lanzamiento</div></div>
@@ -1106,6 +1187,20 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
         </div>
       </div>
 
+      <!-- INGREDIENTES DEL PRODUCTO -->
+      <div class="field" id="prodIngSection">
+        <span class="field-label">🧪 Ingredientes del Producto <span style="color:var(--text-mute);font-weight:400">(opcional)</span></span>
+        <input class="input" id="prodIngInput" type="text" placeholder="Ej: Queso, Tomate, Jamón" style="margin-top:8px">
+        <span class="field-hint">Separa con comas. Marca los que estén agotados para que el cliente elija un reemplazo.</span>
+        <div id="prodIngList" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+        <!-- Selector de reemplazos permitidos -->
+        <div id="prodReplSection" style="display:none;margin-top:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--text-mute);letter-spacing:0.1em;margin-bottom:8px">REEMPLAZOS DISPONIBLES PARA EL CLIENTE</div>
+          <div class="tip-box" style="margin-bottom:10px"><span class="tip-icon">⚠️</span><div>Elige qué ingredientes del catálogo puede usar el cliente como reemplazo. El precio no cambia — el reemplazo va incluido.</div></div>
+          <div id="prodReplList" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+      </div>
+
       <div class="field"><div style="display:flex;align-items:center;gap:12px"><div class="toggle" id="prodAvailToggle"></div><div><div style="font-weight:600">Producto disponible</div><div class="field-hint" style="margin-top:2px">Desactivar = aparece como agotado</div></div></div></div>
     </div>
     <div class="modal-footer">
@@ -1155,6 +1250,7 @@ async function initData() {
     data.payment = d.payment || {};
     data.badges = d.badges ? Object.values(d.badges) : [];
     data.upcoming = d.upcoming ? Object.values(d.upcoming) : [];
+    data.discounts = d.discounts ? (Array.isArray(d.discounts) ? d.discounts : Object.values(d.discounts)) : [];
     data.announcements = d.announcements ? (Array.isArray(d.announcements) ? d.announcements : Object.values(d.announcements)) : [];
     data.announcement = d.announcement || {active:false,icon:'📣',text:'',sub:'',color:'#f5a623',style:'flash',countdown:false,countdownHour:22,countdownMin:0};
     data.design = d.design || {primary:'#00b4a6',accent:'#f5a623',font:'Bebas Neue',mode:'dark',cardStyle:'horizontal',titleStyle:'mix'};
@@ -1207,6 +1303,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if(sec==='payment') loadPaymentForm();
     if(sec==='badges') renderBadges();
     if(sec==='combos') renderCombos();
+    if(sec==='discounts') renderDiscounts();
     if(sec==='upcoming') renderUpcoming();
     if(sec==='announcement') loadAnnouncementForm();
     if(sec==='design') loadDesignForm();
@@ -1630,6 +1727,8 @@ function openProductModal(id=null) {
     }
     const maxSel = document.getElementById('prodMaxSelections');
     if(maxSel) maxSel.value = p.maxSelections || 1;
+    // Load product ingredients section
+    renderProdIngSection(p);
   } else {
     title.textContent = '🍕 Nuevo Producto';
     catSel.value = data.categories[0].id;
@@ -1642,8 +1741,110 @@ function openProductModal(id=null) {
     _setPromoMode('none');
     const maxSel = document.getElementById('prodMaxSelections');
     if(maxSel) maxSel.value = 1;
+    // Reset ingredients section for new product
+    renderProdIngSection(null);
   }
   modal.classList.add('active');
+}
+
+// ── INGREDIENTES DEL PRODUCTO ──────────────────────────────────────
+function renderProdIngSection(p) {
+  const ingInput  = document.getElementById('prodIngInput');
+  const ingList   = document.getElementById('prodIngList');
+  const replSection = document.getElementById('prodReplSection');
+  const replList  = document.getElementById('prodReplList');
+  if(!ingInput || !ingList) return;
+
+  // Limpiar listener anterior para evitar duplicados
+  const newInput = ingInput.cloneNode(true);
+  ingInput.parentNode.replaceChild(newInput, ingInput);
+
+  // Estado: ingredientes con disponibilidad y reemplazos permitidos
+  let prodIngs = p && p.prodIngs ? p.prodIngs.map(i=>({...i})) : [];
+  let allowedRepls = p && p.allowedRepls ? [...p.allowedRepls] : [];
+
+  // Ingredientes del catálogo de la misma categoría (para reemplazos)
+  const catId = p ? p.catId : document.getElementById('prodCat').value;
+  const catIngs = data.ingredients.filter(i => i.catId === catId);
+
+  // Poblar el input con los ingredientes actuales del producto
+  newInput.value = prodIngs.map(i => i.name).join(', ');
+
+  function rebuildIngList() {
+    // Parsear el input actual
+    const inputVal = newInput.value;
+    const names = inputVal.split(',').map(s=>s.trim()).filter(Boolean);
+
+    // Merge: conservar estado unavailable de los existentes, agregar nuevos
+    const merged = names.map(name => {
+      const existing = prodIngs.find(i => i.name.toLowerCase() === name.toLowerCase());
+      return { name, unavailable: existing ? existing.unavailable : false };
+    });
+    prodIngs = merged;
+
+    ingList.innerHTML = '';
+    if(!prodIngs.length) {
+      replSection.style.display = 'none';
+      return;
+    }
+
+    const hasUnavail = prodIngs.some(i => i.unavailable);
+
+    prodIngs.forEach((ing, idx) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:1.5px solid '+(ing.unavailable?'rgba(220,38,38,0.4)':'var(--bg-4)')+';background:'+(ing.unavailable?'rgba(220,38,38,0.06)':'var(--bg-3)');
+      row.innerHTML =
+        '<div style="flex:1;font-size:13px;font-weight:600;color:'+(ing.unavailable?'#f87171':'var(--text)')+'">'+ing.name+'</div>'+
+        '<span style="font-size:10px;font-weight:700;color:'+(ing.unavailable?'#f87171':'var(--green)')+'">'+( ing.unavailable?'⚠️ Agotado':'✅ Disponible')+'</span>'+
+        '<button type="button" style="padding:5px 12px;font-size:11px;font-weight:700;border-radius:8px;cursor:pointer;border:none;'+(ing.unavailable?'background:rgba(34,170,85,0.12);color:#4ade80':'background:rgba(220,38,38,0.1);color:#f87171')+'">'+( ing.unavailable?'✅ Marcar disponible':'⚠️ Marcar agotado')+'</button>';
+
+      row.querySelector('button').addEventListener('click', () => {
+        prodIngs[idx].unavailable = !prodIngs[idx].unavailable;
+        rebuildIngList();
+      });
+      ingList.appendChild(row);
+    });
+
+    // Selector de reemplazos — solo si hay alguno agotado
+    replSection.style.display = hasUnavail && catIngs.length ? '' : 'none';
+    if(hasUnavail) {
+      replList.innerHTML = '';
+      if(!catIngs.length) {
+        replList.innerHTML = '<div style="font-size:12px;color:var(--text-mute)">No hay ingredientes en el catálogo para esta categoría.</div>';
+        return;
+      }
+      catIngs.forEach(ing => {
+        const isAllowed = allowedRepls.includes(ing.id);
+        const ingImg = ing.img ? processDriveUrl(ing.img) : '';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1.5px solid '+(isAllowed?'var(--primary)':'var(--bg-4)')+';background:'+(isAllowed?'rgba(0,180,166,0.07)':'var(--bg-3)')+';cursor:pointer;transition:all 0.15s';
+        row.innerHTML =
+          '<div style="width:28px;height:28px;border-radius:6px;background:var(--bg-4);'+(ingImg?'background-image:url('+ingImg+');background-size:cover;background-position:center':'')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px">'+(ingImg?'':'🧂')+'</div>'+
+          '<span style="flex:1;font-size:12px;font-weight:600;color:'+(isAllowed?'var(--primary)':'var(--text)')+'">'+ing.name+'</span>'+
+          '<div style="width:18px;height:18px;border-radius:5px;border:1.5px solid '+(isAllowed?'var(--primary)':'var(--bg-4)')+';background:'+(isAllowed?'var(--primary)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:10px;color:'+(isAllowed?'#012e29':'transparent')+'">✓</div>';
+        row.addEventListener('click', () => {
+          if(isAllowed) allowedRepls = allowedRepls.filter(id => id !== ing.id);
+          else allowedRepls.push(ing.id);
+          rebuildIngList();
+        });
+        replList.appendChild(row);
+      });
+    }
+  }
+
+  // Reconstruir lista cuando el dueño escribe en el input (debounced)
+  let debounceTimer;
+  newInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(rebuildIngList, 400);
+  });
+
+  // Construir lista inicial
+  rebuildIngList();
+
+  // Exponer estado para el guardado
+  document.getElementById('prodIngSection')._getProdIngs = () => prodIngs;
+  document.getElementById('prodIngSection')._getAllowedRepls = () => allowedRepls;
 }
 
 document.getElementById('btnAddProd').addEventListener('click', () => openProductModal());
@@ -1655,6 +1856,9 @@ document.getElementById('modalProductSave').addEventListener('click', async () =
   const name = document.getElementById('prodName').value.trim();
   if(!name) { alert('Ingresa el nombre del producto'); return; }
   const linkedCatSel = document.getElementById('prodLinkedCat');
+  const ingSection = document.getElementById('prodIngSection');
+  const prodIngs = ingSection._getProdIngs ? ingSection._getProdIngs() : null;
+  const allowedRepls = ingSection._getAllowedRepls ? ingSection._getAllowedRepls() : [];
   const prod = {
     id: editingProduct || 'p_'+Date.now()+'_'+Math.floor(Math.random()*999),
     catId: document.getElementById('prodCat').value,
@@ -1667,6 +1871,9 @@ document.getElementById('modalProductSave').addEventListener('click', async () =
     linkedCatId: _promoMode==='cat' && linkedCatSel ? (linkedCatSel.value||null) : null,
     linkedProds: _promoMode==='prods' && _selectedLinkedProds.length ? [..._selectedLinkedProds] : null,
     maxSelections: _promoMode!=='none' ? (parseInt(document.getElementById('prodMaxSelections').value)||1) : null,
+    // Ingredientes individuales con disponibilidad
+    prodIngs: prodIngs && prodIngs.length ? prodIngs : null,
+    allowedRepls: allowedRepls.length ? allowedRepls : null,
   };
   if(editingProduct) {
     const idx = data.products.findIndex(p => p.id===editingProduct);
@@ -1854,13 +2061,34 @@ function renderIngredients() {
         `<div style="font-size:13px;font-weight:600;color:var(--text)">${ing.name||'Sin nombre'}</div>`+
         `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px">`+
           `<span style="font-size:11px;color:var(--accent);font-family:'Bebas Neue',sans-serif">${priceStr}</span>`+
-          `<span style="font-size:10px;color:${avail?'var(--green)':'var(--red)'}">${avail?'● Disponible':'● Agotado'}</span>`+
+          `<span class="ing-avail-lbl" style="font-size:10px;color:${avail?'var(--green)':'var(--red)'}">${avail?'● Disponible':'⚠️ No disponible'}</span>`+
         `</div>`+
       `</div>`+
-      `<div style="display:flex;gap:4px;flex-shrink:0">`+
+      `<div style="display:flex;gap:4px;flex-shrink:0;align-items:center">`+
+        `<button class="icon-btn ${avail?'':'active'}" data-ing-avail="${ing.id}" title="${avail?'Marcar no disponible':'Marcar disponible'}" style="font-size:13px;padding:4px 8px;border-radius:6px;${avail?'':'background:rgba(220,38,38,0.15);color:var(--red);border-color:rgba(220,38,38,0.3)'}">${avail?'✅':'⚠️'}</button>`+
         `<button class="icon-btn" data-ing-edit="${ing.id}" title="Editar">✏️</button>`+
         `<button class="icon-btn danger" data-ing-del="${ing.id}" title="Eliminar">🗑</button>`+
       `</div>`;
+    row.querySelector('[data-ing-avail]').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const ingIdx = data.ingredients.findIndex(i => i.id === ing.id);
+      if(ingIdx < 0) return;
+      const nowAvail = data.ingredients[ingIdx].available === false; // toggle
+      data.ingredients[ingIdx].available = nowAvail ? true : false;
+      await saveData('ingredients', data.ingredients);
+      const btn = row.querySelector('[data-ing-avail]');
+      const lbl = row.querySelector('.ing-avail-lbl');
+      if(nowAvail) {
+        btn.textContent = '✅'; btn.title = 'Marcar no disponible';
+        btn.style.cssText = 'font-size:13px;padding:4px 8px;border-radius:6px';
+        lbl.style.color = 'var(--green)'; lbl.textContent = '● Disponible';
+      } else {
+        btn.textContent = '⚠️'; btn.title = 'Marcar disponible';
+        btn.style.cssText = 'font-size:13px;padding:4px 8px;border-radius:6px;background:rgba(220,38,38,0.15);color:var(--red);border-color:rgba(220,38,38,0.3)';
+        lbl.style.color = 'var(--red)'; lbl.textContent = '⚠️ No disponible';
+      }
+      toast((nowAvail ? '✅ '+ing.name+' marcado disponible' : '⚠️ '+ing.name+' marcado no disponible'));
+    });
     row.querySelector('[data-ing-edit]').addEventListener('click', () => openIngredientModal(ing.id));
     row.querySelector('[data-ing-del]').addEventListener('click', () => deleteIngredient(ing.id));
     return row;
@@ -2163,6 +2391,208 @@ const BADGE_PRESETS = [
   {emoji:'🎉',label:'Promo',color:'#3498db'},
   {emoji:'❄️',label:'Frío',color:'#00b4a6'},
 ];
+
+// ── DESCUENTOS ────────────────────────────────────────────────────
+let discEditingId = null;
+let discType = 'percent'; // 'percent' | 'fixed'
+let discActive = true;
+
+function renderDiscounts() {
+  // Populate product selector
+  const sel = document.getElementById('discProdId');
+  if(sel) {
+    sel.innerHTML = '<option value="">— Elige un producto —</option>' +
+      data.products.filter(p => p.available !== false).map(p =>
+        '<option value="'+p.id+'">'+(p.name||'')+(p.price?' — '+formatCLP(p.price):'')+'</option>'
+      ).join('');
+  }
+
+  renderDiscountList();
+  initDiscountForm();
+}
+
+function renderDiscountList() {
+  const list = document.getElementById('discountList');
+  if(!list) return;
+  const discs = data.discounts || [];
+  if(!discs.length) {
+    list.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-icon">🔖</div>No hay descuentos aún. Crea el primero abajo.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  discs.forEach((disc, idx) => {
+    const prod = data.products.find(p => p.id === disc.productId);
+    const prodName = prod ? prod.name : 'Producto eliminado';
+    const origPrice = prod ? prod.price : 0;
+    const finalPrice = disc.type === 'percent'
+      ? Math.round(origPrice * (1 - disc.percent/100))
+      : disc.fixedPrice;
+    const badge = disc.type === 'percent' ? '-'+disc.percent+'%' : 'Oferta';
+
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#0d1015;border:1px solid #1c2028;border-left:3px solid '+(disc.active?'#22aa55':'#4b5563')+';border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;transition:all 0.2s';
+    card.innerHTML =
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:13px;font-weight:800;color:'+(disc.active?'#fff':'#6b7280')+';margin-bottom:4px">'+prodName+'</div>'+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+          '<span style="font-size:13px;text-decoration:line-through;color:#6b7280">'+formatCLP(origPrice)+'</span>'+
+          '<span style="background:rgba(255,68,0,0.15);color:#ff6030;border:1px solid rgba(255,68,0,0.3);border-radius:20px;font-size:10px;font-weight:800;padding:2px 8px">'+badge+'</span>'+
+          '<span style="font-size:16px;font-weight:900;color:#4ade80">'+formatCLP(finalPrice)+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+
+        '<span style="font-size:11px;font-weight:700;color:'+(disc.active?'#4ade80':'#6b7280')+'">'+( disc.active?'✅ Activo':'⏸ Inactivo')+'</span>'+
+        '<button class="btn btn-sm btn-ghost" data-disc-edit="'+idx+'" style="padding:6px 12px">✏️</button>'+
+        '<button class="btn btn-sm" data-disc-del="'+idx+'" style="background:rgba(220,38,38,0.1);color:#f87171;border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:6px 12px">🗑️</button>'+
+      '</div>';
+
+    card.querySelector('[data-disc-edit]').addEventListener('click', () => editDiscount(idx));
+    card.querySelector('[data-disc-del]').addEventListener('click', () => deleteDiscount(idx));
+    list.appendChild(card);
+  });
+}
+
+function initDiscountForm() {
+  // Type buttons
+  document.querySelectorAll('.disc-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      discType = btn.dataset.type;
+      document.querySelectorAll('.disc-type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('discPercentField').style.display = discType==='percent' ? '' : 'none';
+      document.getElementById('discFixedField').style.display = discType==='fixed' ? '' : 'none';
+      updateDiscPreview();
+    });
+  });
+
+  // Active toggle
+  const tog = document.getElementById('discActiveToggle');
+  if(tog) tog.addEventListener('click', () => {
+    discActive = !discActive;
+    tog.className = 'toggle'+(discActive?' on':'');
+    document.getElementById('discActiveLabel').textContent = discActive ? 'Activo' : 'Inactivo';
+  });
+
+  // Product change → update preview
+  document.getElementById('discProdId').addEventListener('change', updateDiscPreview);
+  document.getElementById('discPercent').addEventListener('input', updateDiscPreview);
+  document.getElementById('discFixedPrice').addEventListener('input', updateDiscPreview);
+
+  // Save button
+  document.getElementById('btnSaveDiscount').addEventListener('click', saveDiscount);
+
+  // Add new button
+  document.getElementById('btnAddDiscount').addEventListener('click', resetDiscountForm);
+
+  // Cancel
+  document.getElementById('btnCancelDiscount').addEventListener('click', resetDiscountForm);
+}
+
+function updateDiscPreview() {
+  const prodId = document.getElementById('discProdId').value;
+  const prod = data.products.find(p => p.id === prodId);
+  const preview = document.getElementById('discPreview');
+  const saveBtn = document.getElementById('btnSaveDiscount');
+
+  if(!prod) { preview.style.display='none'; saveBtn.disabled=true; return; }
+
+  const origPrice = prod.price || 0;
+  let finalPrice = origPrice;
+  let badgeText = '';
+
+  if(discType === 'percent') {
+    const pct = parseInt(document.getElementById('discPercent').value) || 0;
+    if(pct > 0 && pct < 100) {
+      finalPrice = Math.round(origPrice * (1 - pct/100));
+      badgeText = '-'+pct+'%';
+    } else { preview.style.display='none'; saveBtn.disabled=true; return; }
+  } else {
+    const fp = parseInt(document.getElementById('discFixedPrice').value) || 0;
+    if(fp > 0 && fp < origPrice) {
+      finalPrice = fp;
+      const saving = Math.round((1 - fp/origPrice)*100);
+      badgeText = '-'+saving+'%';
+    } else { preview.style.display='none'; saveBtn.disabled=true; return; }
+  }
+
+  document.getElementById('discPreviewOriginal').textContent = formatCLP(origPrice);
+  document.getElementById('discPreviewBadge').textContent = badgeText;
+  document.getElementById('discPreviewFinal').textContent = formatCLP(finalPrice);
+  preview.style.display = '';
+  saveBtn.disabled = false;
+}
+
+function resetDiscountForm() {
+  discEditingId = null;
+  discType = 'percent';
+  discActive = true;
+  document.getElementById('discountFormTitle').textContent = '➕ Nuevo Descuento';
+  document.getElementById('btnCancelDiscount').style.display = 'none';
+  document.getElementById('discProdId').value = '';
+  document.getElementById('discPercent').value = '20';
+  document.getElementById('discFixedPrice').value = '';
+  document.getElementById('discPreview').style.display = 'none';
+  document.getElementById('btnSaveDiscount').disabled = true;
+  document.querySelectorAll('.disc-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type==='percent'));
+  document.getElementById('discPercentField').style.display = '';
+  document.getElementById('discFixedField').style.display = 'none';
+  const tog = document.getElementById('discActiveToggle');
+  tog.className = 'toggle on';
+  document.getElementById('discActiveLabel').textContent = 'Activo';
+}
+
+function editDiscount(idx) {
+  const disc = data.discounts[idx];
+  if(!disc) return;
+  discEditingId = idx;
+  discType = disc.type || 'percent';
+  discActive = disc.active !== false;
+
+  document.getElementById('discountFormTitle').textContent = '✏️ Editar Descuento';
+  document.getElementById('btnCancelDiscount').style.display = '';
+  document.getElementById('discProdId').value = disc.productId || '';
+  document.querySelectorAll('.disc-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type===discType));
+  document.getElementById('discPercentField').style.display = discType==='percent' ? '' : 'none';
+  document.getElementById('discFixedField').style.display = discType==='fixed' ? '' : 'none';
+  if(discType==='percent') document.getElementById('discPercent').value = disc.percent || 20;
+  else document.getElementById('discFixedPrice').value = disc.fixedPrice || '';
+  const tog = document.getElementById('discActiveToggle');
+  tog.className = 'toggle'+(discActive?' on':'');
+  document.getElementById('discActiveLabel').textContent = discActive ? 'Activo' : 'Inactivo';
+  updateDiscPreview();
+  document.getElementById('discountFormCard').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+async function deleteDiscount(idx) {
+  if(!confirm('¿Eliminar este descuento?')) return;
+  data.discounts.splice(idx, 1);
+  await saveData('discounts', data.discounts.length ? data.discounts : null);
+  renderDiscountList();
+  toast('✓ Descuento eliminado');
+}
+
+async function saveDiscount() {
+  const prodId = document.getElementById('discProdId').value;
+  if(!prodId) { toast('Elige un producto','error'); return; }
+
+  const disc = {
+    id: discEditingId !== null ? (data.discounts[discEditingId].id||'disc_'+Date.now()) : 'disc_'+Date.now(),
+    productId: prodId,
+    type: discType,
+    active: discActive,
+    percent: discType==='percent' ? (parseInt(document.getElementById('discPercent').value)||20) : null,
+    fixedPrice: discType==='fixed' ? (parseInt(document.getElementById('discFixedPrice').value)||0) : null,
+  };
+
+  if(!data.discounts) data.discounts = [];
+  if(discEditingId !== null) data.discounts[discEditingId] = disc;
+  else data.discounts.push(disc);
+
+  await saveData('discounts', data.discounts);
+  renderDiscountList();
+  resetDiscountForm();
+  toast('✓ Descuento guardado');
+}
 
 function renderBadges() {
   const list = document.getElementById('badgesList');
