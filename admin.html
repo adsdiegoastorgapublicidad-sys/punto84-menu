@@ -1185,6 +1185,13 @@ body::after { content:''; position:fixed; top:0; left:0; right:0; height:3px; ba
             <span style="font-size:12px;color:var(--text-dim)">Ej: 1 para burger simple · 2 para promo 2 pizzas</span>
           </div>
         </div>
+
+        <!-- PRECIOS ESPECIALES POR PRODUCTO -->
+        <div id="promoPricesField" style="display:none;margin-top:16px">
+          <span class="field-label">💰 Precios especiales por producto <span style="color:var(--text-mute);font-weight:400">(opcional)</span></span>
+          <span class="field-hint" style="display:block;margin:6px 0 10px">Si algún producto tiene un precio diferente al de la promo, ingrésalo aquí. Se mostrará como precio especial al cliente.</span>
+          <div id="promoPricesList" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;border:1px solid var(--bg-4);border-radius:10px;padding:10px;background:var(--bg-2)"></div>
+        </div>
       </div>
 
       <!-- INGREDIENTES DEL PRODUCTO -->
@@ -1629,16 +1636,72 @@ async function deleteProduct(id) {
 // Estado del modo de promo para el modal activo
 let _promoMode = 'none';
 let _selectedLinkedProds = [];
+let _promoOverridePrices = {}; // { productId: priceOverride }
 
 function _setPromoMode(mode) {
   _promoMode = mode;
   document.getElementById('promoFieldCat').style.display = mode==='cat' ? '' : 'none';
   document.getElementById('promoFieldProds').style.display = mode==='prods' ? '' : 'none';
   document.getElementById('promoMaxSelectField').style.display = mode!=='none' ? '' : 'none';
+  // Mostrar precios especiales en cualquier modo que no sea 'none'
+  document.getElementById('promoPricesField').style.display = mode!=='none' ? '' : 'none';
+  if(mode!=='none') _renderPromoPricesList();
   ['None','Cat','Prods'].forEach(m => {
     const btn = document.getElementById('promoMode'+m);
     if(!btn) return;
     btn.className = 'btn btn-sm'+(m.toLowerCase()===mode ? ' btn-primary' : ' btn-ghost');
+  });
+}
+
+function _renderPromoPricesList() {
+  const list = document.getElementById('promoPricesList');
+  if(!list) return;
+  // Mostrar TODOS los productos de la categoría vinculada, independiente de linkedProds
+  let targetCatId = null;
+  if(_promoMode === 'cat') {
+    targetCatId = document.getElementById('prodLinkedCat')?.value || null;
+  } else if(_promoMode === 'prods' && _selectedLinkedProds.length) {
+    const firstProd = data.products.find(p => _selectedLinkedProds.includes(p.id));
+    if(firstProd) targetCatId = firstProd.catId;
+  }
+  const targetProds = targetCatId
+    ? data.products.filter(p => p.catId === targetCatId && p.available !== false && p.id !== editingProduct)
+    : [];
+  if(!targetProds.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text-mute);padding:4px">'+
+      (_promoMode==='prods' ? 'Selecciona productos arriba para configurar precios.' : 'Elige una categoría arriba para ver los productos.')+
+    '</div>';
+    return;
+  }
+  list.innerHTML = '';
+  targetProds.forEach(p => {
+    const override = _promoOverridePrices[p.id] || '';
+    const imgUrl = p.img ? processDriveUrl(p.img) : '';
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--bg-4)';
+    row.innerHTML =
+      '<div style="width:32px;height:32px;border-radius:7px;background:var(--bg-4);flex-shrink:0;'+(imgUrl?'background-image:url('+imgUrl+');background-size:cover;background-position:center':'display:flex;align-items:center;justify-content:center;font-size:14px')+'">'+(imgUrl?'':'🍔')+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(p.name||'')+'</div>'+
+        '<div style="font-size:10px;color:var(--text-mute)">Precio base: '+formatCLP(p.price)+'</div>'+
+      '</div>'+
+      '<div style="flex-shrink:0;display:flex;align-items:center;gap:6px">'+
+        '<span style="font-size:11px;color:var(--text-mute)">💰</span>'+
+        '<input type="number" min="0" step="100" placeholder="Sin cambio" value="'+override+'" data-override-id="'+p.id+'" style="width:110px;padding:6px 10px;border-radius:8px;border:1.5px solid '+(override?'var(--primary)':'var(--bg-4)')+';background:var(--bg-3);color:var(--text);font-size:13px;font-weight:700;text-align:center">'+
+      '</div>';
+
+    const input = row.querySelector('input');
+    input.addEventListener('input', () => {
+      const val = parseInt(input.value);
+      if(val > 0) {
+        _promoOverridePrices[p.id] = val;
+        input.style.borderColor = 'var(--primary)';
+      } else {
+        delete _promoOverridePrices[p.id];
+        input.style.borderColor = 'var(--bg-4)';
+      }
+    });
+    list.appendChild(row);
   });
 }
 
@@ -1666,7 +1729,7 @@ function _renderLinkedProdsGrid() {
       const imgUrl = p.img ? processDriveUrl(p.img) : '';
       row.innerHTML =
         '<div style="width:34px;height:34px;border-radius:8px;background:var(--bg-4);'+(imgUrl?'background-image:url('+imgUrl+');background-size:cover;background-position:center':'font-size:18px;display:flex;align-items:center;justify-content:center')+';flex-shrink:0">'+(imgUrl?'':'🍕')+'</div>'+
-        '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">'+( p.name||'')+'</div><div style="font-size:10px;color:var(--text-mute)">$'+(p.price||0).toLocaleString('es-CL')+'</div></div>'+
+        '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">'+(p.name||'')+'</div><div style="font-size:10px;color:var(--text-mute)">$'+(p.price||0).toLocaleString('es-CL')+'</div></div>'+
         '<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(isSel?'var(--primary)':'var(--bg-4)')+';background:'+(isSel?'var(--primary)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:11px;color:'+(isSel?'#012e29':'transparent')+';flex-shrink:0;transition:all 0.15s">✓</div>';
       row.addEventListener('click', () => {
         if(_selectedLinkedProds.includes(p.id)) {
@@ -1675,6 +1738,7 @@ function _renderLinkedProdsGrid() {
           _selectedLinkedProds.push(p.id);
         }
         _renderLinkedProdsGrid();
+        _renderPromoPricesList();
       });
       prodsGrid.appendChild(row);
     });
@@ -1685,6 +1749,7 @@ function openProductModal(id=null) {
   if(!data.categories.length) { alert('Primero crea al menos una categoría.'); return; }
   editingProduct = id;
   _selectedLinkedProds = [];
+  _promoOverridePrices = {};
   const modal = document.getElementById('modalProduct');
   const title = document.getElementById('modalProductTitle');
   const deleteBtn = document.getElementById('modalProductDelete');
@@ -1702,6 +1767,9 @@ function openProductModal(id=null) {
   document.getElementById('promoModeNone').onclick = () => _setPromoMode('none');
   document.getElementById('promoModeCat').onclick  = () => _setPromoMode('cat');
   document.getElementById('promoModeProds').onclick = () => { _setPromoMode('prods'); _renderLinkedProdsGrid(); };
+  // Refresh prices list when cat changes
+  const _lcSel = document.getElementById('prodLinkedCat');
+  if(_lcSel) _lcSel.onchange = () => { if(_promoMode==='cat') _renderPromoPricesList(); };
 
   if(id) {
     const p = data.products.find(x => x.id===id);
@@ -1717,6 +1785,7 @@ function openProductModal(id=null) {
     // Restore promo mode
     if(p.linkedProds && p.linkedProds.length) {
       _selectedLinkedProds = [...p.linkedProds];
+      _promoOverridePrices = p.promoOverridePrices ? {...p.promoOverridePrices} : {};
       _setPromoMode('prods');
       _renderLinkedProdsGrid();
     } else if(p.linkedCatId) {
@@ -1735,7 +1804,6 @@ function openProductModal(id=null) {
     document.getElementById('prodName').value = '';
     document.getElementById('prodDesc').value = '';
     document.getElementById('prodPrice').value = '';
-    document.getElementById('prodImg').value = '';
     document.getElementById('prodAvailToggle').classList.add('on');
     deleteBtn.style.display = 'none';
     _setPromoMode('none');
@@ -1870,6 +1938,7 @@ document.getElementById('modalProductSave').addEventListener('click', async () =
     // Promo selectors — solo uno de los dos aplica según modo
     linkedCatId: _promoMode==='cat' && linkedCatSel ? (linkedCatSel.value||null) : null,
     linkedProds: _promoMode==='prods' && _selectedLinkedProds.length ? [..._selectedLinkedProds] : null,
+    promoOverridePrices: _promoMode==='prods' && Object.keys(_promoOverridePrices).length ? {..._promoOverridePrices} : null,
     maxSelections: _promoMode!=='none' ? (parseInt(document.getElementById('prodMaxSelections').value)||1) : null,
     // Ingredientes individuales con disponibilidad
     prodIngs: prodIngs && prodIngs.length ? prodIngs : null,
