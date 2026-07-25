@@ -1964,10 +1964,14 @@ function renderMenu() {
 
     // Vista builder — renderizado 100% inline
     if(hasBuilder) {
-      // Pre-seleccionar Masa Base
+      // Pre-seleccionar Masa Base y Queso (ingredientes siempre incluidos)
       if(!builderSelections[cat.id]) {
         const masaBase = builderIngs.find(i => /masa\s*base/i.test(i.name||''));
-        if(masaBase) builderSelections[cat.id] = { [masaBase.id]: masaBase.price||0 };
+        const queso = builderIngs.find(i => /^queso$/i.test((i.name||'').trim()));
+        const presel = {};
+        if(masaBase) presel[masaBase.id] = masaBase.price||0;
+        if(queso) presel[queso.id] = queso.price||0;
+        if(Object.keys(presel).length) builderSelections[cat.id] = presel;
       }
       const bSel = builderSelections[cat.id] || {};
       let builderItemsHTML = '';
@@ -1975,9 +1979,11 @@ function renderMenu() {
         const ingImg = processDriveUrl(ing.img);
         const isSel = !!bSel[ing.id];
         const isMasa = /masa\s*base/i.test(ing.name||'');
-        builderItemsHTML += '<div class="builder-item'+(isSel?' selected':'')+'" data-ing="'+ing.id+'" data-cat="'+cat.id+'" data-price="'+(ing.price||0)+'" data-masa="'+(isMasa?'1':'0')+'">'
+        const isQueso = /^queso$/i.test((ing.name||'').trim());
+        const isRequired = isMasa || isQueso;
+        builderItemsHTML += '<div class="builder-item'+(isSel?' selected':'')+'" data-ing="'+ing.id+'" data-cat="'+cat.id+'" data-price="'+(ing.price||0)+'" data-masa="'+(isRequired?'1':'0')+'">'
           +'<div class="builder-img'+(ingImg?'':' no-img')+'"'+(ingImg?' style="background-image:url('+ingImg+')"':'')+'>'+(!ingImg?'🧀':'')+'</div>'
-          +'<div class="builder-name">'+(ing.name||'')+(isMasa?' <span style="font-size:9px;color:var(--primary)">(requerida)</span>':'')+'</div>'
+          +'<div class="builder-name">'+(ing.name||'')+(isRequired?' <span style="font-size:9px;color:var(--primary)">(requerido)</span>':'')+'</div>'
           +'<div class="ing-checkbox">✓</div>'
           +'<div class="builder-price">'+(ing.price?formatPrice(ing.price):'Gratis')+'</div>'
           +'</div>';
