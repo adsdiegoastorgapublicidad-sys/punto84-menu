@@ -1852,6 +1852,18 @@ function getProductDiscount(prodId) {
   const prod = menuData.products.find(p => p.id === prodId);
   if(!prod) return null;
   const orig = prod.price || 0;
+  return applyDiscount(orig, disc);
+}
+
+// Aplica un descuento a cualquier precio base (útil para promos con precio override)
+function applyDiscountToPromo(prodId, basePrice) {
+  const discs = menuData.discounts || [];
+  const disc = discs.find(d => d.productId === prodId && d.active !== false);
+  if(!disc) return null;
+  return applyDiscount(basePrice, disc);
+}
+
+function applyDiscount(orig, disc) {
   let final = orig;
   let badge = '';
   if(disc.type === 'percent' && disc.percent > 0) {
@@ -4780,7 +4792,9 @@ function openPromoSelectModal(promoProdId) {
     const overrides = promo.promoOverridePrices || {};
     return Object.entries(itemCounts).reduce((s,[id,qty]) => {
       const base = overrides[id] || promo.price;
-      return s + (base + getExtrasTotal(id)) * qty;
+      const disc = applyDiscountToPromo(_promoSelectProdId, base);
+      const effective = disc ? disc.finalPrice : base;
+      return s + (effective + getExtrasTotal(id)) * qty;
     }, 0);
   }
 
@@ -4843,7 +4857,12 @@ function openPromoSelectModal(promoProdId) {
       '<div class="promo-opt-info">'+
         '<div class="promo-opt-name">'+(p.name||'')+'</div>'+
         '<div class="promo-opt-price">'+(p.description?p.description.slice(0,40):'Incluida en tu promo')+'</div>'+
-        (promo.promoOverridePrices&&promo.promoOverridePrices[p.id]?'<div style="display:inline-flex;align-items:center;gap:4px;margin-top:4px;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:20px;padding:2px 8px"><span style="font-size:9px;color:#f5a623;font-weight:800">💰 Precio especial: '+formatPrice(promo.promoOverridePrices[p.id])+'</span></div>':'')+
+        (promo.promoOverridePrices&&promo.promoOverridePrices[p.id] ? (()=>{
+          const baseOvr = promo.promoOverridePrices[p.id];
+          const discOvr = applyDiscountToPromo(_promoSelectProdId, baseOvr);
+          if(discOvr) return '<div style="display:inline-flex;align-items:center;gap:4px;margin-top:4px;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:20px;padding:2px 8px"><span style="font-size:9px;color:#f5a623;font-weight:800">💰 <s>'+formatPrice(baseOvr)+'</s> → '+formatPrice(discOvr.finalPrice)+' ('+discOvr.badge+')</span></div>';
+          return '<div style="display:inline-flex;align-items:center;gap:4px;margin-top:4px;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);border-radius:20px;padding:2px 8px"><span style="font-size:9px;color:#f5a623;font-weight:800">💰 Precio especial: '+formatPrice(baseOvr)+'</span></div>';
+        })() : '')+
       '</div>';
 
     // Acordeón de extras — declarado ANTES del click handler para evitar TDZ
@@ -4982,7 +5001,10 @@ document.getElementById('promoConfirmBtn').addEventListener('click', () => {
     const promoPriceOverride = selectedFixed.reduce((max, p) => {
       return overridePrices[p.id] ? Math.max(max, overridePrices[p.id]) : max;
     }, 0);
-    const finalCartPrice = promoPriceOverride || promo.price;
+    const baseCartPrice = promoPriceOverride || promo.price;
+    // Aplicar descuento si existe para esta promo
+    const comboDisc = applyDiscountToPromo(_promoSelectProdId, baseCartPrice);
+    const finalCartPrice = comboDisc ? comboDisc.finalPrice : baseCartPrice;
     const existing = cart.find(c => c.id===_promoSelectProdId && c.linkedSelection===selIds);
     if(existing) {
       existing.qty++;
@@ -4995,7 +5017,8 @@ document.getElementById('promoConfirmBtn').addEventListener('click', () => {
         qty: 1, note: '',
         linkedSelection: selIds,
         linkedSelectionName: selNames,
-        ...(promoPriceOverride ? {originalPromoPrice: promo.price} : {}),
+        ...(comboDisc ? {originalPrice: baseCartPrice, discountBadge: comboDisc.badge} : {}),
+        ...(promoPriceOverride && !comboDisc ? {originalPromoPrice: promo.price} : {}),
       });
     }
     saveCart(); updateCartUI(); refreshProductButtons();
@@ -5028,7 +5051,10 @@ document.getElementById('promoConfirmBtn').addEventListener('click', () => {
     // promoOverridePrices: { prodId: price } definido en la promo
     const overridePrices = promo.promoOverridePrices || {};
     const basePrice = overridePrices[prodId] || promo.price;
-    const finalPrice = basePrice + extrasTotal;
+    // Aplicar descuento si existe para esta promo
+    const promoDisc = applyDiscountToPromo(_promoSelectProdId, basePrice);
+    const discountedBase = promoDisc ? promoDisc.finalPrice : basePrice;
+    const finalPrice = discountedBase + extrasTotal;
     const cartName = promo.name + ' — ' + selectedProd.name;
     const selectionKey = _promoSelectProdId + '_' + prodId;
     const existing = cart.find(c =>
@@ -5049,6 +5075,7 @@ document.getElementById('promoConfirmBtn').addEventListener('click', () => {
         linkedSelection: selectionKey,
         linkedSelectionName: selectedProd.name,
         agregados: extrasNames.length ? extrasNames : undefined,
+        ...(promoDisc ? {originalPrice: basePrice, discountBadge: promoDisc.badge} : {}),
       });
     }
   });
